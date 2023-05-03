@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      - name: Set environment
+        run: echo -e "${{ secrets.FRONT_ENV }}" >> .env
+
       - name: Build
         run: yarn build
 
