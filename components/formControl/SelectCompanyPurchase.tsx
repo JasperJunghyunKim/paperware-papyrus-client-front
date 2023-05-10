@@ -1,4 +1,4 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
 import classNames from "classnames";
@@ -13,10 +13,13 @@ interface Props {
 }
 
 export default function Component(props: Props) {
-  const [list, _page, _setPage] =
-    Api.Internal.BusinessRelationship.useGetBusinessRelationshipPurchaseList({
-      take: undefined,
-    });
+  const me = ApiHook.Auth.useGetMe();
+
+  const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
+    query: {
+      dstCompanyId: me.data?.companyId,
+    },
+  });
 
   const options = useMemo(() => {
     return list.data?.items.map((x) => ({

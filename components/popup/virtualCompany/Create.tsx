@@ -1,8 +1,9 @@
-import { Api } from "@/common";
+import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useCallback } from "react";
 import { FormCreate } from "./common";
 import { useForm } from "antd/lib/form/Form";
+import { Api } from "@/@shared";
 
 export interface Props {
   open: boolean;
@@ -10,11 +11,11 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.Internal.VirtualCompany.CreateVirtualCompany>();
+  const [form] = useForm<Api.VirtualCompanyCreateRequest>();
 
-  const api = Api.Internal.VirtualCompany.useCreateVirtualCompany();
+  const api = ApiHook.Inhouse.VirtualCompany.useCreate();
   const cmd = useCallback(
-    async (values: Api.Internal.VirtualCompany.CreateVirtualCompany) => {
+    async (values: Api.VirtualCompanyCreateRequest) => {
       await api.mutateAsync({ data: values });
       form.resetFields();
       props.onClose(false);

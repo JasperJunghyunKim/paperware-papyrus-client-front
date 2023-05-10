@@ -1,3 +1,3 @@
-import FormUpdate from "./FormUpdate";
+import TaskMap from "./TaskMap";
 
-export { FormUpdate };
+export { TaskMap };

@@ -1,18 +1,19 @@
-import { Api } from "@/common";
+import { ApiHook } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
 import { useMemo } from "react";
 
 interface Props {
-  value?: number[];
-  onChange?: (value: number[]) => void;
+  value?: number;
+  onChange?: (value: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
-  const staticData = Api.Static.Paper.useGetAll();
+  const staticData = ApiHook.Static.PaperMetadata.useGetAll();
 
   const options = useMemo(() => {
-    return staticData.data?.paperCert.map((x) => ({
+    return staticData.data?.paperCerts.map((x) => ({
       label: <Item item={x} />,
       text: `${x.name})`,
       value: x.id,
@@ -34,7 +35,8 @@ export default function Component(props: Props) {
         showSearch
         allowClear
         placeholder="인증 미지정"
-        mode="multiple"
+        dropdownMatchSelectWidth={false}
+        disabled={props.disabled}
       />
     </div>
   );

@@ -1,4 +1,6 @@
-import { Api, Util } from "@/common";
+import { Api } from "@/@shared";
+import { ApiHook, Util } from "@/common";
+import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
@@ -9,18 +11,20 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [data, page, setPage] = Api.Static.Company.useGetCompanyList({});
+  const info = ApiHook.Auth.useGetMe();
+
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.Company.useGetList({
+    query: page,
+  });
 
   const [selected, setSelected] = useState<Record.Company[]>([]);
 
   const only = Util.only(selected);
 
-  const apiCreate =
-    Api.Internal.BusinessRelationship.useCreateBusinessRelationship();
+  const apiCreate = ApiHook.Inhouse.BusinessRelationship.useCreate();
   const cmdCreate = useCallback(
-    async (
-      values: Api.Internal.BusinessRelationship.CreateBusinessRelationship
-    ) => {
+    async (values: Api.BusinessRelationshipCreateRequest) => {
       await apiCreate.mutateAsync({ data: values });
       props.onClose(false);
     },
@@ -49,7 +53,9 @@ export default function Component(props: Props) {
               label="매출처로 등록"
               onClick={async () => {
                 only &&
+                  info.data &&
                   (await cmdCreate({
+                    srcCompanyId: info.data.id,
                     dstCompanyId: only.id,
                   }));
               }}
@@ -59,7 +65,7 @@ export default function Component(props: Props) {
         </div>
         <div className="flex-1">
           <Table.Default<Record.Company>
-            data={data.data}
+            data={list.data}
             page={page}
             setPage={setPage}
             keySelector={(record) => record.id}

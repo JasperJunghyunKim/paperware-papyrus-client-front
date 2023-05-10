@@ -1,3 +1,4 @@
+import { Model } from "@/@shared";
 import { Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { InputNumber } from "antd";
@@ -9,7 +10,7 @@ interface Props {
   grammage: number;
   sizeX: number;
   sizeY: number;
-  packaging: Record.Packaging;
+  packaging: Model.Packaging;
 }
 
 export default function Component(props: Props) {

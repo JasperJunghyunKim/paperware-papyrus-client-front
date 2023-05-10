@@ -48,5 +48,9 @@ button {
   padding: 0px !important;
 }
 
+.ant-form-item {
+  margin-bottom: 8px !important;
+}
+
 @tailwind components;
 @tailwind utilities;

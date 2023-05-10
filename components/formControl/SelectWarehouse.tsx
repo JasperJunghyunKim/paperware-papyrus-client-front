@@ -1,4 +1,4 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
 import { useMemo } from "react";
@@ -6,11 +6,12 @@ import { useMemo } from "react";
 interface Props {
   value?: number;
   onChange?: (value: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
-  const [list, _page, _setPage] = Api.Internal.Warehouse.useGetWarehouseList({
-    take: undefined,
+  const list = ApiHook.Inhouse.Warehouse.useGetList({
+    query: {},
   });
 
   const options = useMemo(() => {
@@ -36,6 +37,8 @@ export default function Component(props: Props) {
         showSearch
         allowClear
         placeholder="창고 미지정"
+        dropdownMatchSelectWidth={false}
+        disabled={props.disabled}
       />
     </div>
   );

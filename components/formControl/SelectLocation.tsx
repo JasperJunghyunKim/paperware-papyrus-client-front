@@ -1,4 +1,4 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
 import { useMemo } from "react";
@@ -8,12 +8,11 @@ type RecordType = Record.Location;
 interface Props {
   value?: number;
   onChange?: (value: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
-  const [list, _page, _setPage] = Api.Internal.Location.useGetLocationList({
-    take: undefined,
-  });
+  const list = ApiHook.Inhouse.Location.useGetList({ query: {} });
 
   const options = useMemo(() => {
     return list.data?.items.map((x) => ({
@@ -38,6 +37,8 @@ export default function Component(props: Props) {
         showSearch
         allowClear
         placeholder="도착지 선택"
+        dropdownMatchSelectWidth={false}
+        disabled={props.disabled}
       />
     </div>
   );

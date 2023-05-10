@@ -1,10 +1,10 @@
-import { Api } from "@/common";
-import { Button, FormControl } from "@/components";
+import { Api } from "@/@shared";
+import { Button } from "@/components";
 import { Form, FormInstance, Input } from "antd";
 
 interface Props {
-  form: FormInstance<Api.Internal.VirtualCompany.CreateVirtualCompany>;
-  onFinish: (values: Api.Internal.VirtualCompany.CreateVirtualCompany) => void;
+  form: FormInstance<Api.VirtualCompanyCreateRequest>;
+  onFinish: (values: Api.VirtualCompanyCreateRequest) => void;
 }
 
 export default function Component(props: Props) {

@@ -11,6 +11,8 @@ export interface Props {
   onClick?: Util.PromiseOrFn;
   submit?: boolean;
   hidden?: boolean;
+  rootClassName?: string;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -18,6 +20,10 @@ export default function Component(props: Props) {
   const [pending, setPending] = useState(false);
 
   const call = useCallback(async () => {
+    if (pending) {
+      return;
+    }
+
     setPending(true);
     await Util.call(props.onClick);
     setPending(false);
@@ -28,7 +34,7 @@ export default function Component(props: Props) {
       {!props.hidden && (
         <button
           className={classNames(
-            "px-2 py-1.5 rounded flex flex-row justify-center border border-solid select-none",
+            "px-2 py-1.5 rounded flex flex-row justify-center border border-solid select-none disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:text-gray-600 disabled:border-gray-400 disabled:hover:border-gray-400 disabled:cursor-not-allowed",
             {
               "bg-gray-400 hover:bg-gray-400 text-gray-600 cursor-not-allowed":
                 pending,
@@ -38,10 +44,12 @@ export default function Component(props: Props) {
                 !pending && buttonType === "primary",
               "bg-green-700 hover:bg-green-600 text-white":
                 !pending && buttonType === "secondary",
-            }
+            },
+            props.rootClassName
           )}
           onClick={() => call()}
           type={props.submit ? "submit" : "button"}
+          disabled={props.disabled}
         >
           {props.icon && (
             <div className="flex-initial text-2xl flex flex-col justify-center">

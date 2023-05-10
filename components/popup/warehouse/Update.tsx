@@ -1,8 +1,9 @@
-import { Api } from "@/common";
+import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 import FormUpdate from "./common/FormUpdate";
+import { Api } from "@/@shared";
 
 export interface Props {
   open: number | false;
@@ -10,12 +11,12 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.Internal.Warehouse.CreateWarehouse>();
+  const [form] = useForm<Api.WarehouseUpdateRequest>();
   const [edit, setEdit] = useState(false);
 
-  const api = Api.Internal.Warehouse.useUpdateWarehouse();
+  const api = ApiHook.Inhouse.Warehouse.useUpdate();
   const cmd = useCallback(
-    async (values: Api.Internal.Warehouse.CreateWarehouse) => {
+    async (values: Api.WarehouseUpdateRequest) => {
       if (!props.open) {
         return;
       }
@@ -26,7 +27,7 @@ export default function Component(props: Props) {
     [api, props]
   );
 
-  const data = Api.Internal.Warehouse.useGetWarehouse(props.open);
+  const data = ApiHook.Inhouse.Warehouse.useGetItem({ id: props.open });
   useEffect(() => {
     if (!data.data || edit) {
       return;

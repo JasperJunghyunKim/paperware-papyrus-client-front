@@ -24,12 +24,12 @@ export type OrderStatus =
   | "REJECTED";
 
 export interface StaticData {
-  product: Product[];
-  paperColorGroup: PaperColorGroup[];
-  paperColor: PaperColor[];
-  paperPattern: PaperPattern[];
-  paperCert: PaperCert[];
-  packaging: Packaging[];
+  products: Product[];
+  paperColorGroups: PaperColorGroup[];
+  paperColors: PaperColor[];
+  paperPatterns: PaperPattern[];
+  paperCerts: PaperCert[];
+  packagings: Packaging[];
 }
 
 export interface User {

@@ -3,6 +3,7 @@ import { Record } from "./protocol";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ko";
 import { Protocol } from ".";
+import { Model } from "@/@shared";
 
 export type PromiseOrFn = (() => Promise<void>) | (() => any);
 export async function call(p?: PromiseOrFn) {
@@ -130,7 +131,7 @@ export function formatAddress(address: string | Address | null | undefined) {
   }`;
 }
 
-export function formatPackaging(packaging: Record.Packaging) {
+export function formatPackaging(packaging: Model.Packaging) {
   switch (packaging.type) {
     case "SKID":
       return ``;
@@ -143,7 +144,7 @@ export function formatPackaging(packaging: Record.Packaging) {
   }
 }
 
-export function stockUnit(packagingType: Record.PackagingType): string {
+export function stockUnit(packagingType: Model.Enum.PackagingType): string {
   switch (packagingType) {
     case "ROLL":
       return "t";
@@ -155,7 +156,7 @@ export function stockUnit(packagingType: Record.PackagingType): string {
   }
 }
 
-export function priceUnit(packagingType: Record.PackagingType): PriceUnit {
+export function priceUnit(packagingType: Model.Enum.PackagingType): PriceUnit {
   switch (packagingType) {
     case "ROLL":
       return "wpt";
@@ -167,7 +168,7 @@ export function priceUnit(packagingType: Record.PackagingType): PriceUnit {
   }
 }
 
-export function formatPriceUnit(packagingType: Record.PackagingType) {
+export function formatPriceUnit(packagingType: Model.Enum.PackagingType) {
   switch (packagingType) {
     case "SKID":
       return "원/R";
@@ -191,7 +192,7 @@ export const toWeightPrice = (
     grammage: number;
     sizeX: number;
     sizeY: number;
-    packaging: Record.Packaging;
+    packaging: Model.Packaging;
   }
 ) => {
   const spb = specs.packaging.packA * specs.packaging.packB;
@@ -306,24 +307,62 @@ export function inc<T extends string>(value: T, ...array: T[]): boolean {
   return array.includes(value);
 }
 
-export function taskTypeToString(value: Protocol.Record.TaskType) {
+export function taskTypeToString(value: Model.Enum.TaskType) {
   switch (value) {
     case "CONVERTING":
       return "컨버팅";
     case "GUILLOTINE":
       return "길로틴";
+    case "QUANTITY":
+      return "출고 수량";
   }
 }
 
-export function planStatusToString(value: Protocol.Record.PlanStatus) {
+export function taskStatusToString(value: Model.Enum.TaskStatus) {
   switch (value) {
     case "PREPARING":
       return "작업 대기중";
     case "PROGRESSING":
       return "작업 진행중";
     case "PROGRESSED":
-      return "출고 대기중";
-    case "RELEASED":
-      return "출고 완료";
+      return "작업 완료";
   }
+}
+
+export function planStatusToString(value: Model.Enum.PlanStatus) {
+  switch (value) {
+    case "PREPARING":
+      return "작업 대기중";
+    case "PROGRESSING":
+      return "작업 진행중";
+    case "PROGRESSED":
+      return "작업 완료";
+  }
+}
+
+export function orderStatusToSTring(value: Model.Enum.OrderStatus) {
+  switch (value) {
+    case "ORDER_PREPARING":
+      return "주문 작성중";
+    case "OFFER_PREPARING":
+      return "수주 작성중";
+    case "ORDER_REQUESTED":
+      return "주문 승인 대기중";
+    case "OFFER_REQUESTED":
+      return "수주 승인 대기중";
+    case "ORDER_REJECTED":
+      return "주문 거절";
+    case "OFFER_REJECTED":
+      return "수주 거절";
+    case "ACCEPTED":
+      return "주문 승인";
+  }
+}
+
+export function formatPhoneNo(phoneNo: string | null | undefined) {
+  if (phoneNo === null || phoneNo === undefined) {
+    return "";
+  }
+
+  return phoneNo.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
 }

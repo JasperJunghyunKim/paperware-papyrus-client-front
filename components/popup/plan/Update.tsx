@@ -1,12 +1,10 @@
-import { Api, Protocol, Util } from "@/common";
-import { Record } from "@/common/protocol";
-import { Icon, Popup, Table, Toolbar } from "@/components";
-import { Steps } from "antd";
+import { ApiHook } from "@/common";
+import { Button, FormControl, Popup, Toolbar } from "@/components";
 import classNames from "classnames";
+import { TaskMap } from "./common";
 import { useCallback, useState } from "react";
-import { TbBarcode, TbMarquee2, TbMathFunction } from "react-icons/tb";
-
-type TabType = "input" | "task" | "output";
+import { Form, Input, Steps } from "antd";
+import { useForm } from "antd/lib/form/Form";
 
 export interface Props {
   open: number | false;
@@ -14,34 +12,38 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const data = Api.Internal.Plan.useGetItem(props.open);
-  const [tab, setTab] = useState<TabType>("input");
+  const [form] = useForm();
+  const [stockId, setStockId] = useState<number | null>(null);
 
-  const apiNext = Api.Internal.Plan.useNext(props.open);
-  const cmdNext = useCallback(async () => {
-    const message =
-      data.data?.status === "PREPARING"
-        ? "작업을 시작하면 작업 계획을 수정할 수 없게 됩니다. 계속하시겠습니까?"
-        : data.data?.status === "PROGRESSING"
-        ? "작업을 완료하시겠습니까?"
-        : data.data?.status === "PROGRESSED"
-        ? "출고하시겠습니까?"
-        : "";
+  const data = ApiHook.Working.Plan.useGetItem({
+    id: props.open ? props.open : null,
+  });
 
-    if (!(await Util.confirm(message))) return;
-    await apiNext.mutateAsync({ data: {} });
-  }, [apiNext, data.data?.status]);
+  const apiStart = ApiHook.Working.Plan.useStart();
+  const cmdStart = useCallback(async () => {
+    if (!data.data) {
+      return;
+    }
 
-  const statusIndex =
-    data.data?.status === "PREPARING"
-      ? 0
-      : data.data?.status === "PROGRESSING"
-      ? 1
-      : data.data?.status === "PROGRESSED"
-      ? 2
-      : data.data?.status === "RELEASED"
-      ? 3
-      : 0;
+    await apiStart.mutateAsync({
+      id: data.data.id,
+    });
+  }, [props.open]);
+
+  const apiComplete = ApiHook.Working.Plan.useComplete();
+  const cmdComplete = useCallback(async () => {
+    if (!data.data) {
+      return;
+    }
+
+    await apiComplete.mutateAsync({
+      id: data.data.id,
+    });
+  }, [props.open]);
+
+  const stock = ApiHook.Stock.StockInhouse.useGetItem({
+    id: stockId,
+  });
 
   return (
     <Popup.Template.Full
@@ -51,330 +53,157 @@ export default function Component(props: Props) {
       width="calc(100vw - 80px)"
       height="calc(100vh - 80px)"
     >
-      <div className="flex-1 flex flex-col">
-        <div className="flex-initial p-3 flex gap-x-4">
-          <div className="flex-1 flex items-center">
-            <Steps
-              current={statusIndex}
-              items={[
-                { title: "작업 대기중" },
-                { title: "작업중" },
-                { title: "출고 대기중" },
-                { title: "출고중" },
-              ]}
-              rootClassName="select-none"
-            />
-          </div>
-          <div className="flex-initial">
-            <Toolbar.Container>
-              {data.data?.status === "PREPARING" && (
-                <Toolbar.ButtonPreset.Continue
-                  label="작업 시작"
-                  onClick={cmdNext}
+      <div className="flex-[1_0_0px] flex flex-col">
+        {data.data && (
+          <>
+            <div className="flex-initial flex flex-row gap-8 justify-between px-4 py-2">
+              <div className="flex-1 flex flex-col justify-center select-none">
+                <Steps
+                  items={[
+                    {
+                      title: "작업 계획 작성",
+                    },
+                    {
+                      title: "작업 진행중",
+                    },
+                    {
+                      title: "작업 완료",
+                    },
+                  ]}
+                  current={
+                    data.data.status === "PREPARING"
+                      ? 0
+                      : data.data.status === "PROGRESSING"
+                      ? 1
+                      : 2
+                  }
+                />
+              </div>
+              <Toolbar.Container>
+                {data.data.status === "PREPARING" && (
+                  <Toolbar.ButtonPreset.Continue
+                    label="작업 지시"
+                    onClick={async () => await cmdStart()}
+                  />
+                )}
+                {data.data.status === "PROGRESSING" && (
+                  <Toolbar.ButtonPreset.Continue
+                    label="작업 완료"
+                    onClick={async () => await cmdComplete()}
+                  />
+                )}
+              </Toolbar.Container>
+            </div>
+            <div className="basis-px bg-gray-300" />
+            <div className="flex-initial p-4 flex gap-x-8">
+              <OrderItemProperty
+                label="작업 계획 번호"
+                content={data.data.planNo}
+              />
+              <OrderItemProperty
+                label="원지 창고"
+                content={
+                  data.data.targetStockGroupEvent.stockGroup.warehouse?.name
+                }
+              />
+              <OrderItemProperty
+                label="제품 유형"
+                content={
+                  data.data.targetStockGroupEvent.stockGroup.product.paperDomain
+                    .name
+                }
+              />
+              <OrderItemProperty
+                label="제지사"
+                content={
+                  data.data.targetStockGroupEvent.stockGroup.product
+                    .manufacturer.name
+                }
+              />
+              <OrderItemProperty
+                label="지군"
+                content={
+                  data.data.targetStockGroupEvent.stockGroup.product.paperGroup
+                    .name
+                }
+              />
+              <OrderItemProperty
+                label="지종"
+                content={
+                  data.data.targetStockGroupEvent.stockGroup.product.paperType
+                    .name
+                }
+              />
+            </div>
+            <div className="flex-[0_0_1px] bg-gray-300" />
+            <div className="flex-[1_0_0px] flex flex-col bg-slate-200 h-0">
+              {data.data && (
+                <TaskMap
+                  plan={data.data}
+                  packagingType={
+                    data.data.targetStockGroupEvent.stockGroup.packaging.type
+                  }
                 />
               )}
-              {data.data?.status === "PROGRESSING" && (
-                <Toolbar.ButtonPreset.Continue
-                  label="작업 완료"
-                  onClick={cmdNext}
-                />
-              )}
-              {data.data?.status === "PROGRESSED" && (
-                <Toolbar.ButtonPreset.Continue label="출고" onClick={cmdNext} />
-              )}
-            </Toolbar.Container>
-          </div>
-        </div>
-        <div className="basis-px bg-gray-200" />
-        <div className="flex-1 flex">
-          <div className="basis-[200px] p-2 pr-0 flex flex-col gap-y-1 bg-slate-50">
-            <Tab
-              icon={<TbBarcode />}
-              label="실투입"
-              tab="input"
-              value={tab}
-              onClick={setTab}
-            />
-            <Tab
-              icon={<TbMathFunction />}
-              label="공정 계획"
-              tab="task"
-              value={tab}
-              onClick={setTab}
-            />
-            <Tab
-              icon={<TbMarquee2 />}
-              label="출고 예정 목록"
-              tab="output"
-              value={tab}
-              onClick={setTab}
-            />
-          </div>
-          <div className="basis-px bg-gray-200" />
-          {data.data && (
-            <>
-              {tab === "input" && <Input plan={data.data} />}
-              {tab === "task" && <Task plan={data.data} />}
-              {tab === "output" && <Output plan={data.data} />}
-            </>
-          )}
-        </div>
+            </div>
+            {data.data.status === "PROGRESSING" && (
+              <>
+                <div className="flex-[0_0_1px] bg-gray-300" />
+                <div className="flex-initial basis-48 flex">
+                  <div className="flex-1 flex p-4">실투입 재고</div>
+                  <div className="basis-px bg-gray-300" />
+                  <div className="basis-[400px] flex p-4 bg-yellow-50">
+                    <Form
+                      form={form}
+                      layout="vertical"
+                      rootClassName="w-full"
+                      onFinish={(value) => setStockId(Number(value.stockNo))}
+                    >
+                      <Form.Item label="재고 번호" name="stockNo">
+                        <Input />
+                      </Form.Item>
+                      <div className="flex-initial flex justify-end">
+                        <Button.Preset.Submit label="재고 검색" />
+                      </div>
+                    </Form>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </Popup.Template.Full>
   );
 }
 
-interface TabProps {
-  tab: TabType;
-  value: TabType;
-  icon: React.ReactNode;
+interface OrderItemPropertyProps {
   label: string;
-  onClick: (value: TabType) => void;
+  content?: string;
+  rightAlign?: boolean;
+  type?: "default" | "highlight" | "warning";
 }
-
-function Tab(props: TabProps) {
-  const active = props.tab === props.value;
+function OrderItemProperty(props: OrderItemPropertyProps) {
+  const type = props.type ?? "default";
 
   return (
-    <div
-      className={classNames(
-        `flex-initial flex items-center cursor-pointer p-3 text-base font-bold gap-x-2 rounded-l border border-solid border-r-0 border-gray-200`,
-        {
-          "bg-cyan-800 text-white": active,
-          "bg-white text-gray-800": !active,
-        }
-      )}
-      onClick={() => props.onClick(props.tab)}
-    >
-      <div className="flex items-center justify-center text-2xl">
-        {props.icon}
+    <div className="flex-initial flex flex-col gap-y-1">
+      <div
+        className={classNames("flex-initial flex  text-xs font-bold", {
+          "text-gray-500": type === "default",
+          "text-cyan-800": type === "highlight",
+          "text-amber-700": type === "warning",
+        })}
+      >
+        {props.label}
       </div>
-      <div className="flex-1">{props.label}</div>
-    </div>
-  );
-}
-
-interface InputProps {
-  plan: Protocol.Record.Plan;
-}
-function Input(props: InputProps) {
-  return (
-    <div className="flex-1 flex flex-col p-4 gap-y-4">
-      <Toolbar.Container>
-        <Toolbar.ButtonPreset.Create label="실투입 등록" onClick={() => {}} />
-      </Toolbar.Container>
-      <div className="flex-1">TODO</div>
-    </div>
-  );
-}
-
-interface TaskProps {
-  plan: Protocol.Record.Plan;
-}
-function Task(props: TaskProps) {
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openUpdateConverting, setOpenUpdateConverting] = useState(false);
-  const [openUpdateGuillotine, setOpenUpdateGuillotine] = useState(false);
-
-  const [taskData, page, setPage] = Api.Internal.Plan.useGetTaskList(
-    props.plan.id,
-    {}
-  );
-
-  const [selected, setSelected] = useState<Record.Task[]>([]);
-  const only = Util.only(selected);
-
-  const apiDelete = Api.Internal.Plan.useDeleteTask();
-  const cmdDelete = useCallback(async () => {
-    if (only && (await Util.confirm("선택한 공정 계획을 삭제하시겠습니까?"))) {
-      await apiDelete.mutateAsync(only.id);
-      setSelected([]);
-    }
-  }, [apiDelete, only]);
-
-  return (
-    <div className="flex-1 flex flex-col p-4 gap-y-4">
-      <Toolbar.Container>
-        <Toolbar.ButtonPreset.Create
-          label="공정 계획 추가"
-          onClick={() => setOpenCreate(true)}
-        />
-        <div className="flex-1" />
-        <Toolbar.ButtonPreset.Update
-          label="공정 수정"
-          onClick={() => setOpenUpdateConverting(true)}
-          disabled={!only}
-        />
-        <Toolbar.ButtonPreset.Delete
-          label="공정 삭제"
-          onClick={cmdDelete}
-          disabled={!only}
-        />
-      </Toolbar.Container>
-      <div className="flex-1">
-        <Table.Default
-          data={taskData.data}
-          page={page}
-          setPage={setPage}
-          columns={[
-            {
-              title: "공정 번호",
-              dataIndex: "taskNo",
-              render: (value) => <div className="font-fixed">{value}</div>,
-            },
-            {
-              title: "공정 구분",
-              dataIndex: "type",
-              render: (value) => (
-                <div className="font-fixed">{Util.taskTypeToString(value)}</div>
-              ),
-            },
-            {
-              title: "공정 지폭",
-              render: (_value, record) => (
-                <div className="font-fixed">
-                  {(record.taskConverting ?? record.taskGuillotine)?.sizeX}
-                </div>
-              ),
-            },
-            {
-              title: "공정 지장",
-              render: (_value, record) => (
-                <div className="font-fixed">
-                  {(record.taskConverting ?? record.taskGuillotine)?.sizeY}
-                </div>
-              ),
-            },
-            {
-              title: "작업 비고",
-              render: (_value, record) => (
-                <div className="font-fixed">
-                  {(record.taskConverting ?? record.taskGuillotine)?.memo}
-                </div>
-              ),
-            },
-          ]}
-          keySelector={(item) => item.id}
-          selection="single"
-          selected={selected}
-          onSelectedChange={setSelected}
-        />
+      <div
+        className={classNames("flex-initial flex font-fixed whitespace-pre", {
+          "justify-end": props.rightAlign,
+        })}
+      >
+        {props.content}
       </div>
-      <Popup.Plan.CreateTask
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
-        planId={props.plan.id}
-      />
-      {only && (
-        <>
-          <Popup.Plan.UpdateTaskConverting
-            open={openUpdateConverting}
-            onClose={() => setOpenUpdateConverting(false)}
-            taskId={only.id}
-          />
-          <Popup.Plan.UpdateTaskGuillotine
-            open={openUpdateGuillotine}
-            onClose={() => setOpenUpdateGuillotine(false)}
-            taskId={only.id}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-interface OutputProps {
-  plan: Protocol.Record.Plan;
-}
-function Output(props: OutputProps) {
-  const [openCreate, setOpenCreate] = useState(false);
-
-  const [taskData, page, setPage] = Api.Internal.Plan.useGetOutputList(
-    props.plan.id,
-    {}
-  );
-
-  const [selected, setSelected] = useState<Record.StockEvent[]>([]);
-
-  return (
-    <div className="flex-1 flex flex-col p-4 gap-y-4">
-      <div className="flex-1">
-        <Table.Default
-          data={taskData.data}
-          page={page}
-          setPage={setPage}
-          columns={[
-            {
-              title: "포장",
-              dataIndex: ["stock", "packaging", "type"],
-              render: (value, record) => (
-                <div className="font-fixed flex gap-x-1">
-                  <div className="flex-initial flex flex-col justify-center text-lg">
-                    <Icon.PackagingType
-                      packagingType={record.stock.packaging.type}
-                    />
-                  </div>
-                  <div className="flex-initial flex flex-col justify-center">
-                    {value}
-                  </div>
-                </div>
-              ),
-            },
-            {
-              title: "수량",
-              dataIndex: ["stock", "cachedQuantityAvailable"],
-              render: (value, record) => (
-                <div className="font-fixed text-right whitespace-pre">
-                  {record.stock.packaging.type === "ROLL"
-                    ? `${Util.comma(Util.gramsToTon(value ?? 0), 3)} t `
-                    : `${value} 매`}
-                </div>
-              ),
-            },
-            {
-              title: "제품유형",
-              dataIndex: ["stock", "product", "paperDomain", "name"],
-            },
-            {
-              title: "제지사",
-              dataIndex: ["stock", "product", "manufacturer", "name"],
-            },
-            {
-              title: "지군",
-              dataIndex: ["stock", "product", "paperGroup", "name"],
-            },
-            {
-              title: "지종",
-              dataIndex: ["stock", "product", "paperType", "name"],
-            },
-            {
-              title: "색군",
-              dataIndex: ["stock", "paperColorGroup", "name"],
-            },
-            {
-              title: "색상",
-              dataIndex: ["stock", "paperColor", "name"],
-            },
-            {
-              title: "무늬",
-              dataIndex: ["stock", "paperPattern", "name"],
-            },
-            {
-              title: "인증",
-              dataIndex: ["stock", "paperCert", "name"],
-            },
-          ]}
-          keySelector={(item) => item.id}
-          selection="none"
-          selected={selected}
-          onSelectedChange={setSelected}
-        />
-      </div>
-      <Popup.Plan.CreateOutput
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
-        planId={props.plan.id}
-      />
     </div>
   );
 }

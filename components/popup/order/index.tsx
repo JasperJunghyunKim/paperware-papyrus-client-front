@@ -1,6 +1,4 @@
-import Create from "./Create";
-import CreateSales from "./CreateSales";
-import Update from "./Update";
-import UpdateSales from "./UpdateSales";
+import StockUpsert from "./StockUpsert";
+import CreateArrival from "./CreateArrival";
 
-export { Create, Update, UpdateSales, CreateSales };
+export { StockUpsert, CreateArrival };

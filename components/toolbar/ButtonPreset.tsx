@@ -1,6 +1,7 @@
 import {
   TbCircleCheck,
   TbForbid,
+  TbHandStop,
   TbList,
   TbPencil,
   TbPlus,
@@ -47,6 +48,19 @@ export function Delete(props: BaseProps) {
   return (
     <Button
       icon={<TbForbid />}
+      label={props.label}
+      type="danger"
+      onClick={props.onClick}
+      disabled={props.disabled}
+      tooltip={props.tooltip}
+    />
+  );
+}
+
+export function Reject(props: BaseProps) {
+  return (
+    <Button
+      icon={<TbHandStop />}
       label={props.label}
       type="danger"
       onClick={props.onClick}

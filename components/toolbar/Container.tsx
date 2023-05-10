@@ -1,7 +1,19 @@
+import classNames from "classnames";
 import { PropsWithChildren } from "react";
 
-export default function Container(props: PropsWithChildren) {
+interface Props {
+  rootClassName?: string;
+}
+
+export default function Container(props: PropsWithChildren<Props>) {
   return (
-    <div className="flex-initial flex flex-row gap-x-2">{props.children}</div>
+    <div
+      className={classNames(
+        "flex-initial flex flex-row gap-x-2",
+        props.rootClassName
+      )}
+    >
+      {props.children}
+    </div>
   );
 }

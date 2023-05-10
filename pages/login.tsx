@@ -1,4 +1,4 @@
-import { Api } from "@/common";
+import { ApiHook } from "@/common";
 import { FormBody } from "@/common/protocol";
 import { Button, Logo } from "@/components";
 import { Form, Input } from "antd";
@@ -12,7 +12,7 @@ export default function Home() {
 
   const [form] = useForm<FormBody.SignIn>();
 
-  const apiSignIn = Api.Auth.useSignIn();
+  const apiSignIn = ApiHook.Auth.useSignIn();
   const cmdSignIn = useCallback(async () => {
     const values = form.getFieldsValue();
     const resp = await apiSignIn.mutateAsync(values);

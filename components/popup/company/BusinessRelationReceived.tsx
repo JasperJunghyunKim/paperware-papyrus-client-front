@@ -1,4 +1,6 @@
-import { Api, Util } from "@/common";
+import { Api } from "@/@shared";
+import { ApiHook, Util } from "@/common";
+import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
@@ -9,20 +11,21 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [data, page, setPage] =
-    Api.External.BusinessRelationship.useGetBusinessRelationshipRequestList({});
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.BusinessRelationshipRequest.useGetList({
+    query: page,
+  });
   const [selected, setSelected] = useState<
     Record.BusinessRelationshipRequest[]
   >([]);
   const only = Util.only(selected);
 
-  const apiAccept =
-    Api.External.BusinessRelationship.useAcceptBusinessRelationshipRequest();
+  const apiAccept = ApiHook.Inhouse.BusinessRelationshipRequest.useAccept();
   const cmdAccept = useCallback(
-    async (request: Record.BusinessRelationshipRequest) => {
+    async (request: Api.BusinessRelationshipRequestAcceptRequest) => {
       await apiAccept.mutateAsync({
         data: {
-          srcCompanyId: request.srcCompany.id,
+          companyId: request.companyId,
         },
       });
 
@@ -31,13 +34,12 @@ export default function Component(props: Props) {
     [apiAccept]
   );
 
-  const apiReject =
-    Api.External.BusinessRelationship.useRejectBusinessRelationshipRequest();
+  const apiReject = ApiHook.Inhouse.BusinessRelationshipRequest.useReject();
   const cmdReject = useCallback(
-    async (request: Record.BusinessRelationshipRequest) => {
+    async (request: Api.BusinessRelationshipRequestRejectRequest) => {
       await apiReject.mutateAsync({
         data: {
-          srcCompanyId: request.srcCompany.id,
+          companyId: request.companyId,
         },
       });
 
@@ -67,14 +69,14 @@ export default function Component(props: Props) {
             <Toolbar.ButtonPreset.Delete
               label="거절"
               onClick={async () => {
-                only && (await cmdReject(only));
+                only && (await cmdReject({ companyId: only.srcCompany.id }));
               }}
               disabled={!only}
             />
             <Toolbar.ButtonPreset.Continue
               label="매출처 등록 수락"
               onClick={async () => {
-                only && (await cmdAccept(only));
+                only && (await cmdAccept({ companyId: only.srcCompany.id }));
               }}
               disabled={!only}
             />
@@ -82,7 +84,7 @@ export default function Component(props: Props) {
         </div>
         <div className="flex-1">
           <Table.Default<Record.BusinessRelationshipRequest>
-            data={data.data}
+            data={list.data}
             page={page}
             setPage={setPage}
             keySelector={(record) =>

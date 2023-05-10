@@ -1,8 +1,9 @@
-import { Api } from "@/common";
 import { Popup } from "@/components";
 import { useCallback } from "react";
 import { FormCreate } from "./common";
 import { useForm } from "antd/lib/form/Form";
+import { Api } from "@/@shared";
+import { ApiHook } from "@/common";
 
 export interface Props {
   open: boolean;
@@ -10,11 +11,11 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.Internal.Location.CreateLocation>();
+  const [form] = useForm<Api.LocationCreateRequest>();
 
-  const api = Api.Internal.Location.useCreateLocation();
+  const api = ApiHook.Inhouse.Location.useCreate();
   const cmd = useCallback(
-    async (values: Api.Internal.Location.CreateLocation) => {
+    async (values: Api.LocationCreateRequest) => {
       await api.mutateAsync({ data: values });
       form.resetFields();
       props.onClose(false);

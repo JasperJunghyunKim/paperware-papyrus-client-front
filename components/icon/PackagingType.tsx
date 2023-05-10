@@ -1,8 +1,8 @@
-import { Protocol } from "@/common";
+import { Model } from "@/@shared";
 import { BiCube, BiCylinder, BiLayer, BiPackage } from "react-icons/bi";
 
 interface Props {
-  packagingType?: Protocol.Record.PackagingType | null;
+  packagingType?: Model.Enum.PackagingType | null;
 }
 
 export default function Component(props: Props) {

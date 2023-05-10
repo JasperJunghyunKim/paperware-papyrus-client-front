@@ -1,8 +1,10 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
 import { Create } from ".";
+import { Api } from "@/@shared";
+import { usePage } from "@/common/hook";
 
 export interface Props {
   open: boolean;
@@ -10,20 +12,21 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [data, page, setPage] =
-    Api.Internal.VirtualCompany.useGetVirtualCompanyList({});
+  const info = ApiHook.Auth.useGetMe();
+
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.VirtualCompany.useGetList({
+    query: page,
+  });
 
   const [selected, setSelected] = useState<Record.Company[]>([]);
   const [openCreate, setOpenCreate] = useState(false);
 
   const only = Util.only(selected);
 
-  const apiCreate =
-    Api.Internal.BusinessRelationship.useCreateVirtualPurchaseBusinessRelationship();
+  const apiCreate = ApiHook.Inhouse.BusinessRelationship.useCreate();
   const cmdCreate = useCallback(
-    async (
-      values: Api.Internal.BusinessRelationship.CreateVirtualPurchaseBusinessRelationship
-    ) => {
+    async (values: Api.BusinessRelationshipCreateRequest) => {
       await apiCreate.mutateAsync({ data: values });
       props.onClose(false);
     },
@@ -57,8 +60,10 @@ export default function Component(props: Props) {
               label="가상 매입처로 등록"
               onClick={async () => {
                 only &&
+                  info.data &&
                   (await cmdCreate({
                     srcCompanyId: only.id,
+                    dstCompanyId: info.data.companyId,
                   }));
               }}
               disabled={!only}
@@ -67,7 +72,7 @@ export default function Component(props: Props) {
         </div>
         <div className="flex-1">
           <Table.Default<Record.Company>
-            data={data.data}
+            data={list.data}
             page={page}
             setPage={setPage}
             keySelector={(record) => record.id}

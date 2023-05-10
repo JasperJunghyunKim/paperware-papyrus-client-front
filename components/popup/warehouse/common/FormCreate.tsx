@@ -1,10 +1,11 @@
-import { Api } from "@/common";
+import { Api } from "@/@shared";
+import { ApiHook } from "@/common";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input, Switch } from "antd";
 
 interface Props {
-  form: FormInstance<Api.Internal.Warehouse.CreateWarehouse>;
-  onFinish: (values: Api.Internal.Warehouse.CreateWarehouse) => void;
+  form: FormInstance<Api.WarehouseCreateRequest>;
+  onFinish: (values: Api.WarehouseCreateRequest) => void;
 }
 
 export default function Component(props: Props) {

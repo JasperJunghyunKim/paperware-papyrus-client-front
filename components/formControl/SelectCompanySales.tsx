@@ -1,4 +1,4 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
 import classNames from "classnames";
@@ -13,10 +13,13 @@ interface Props {
 }
 
 export default function Component(props: Props) {
-  const [list, _page, _setPage] =
-    Api.Internal.BusinessRelationship.useGetBusinessRelationshipSalesList({
-      take: undefined,
-    });
+  const me = ApiHook.Auth.useGetMe();
+
+  const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
+    query: {
+      srcCompanyId: me.data?.companyId,
+    },
+  });
 
   const options = useMemo(() => {
     return list.data?.items.map((x) => ({
@@ -25,8 +28,6 @@ export default function Component(props: Props) {
       value: x.dstCompany.id,
     }));
   }, [list]);
-
-  console.log(options);
 
   return (
     <div className="flex flex-col gap-y-1">

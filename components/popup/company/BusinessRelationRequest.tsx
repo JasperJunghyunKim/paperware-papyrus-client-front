@@ -1,4 +1,6 @@
-import { Api, Util } from "@/common";
+import { Api } from "@/@shared";
+import { ApiHook, Util } from "@/common";
+import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
@@ -9,16 +11,17 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [data, page, setPage] = Api.Static.Company.useGetCompanyList({});
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.Company.useGetList({
+    query: page,
+  });
   const [selected, setSelected] = useState<Record.Company[]>([]);
   const only = Util.only(selected);
 
   const apiSendRequest =
-    Api.External.BusinessRelationship.useSendBusinessRelationshipRequest();
+    ApiHook.Inhouse.BusinessRelationshipRequest.useCreate();
   const cmdSendRequest = useCallback(
-    async (
-      values: Api.External.BusinessRelationship.SendBusinessRelationshipRequest
-    ) => {
+    async (values: Api.BusinessRelationshipRequestCreateRequest) => {
       await apiSendRequest.mutateAsync({ data: values });
       props.onClose(false);
     },
@@ -48,7 +51,7 @@ export default function Component(props: Props) {
               onClick={async () => {
                 only &&
                   (await cmdSendRequest({
-                    dstCompanyId: only.id,
+                    companyId: only.id,
                   }));
               }}
               disabled={!only}
@@ -57,7 +60,7 @@ export default function Component(props: Props) {
         </div>
         <div className="flex-1">
           <Table.Default<Record.Company>
-            data={data.data}
+            data={list.data}
             page={page}
             setPage={setPage}
             keySelector={(record) => record.id}

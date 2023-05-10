@@ -1,8 +1,9 @@
-import { Util } from "@/common";
 import classnames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { TbHourglassFilled } from "react-icons/tb";
+import { TbHourglassEmpty, TbHourglassLow } from "react-icons/tb";
+
+export type MenuType = "complete" | "wip" | "progress";
 
 export interface MenuProps {
   menus: Menu[];
@@ -12,7 +13,7 @@ export interface Menu {
   path: string | null;
   label?: string;
   icon?: JSX.Element;
-  wip?: boolean;
+  type?: MenuType;
   noti?: number;
 }
 
@@ -28,14 +29,12 @@ export default function Component(props: MenuProps) {
       {props.menus.map((menu, index) =>
         menu.path ? (
           <div
-            className={classnames(
-              "flex-initial rounded text-black/[.6] hover:text-black/[.8]",
-              {
-                "bg-cyan-600 hover:bg-cyan-600": isActive(menu.path),
-                "text-white hover:text-white": isActive(menu.path),
-                "font-bold": isActive(menu.path),
-              }
-            )}
+            className={classnames("flex-initial rounded", {
+              "bg-cyan-600 hover:bg-cyan-600": isActive(menu.path),
+              "text-gray-500 hover:text-gray-800": !isActive(menu.path),
+              "text-white hover:text-white": isActive(menu.path),
+              "font-bold": isActive(menu.path),
+            })}
             key={menu.path}
           >
             <Link href={menu.path} className="block w-full h-full p-2">
@@ -47,7 +46,7 @@ export default function Component(props: MenuProps) {
                 {menu.noti && menu.noti > 0 ? (
                   <div
                     className={classnames(
-                      "flex-initial flex items-center justify-center px-1 py-0.5 rounded-full bg-red-500 text-xs font-bold",
+                      "flex-initial basis-6 flex items-center justify-center px-1 py-0.5 rounded-full bg-red-500 text-xs font-bold",
                       {
                         "bg-yellow-400 text-cyan-700": isActive(menu.path),
                         "text-white": !isActive(menu.path),
@@ -57,9 +56,14 @@ export default function Component(props: MenuProps) {
                     {menu.noti > 99 ? "99+" : menu.noti}
                   </div>
                 ) : null}
-                {menu.wip && (
+                {menu.type === "wip" && (
                   <div className={"flex-initial"}>
-                    <TbHourglassFilled />
+                    <TbHourglassEmpty />
+                  </div>
+                )}
+                {menu.type === "progress" && (
+                  <div className={"flex-initial text-red-600"}>
+                    <TbHourglassLow />
                   </div>
                 )}
               </div>

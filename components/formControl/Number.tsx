@@ -1,5 +1,6 @@
 import { Util } from "@/common";
 import { InputNumber } from "antd";
+import classNames from "classnames";
 
 interface Props {
   value?: number | null;
@@ -8,6 +9,8 @@ interface Props {
   min?: number;
   max?: number;
   pricision?: number;
+  rootClassName?: string;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -21,8 +24,9 @@ export default function Component(props: Props) {
       precision={props.pricision}
       min={props.min}
       max={props.max}
-      rootClassName="w-full"
+      rootClassName={classNames("w-full", props.rootClassName)}
       addonAfter={props.unit}
+      disabled={props.disabled}
     />
   );
 }

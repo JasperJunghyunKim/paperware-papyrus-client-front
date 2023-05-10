@@ -1,10 +1,10 @@
-import { Api } from "@/common";
+import { Api } from "@/@shared";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input, Switch } from "antd";
 
 interface Props {
-  form: FormInstance<Api.Internal.Location.UpdateLocation>;
-  onFinish: (values: Api.Internal.Location.UpdateLocation) => void;
+  form: FormInstance<Api.LocationUpdateRequest>;
+  onFinish: (values: Api.LocationUpdateRequest) => void;
   edit: boolean;
   onEditChange: (edit: boolean) => void;
 }
@@ -42,7 +42,7 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item
         name="isPublic"
-        label="공개 여부"
+        label="자사 도착지 여부"
         valuePropName="checked"
         rules={[{ required: true }]}
       >

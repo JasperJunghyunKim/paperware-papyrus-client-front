@@ -1,8 +1,10 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
 import { Create } from ".";
+import { usePage } from "@/common/hook";
+import { Api } from "@/@shared";
 
 export interface Props {
   open: boolean;
@@ -10,20 +12,21 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [data, page, setPage] =
-    Api.Internal.VirtualCompany.useGetVirtualCompanyList({});
+  const info = ApiHook.Auth.useGetMe();
+
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.VirtualCompany.useGetList({
+    query: page,
+  });
 
   const [selected, setSelected] = useState<Record.Company[]>([]);
   const [openCreate, setOpenCreate] = useState(false);
 
   const only = Util.only(selected);
 
-  const apiCreate =
-    Api.Internal.BusinessRelationship.useCreateBusinessRelationship();
+  const apiCreate = ApiHook.Inhouse.BusinessRelationship.useCreate();
   const cmdCreate = useCallback(
-    async (
-      values: Api.Internal.BusinessRelationship.CreateBusinessRelationship
-    ) => {
+    async (values: Api.BusinessRelationshipCreateRequest) => {
       await apiCreate.mutateAsync({ data: values });
       props.onClose(false);
     },
@@ -58,6 +61,7 @@ export default function Component(props: Props) {
                 label="매출처로 등록"
                 onClick={async () => {
                   await cmdCreate({
+                    srcCompanyId: info.data?.companyId!,
                     dstCompanyId: only.id,
                   });
                 }}
@@ -67,7 +71,7 @@ export default function Component(props: Props) {
         </div>
         <div className="flex-1">
           <Table.Default<Record.Company>
-            data={data.data}
+            data={list.data}
             page={page}
             setPage={setPage}
             keySelector={(record) => record.id}

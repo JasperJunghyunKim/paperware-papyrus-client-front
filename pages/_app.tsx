@@ -48,7 +48,8 @@ export default function App({ Component, pageProps }: AppProps) {
         token: {
           motionDurationMid: "0.0s",
           fontFamily: "Noto Sans KR",
-          borderRadius: 4,
+          borderRadius: 2,
+          colorTextDisabled: "black",
         },
       }}
       locale={koKR}

@@ -1,10 +1,10 @@
-import { Api } from "@/common";
+import { Api } from "@/@shared";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input } from "antd";
 
 interface Props {
-  form: FormInstance<Api.Internal.VirtualCompany.CreateVirtualCompany>;
-  onFinish: (values: Api.Internal.VirtualCompany.CreateVirtualCompany) => void;
+  form: FormInstance<Api.VirtualCompanyCreateRequest>;
+  onFinish: (values: Api.VirtualCompanyCreateRequest) => void;
 }
 
 export default function Component(props: Props) {
@@ -16,6 +16,18 @@ export default function Component(props: Props) {
         rules={[{ required: true }]}
       >
         <Input maxLength={20} />
+      </Form.Item>
+      <Form.Item name="representative" label="대표자명">
+        <Input maxLength={20} />
+      </Form.Item>
+      <Form.Item name="companyRegistrationNumber" label="사업자 번호">
+        <Input maxLength={20} />
+      </Form.Item>
+      <Form.Item name="invoiceCode" label="송장코드">
+        <Input maxLength={4} />
+      </Form.Item>
+      <Form.Item name="address" label="주소">
+        <FormControl.Address />
       </Form.Item>
       <Form.Item name="phoneNo" label="대표 전화">
         <Input maxLength={20} />

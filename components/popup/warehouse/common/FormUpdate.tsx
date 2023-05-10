@@ -1,10 +1,11 @@
-import { Api } from "@/common";
+import { Api } from "@/@shared";
+import { ApiHook } from "@/common";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input, Switch } from "antd";
 
 interface Props {
-  form: FormInstance<Api.Internal.Warehouse.UpdateWarehouse>;
-  onFinish: (values: Api.Internal.Warehouse.UpdateWarehouse) => void;
+  form: FormInstance<Api.WarehouseUpdateRequest>;
+  onFinish: (values: Api.WarehouseUpdateRequest) => void;
   edit: boolean;
   onEditChange: (edit: boolean) => void;
 }

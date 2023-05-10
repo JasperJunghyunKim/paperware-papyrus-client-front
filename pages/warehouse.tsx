@@ -1,4 +1,5 @@
-import { Api, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
+import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -9,13 +10,13 @@ export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
-  const stats = Api.Internal.Warehouse.useGetWarehouseStats();
-  const [data, page, setPage] = Api.Internal.Warehouse.useGetWarehouseList({});
+  const [page, setPage] = usePage();
+  const list = ApiHook.Inhouse.Warehouse.useGetList({ query: page });
   const [selected, setSelected] = useState<Record.Warehouse[]>([]);
 
   const only = Util.only(selected);
 
-  const apiDelete = Api.Internal.Warehouse.useDeleteWarehouse();
+  const apiDelete = ApiHook.Inhouse.Warehouse.useDelete();
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
@@ -30,15 +31,11 @@ export default function Component() {
   return (
     <Page title="창고 설정">
       <StatBar.Container>
-        <StatBar.Item
-          icon={<TbHome />}
-          label="공개 창고"
-          value={Util.comma(stats.data?.publicCount ?? 0)}
-        />
+        <StatBar.Item icon={<TbHome />} label="공개 창고" value={"-"} />
         <StatBar.Item
           icon={<TbHomeShield />}
           label="비공개 창고"
-          value={Util.comma(stats.data?.privateCount ?? 0)}
+          value={"-"}
           iconClassName="text-purple-800"
         />
       </StatBar.Container>
@@ -62,7 +59,7 @@ export default function Component() {
         )}
       </Toolbar.Container>
       <Table.Default<Record.Warehouse>
-        data={data.data}
+        data={list.data}
         page={page}
         setPage={setPage}
         keySelector={(record) => record.id}

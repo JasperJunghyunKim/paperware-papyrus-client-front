@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Api } from ".";
+import { ApiHook } from ".";
 
 export function usePage() {
-  const [page, setPage] = useState<Api.Common.GetPaginationQuery>({
+  const [page, setPage] = useState<ApiHook.Common.GetPaginationQuery>({
     skip: 0,
     take: 100,
   });

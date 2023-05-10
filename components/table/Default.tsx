@@ -1,13 +1,15 @@
-import { Api, Protocol } from "@/common";
+import { Model } from "@/@shared";
+import { PaginationResponse } from "@/@shared/models/pagination";
+import { ApiHook, Protocol } from "@/common";
 import { Table } from "antd";
 import { ColumnType, ExpandableConfig } from "antd/lib/table/interface";
 import { TableComponents } from "rc-table/lib/interface";
 import { useMemo } from "react";
 
 interface Props<T> {
-  data: Protocol.Record.List<T> | undefined;
-  page: Api.Common.GetPaginationQuery;
-  setPage: (page: Api.Common.GetPaginationQuery) => void;
+  data: PaginationResponse<T> | undefined;
+  page?: ApiHook.Common.GetPaginationQuery;
+  setPage?: (page: ApiHook.Common.GetPaginationQuery) => void;
   columns: ColumnType<T>[];
   keySelector: (record: T) => string | number;
   selected?: T[];
@@ -53,11 +55,15 @@ export default function Component<T extends object>(props: Props<T>) {
   return (
     <Table<T>
       bordered
-      pagination={{
-        position: ["bottomCenter"],
-        size: "default",
-        pageSize: 100,
-      }}
+      pagination={
+        props.page
+          ? {
+              position: ["bottomCenter"],
+              size: "default",
+              pageSize: 100,
+            }
+          : false
+      }
       rowKey={props.keySelector}
       scroll={{ x: true }}
       size="small"

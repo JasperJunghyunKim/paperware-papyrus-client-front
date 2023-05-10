@@ -1,8 +1,9 @@
-import { Api } from "@/common";
+import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useCallback } from "react";
 import { FormCreate } from "./common";
 import { useForm } from "antd/lib/form/Form";
+import { Api } from "@/@shared";
 
 export interface Props {
   open: boolean;
@@ -10,11 +11,11 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.Internal.Warehouse.CreateWarehouse>();
+  const [form] = useForm<Api.WarehouseCreateRequest>();
 
-  const api = Api.Internal.Warehouse.useCreateWarehouse();
+  const api = ApiHook.Inhouse.Warehouse.useCreate();
   const cmd = useCallback(
-    async (values: Api.Internal.Warehouse.CreateWarehouse) => {
+    async (values: Api.WarehouseCreateRequest) => {
       await api.mutateAsync({ data: values });
       form.resetFields();
       props.onClose(false);
