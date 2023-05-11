@@ -22,6 +22,7 @@ export default function Component(props: Props) {
     async (values: Api.ByCashCreateRequest | Api.ByEtcCreateRequest) => {
       const method: Enum.Method = form.getFieldValue("accountedMethod");
       values.accountedType = props.accountedType;
+      values.partnerNickName = '';
 
       switch (method) {
         case 'ACCOUNT_TRANSFER':

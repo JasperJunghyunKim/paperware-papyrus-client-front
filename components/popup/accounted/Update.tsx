@@ -30,6 +30,7 @@ export default function Component(props: Props) {
       }
 
       values.accountedType = props.accountedType;
+      values.partnerNickName = '';
 
       switch (props.method) {
         case 'ACCOUNT_TRANSFER':
