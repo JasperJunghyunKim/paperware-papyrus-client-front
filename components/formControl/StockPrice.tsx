@@ -28,7 +28,7 @@ const PRICE_UNIT_OPTIONS = [
   },
   {
     label: "/R",
-    value: "WON_PER_R" as Model.Enum.PriceUnit,
+    value: "WON_PER_REAM" as Model.Enum.PriceUnit,
   },
 ];
 const DISCOUNT_TYPE_OPTIONS = [

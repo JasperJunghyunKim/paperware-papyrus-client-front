@@ -363,3 +363,69 @@ export function formatPhoneNo(phoneNo: string | null | undefined) {
 
   return phoneNo.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
 }
+
+export interface PaperSize {
+  sizeX: number;
+  sizeY: number;
+  name: string;
+}
+export const paperSizes: PaperSize[] = [
+  {
+    sizeX: 636,
+    sizeY: 939,
+    name: "국전",
+  },
+  {
+    sizeX: 788,
+    sizeY: 1091,
+    name: "4X6",
+  },
+  {
+    sizeX: 210,
+    sizeY: 297,
+    name: "A4",
+  },
+];
+
+export function findPaperSize(sizeX: number, sizeY: number): PaperSize | null {
+  return (
+    paperSizes.find(
+      (paperSize) => paperSize.sizeX === sizeX && paperSize.sizeY === sizeY
+    ) ?? null
+  );
+}
+
+export interface ConvertQuantityOutput {
+  quantity: number;
+  packedQuantity: number;
+  weight: number;
+}
+
+export interface ConvertQuantityInput {
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+  quantity: number;
+}
+
+export function convertQuantity(
+  input: ConvertQuantityInput
+): ConvertQuantityOutput {
+  const { grammage, sizeX, sizeY, quantity } = input;
+
+  const spb = grammage * sizeX * sizeY * 0.000001 * 0.001 * 0.001;
+
+  const tpb = grammage * sizeX * sizeY * spb * 0.000001 * 0.001 * 0.001;
+
+  const rpb = spb / 500;
+
+  const packedQuantity = quantity / rpb;
+
+  const weight = tpb * quantity;
+
+  return {
+    quantity,
+    packedQuantity,
+    weight,
+  };
+}

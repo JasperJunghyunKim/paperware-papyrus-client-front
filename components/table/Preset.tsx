@@ -1,7 +1,9 @@
 import { Model } from "@/@shared";
 import { Icon } from "..";
-import { Util } from "@/common";
+import { PaperUtil, Util } from "@/common";
 import { ColumnType } from "antd/lib/table/interface";
+import { useCallback, useMemo } from "react";
+import { Quantity } from "@/common/paperUtil";
 
 export function columnStock<T>(
   getStock: (record: T) => Model.Stock,
@@ -12,10 +14,6 @@ export function columnStock<T>(
       title: "재고 번호",
       dataIndex: [...path, "serial"],
       render: (value) => <div className="font-fixed">{value}</div>,
-    },
-    {
-      title: "창고",
-      dataIndex: [...path, "warehouse", "name"],
     },
     {
       title: "제품 유형",
@@ -110,6 +108,94 @@ export function columnStock<T>(
       dataIndex: [...path, "stockPrice", "unitPrice"],
       render: (value: number) => (
         <div className="text-right font-fixed">{`${Util.comma(value)} 원`}</div>
+      ),
+    },
+  ];
+}
+
+export function columnQuantity<T>(
+  getStock: (record: T) => PaperUtil.QuantitySpec,
+  path: string[],
+  options?: {
+    prefix?: string;
+  }
+): ColumnType<T>[] {
+  const spec = useCallback(
+    (record: T): PaperUtil.QuantitySpec => {
+      const stock = getStock(record);
+      return {
+        packaging: stock.packaging,
+        grammage: stock.grammage,
+        sizeX: stock.sizeX,
+        sizeY: stock.sizeY,
+      };
+    },
+    [getStock]
+  );
+
+  const getQuantity = useCallback(
+    (value: number, record: T): PaperUtil.Quantity => {
+      const stock = spec(record);
+      return PaperUtil.convertQuantity(stock, value);
+    },
+    [spec]
+  );
+
+  const format = useCallback(
+    (quantity: Quantity, type: "packed" | "unpacked" | "weight") => {
+      switch (type) {
+        case "packed":
+          return quantity.packed
+            ? `${Util.comma(
+                quantity.packed.value,
+                PaperUtil.recommendedPrecision(quantity.packed.unit)
+              )} ${quantity.packed.unit}`
+            : null;
+        case "unpacked":
+          return quantity.unpacked
+            ? `${Util.comma(
+                quantity.unpacked.value,
+                PaperUtil.recommendedPrecision(quantity.unpacked.unit)
+              )} ${quantity.unpacked.unit}`
+            : null;
+        case "weight":
+          return quantity.grams
+            ? `${Util.comma(
+                quantity.grams * 0.000001,
+                PaperUtil.recommendedPrecision("T")
+              )} ${"T"}`
+            : null;
+      }
+    },
+    []
+  );
+
+  return [
+    {
+      title: `${options?.prefix ?? ""} 수량`.trim(),
+      dataIndex: [...path],
+      render: (value: number, record: T) => (
+        <div className="text-right font-fixed whitespace-pre">
+          {format(getQuantity(value, record), "packed")}
+        </div>
+      ),
+    },
+    {
+      title: ``,
+      dataIndex: [...path],
+      render: (value: number, record: T) => (
+        <div className="text-right font-fixed whitespace-pre">
+          {format(getQuantity(value, record), "unpacked")}
+        </div>
+      ),
+    },
+    {
+      title: `${options?.prefix ?? ""} 중량`.trim(),
+      dataIndex: [...path],
+      render: (value: number, record: T) => (
+        <div className="text-right font-fixed whitespace-pre">
+          {format(getQuantity(value, record), "weight")}
+        </div>
       ),
     },
   ];

@@ -1,84 +1,66 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, Table, Toolbar } from "@/components";
+import { Button, Icon, Popup, Table } from "@/components";
 import { useCallback, useEffect, useState } from "react";
-import { InvoiceConnection } from ".";
 
 type OpenType = number | false;
-
 export interface Props {
   open: OpenType;
   onClose: (unit: false) => void;
 }
 
 export default function Component(props: Props) {
-  const info = ApiHook.Auth.useGetMe();
-
-  const [page, setPage] = usePage();
-  const list = ApiHook.Shipping.Invoice.useGetList({
+  const [groupPage, setGroupPage] = usePage();
+  const groupList = ApiHook.Shipping.Invoice.useGetList({
     query: {
-      shippingId: props.open ? props.open : undefined,
+      ...groupPage,
+      shippingId: null,
     },
   });
+  const [selectedGroup, setSelectedGroup] = useState<Model.Invoice[]>([]);
 
-  const [selected, setSelected] = useState<Model.Invoice[]>([]);
-  const [openCreate, setOpenCreate] = useState<number | false>(false);
-
-  const only = Util.only(selected);
-
-  const apiDisconnect = ApiHook.Shipping.Invoice.useDisconnect();
-  const cmdDisconnect = useCallback(async () => {
-    if (!(await Util.confirm("송장을 연결 해제하시겠습니까?"))) {
+  const apiConnect = ApiHook.Shipping.Shipping.useConnectInvoices();
+  const cmdConnect = useCallback(async () => {
+    if (!props.open) {
       return;
     }
 
-    await apiDisconnect.mutateAsync({
-      data: { invoiceIds: selected.map((x) => x.id) },
+    if (!(await Util.confirm("송장을 연결하시겠습니까?"))) {
+      return;
+    }
+
+    await apiConnect.mutateAsync({
+      shippingId: props.open,
+      data: {
+        invoiceIds: selectedGroup.map((x) => x.id),
+      },
     });
 
-    setSelected([]);
-  }, [apiDisconnect]);
+    props.onClose(false);
+  }, [apiConnect, props.open, selectedGroup]);
 
   useEffect(() => {
-    if (!props.open) {
-      setSelected([]);
+    if (props.open) {
+      setSelectedGroup([]);
     }
   }, [props.open]);
 
   return (
-    <Popup.Template.Property
-      title="배송 상세"
-      width={"calc(100vw - 200px)"}
-      height="500px"
+    <Popup.Template.Full
+      title="자사 재고 선택"
       {...props}
       open={!!props.open}
+      width="calc(100vw - 200px)"
+      height="600px"
     >
-      <div className="flex-1 p-4 flex flex-col gap-4">
-        <div className="flex-initial flex flex-row gap-2 justify-between">
-          <Toolbar.Container>
-            <Toolbar.ButtonPreset.Create
-              label="송장 추가"
-              onClick={() => setOpenCreate(props.open)}
-            />
-          </Toolbar.Container>
-          <Toolbar.Container>
-            {only && (
-              <Toolbar.ButtonPreset.Delete
-                label="송장 연결 해제"
-                onClick={cmdDisconnect}
-              />
-            )}
-          </Toolbar.Container>
-        </div>
+      <div className="flex flex-col w-full h-full">
         <div className="flex-1">
           <Table.Default<Model.Invoice>
-            data={list.data}
-            page={page}
-            setPage={setPage}
-            keySelector={(record) => record.id}
-            selected={selected}
-            onSelectedChange={setSelected}
+            data={groupList.data}
+            keySelector={(record) => `${record.id}`}
+            selected={selectedGroup}
+            onSelectedChange={setSelectedGroup}
             selection="multiple"
             columns={[
               {
@@ -176,8 +158,17 @@ export default function Component(props: Props) {
             ]}
           />
         </div>
+        <div className="basis-px bg-gray-200" />
+        <div className="flex-initial flex justify-center gap-x-2 p-4">
+          <Button.Default
+            label="송장 등록"
+            onClick={cmdConnect}
+            type="primary"
+            disabled={selectedGroup.length === 0}
+          />
+          <Button.Default label="취소" onClick={() => props.onClose(false)} />
+        </div>
       </div>
-      <InvoiceConnection open={openCreate} onClose={setOpenCreate} />
-    </Popup.Template.Property>
+    </Popup.Template.Full>
   );
 }

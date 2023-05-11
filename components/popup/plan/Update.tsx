@@ -2,9 +2,12 @@ import { ApiHook } from "@/common";
 import { Button, FormControl, Popup, Toolbar } from "@/components";
 import classNames from "classnames";
 import { TaskMap } from "./common";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Form, Input, Steps } from "antd";
 import { useForm } from "antd/lib/form/Form";
+import { RegisterInputStock } from ".";
+import { RegisterInputStockRequest } from "@/@shared/api";
+import { OpenType } from "./RegisterInputStock";
 
 export interface Props {
   open: number | false;
@@ -14,6 +17,7 @@ export interface Props {
 export default function Component(props: Props) {
   const [form] = useForm();
   const [stockId, setStockId] = useState<number | null>(null);
+  const [openRegister, setOpenRegister] = useState<OpenType | false>(false);
 
   const data = ApiHook.Working.Plan.useGetItem({
     id: props.open ? props.open : null,
@@ -41,9 +45,15 @@ export default function Component(props: Props) {
     });
   }, [props.open]);
 
-  const stock = ApiHook.Stock.StockInhouse.useGetItem({
-    id: stockId,
-  });
+  useEffect(() => {
+    if (stockId && props.open && !openRegister) {
+      setOpenRegister({
+        planId: props.open,
+        stockId: stockId,
+      });
+      setStockId(null);
+    }
+  }, [props.open, stockId, openRegister]);
 
   return (
     <Popup.Template.Full
@@ -173,6 +183,10 @@ export default function Component(props: Props) {
           </>
         )}
       </div>
+      <RegisterInputStock
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+      />
     </Popup.Template.Full>
   );
 }

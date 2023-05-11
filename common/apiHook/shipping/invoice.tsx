@@ -24,9 +24,10 @@ export function useDisconnect() {
 
   return useMutation(
     ["invoice", "disconnect"],
-    async (params: { id: number }) => {
+    async (params: { data: Api.InvoiceDisconnectShippingRequest }) => {
       const resp = await axios.post(
-        `${API_HOST}/invoice/${params.id}/disconnect`
+        `${API_HOST}/invoice/disconnect`,
+        params.data
       );
       return resp.data;
     },

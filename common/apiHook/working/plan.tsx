@@ -87,3 +87,22 @@ export function useComplete() {
     }
   );
 }
+
+export function useRegisterInputStock() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["plan", "registerInputStock"],
+    async (params: { id: number; data: Api.RegisterInputStockRequest }) => {
+      const resp = await axios.post(
+        `${API_HOST}/working/plan/${params.id}/register-stock`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["plan", "item", variables.id]);
+      },
+    }
+  );
+}

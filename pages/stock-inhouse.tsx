@@ -144,24 +144,16 @@ export default function Component() {
             title: "인증",
             dataIndex: ["paperCert", "name"],
           },
-          {
-            title: "실물 수량",
-            dataIndex: "totalQuantity",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
-          {
-            title: "가용 수량",
-            dataIndex: "availableQuantity",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
+          ...Table.Preset.columnQuantity<Model.StockGroup>(
+            (record) => record,
+            ["totalQuantity"],
+            { prefix: "실물" }
+          ),
+          ...Table.Preset.columnQuantity<Model.StockGroup>(
+            (record) => record,
+            ["availableQuantity"],
+            { prefix: "가용" }
+          ),
         ]}
       />
       <Table.Default<Model.Stock>
@@ -193,24 +185,16 @@ export default function Component() {
               </div>
             ),
           },
-          {
-            title: "실물 수량",
-            dataIndex: "totalQuantity",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
-          {
-            title: "가용 수량",
-            dataIndex: "availableQuantity",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
+          ...Table.Preset.columnQuantity<Model.Stock>(
+            (record) => record,
+            ["cachedQuantity"],
+            { prefix: "실물" }
+          ),
+          ...Table.Preset.columnQuantity<Model.Stock>(
+            (record) => record,
+            ["cachedQuantityAvailable"],
+            { prefix: "가용" }
+          ),
         ]}
       />
       <Popup.Stock.Create open={openCreate} onClose={setOpenCreate} />

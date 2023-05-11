@@ -1,7 +1,6 @@
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
@@ -12,7 +11,7 @@ export default function Component() {
 
   const [page, setPage] = usePage();
   const list = ApiHook.Shipping.Shipping.useGetList({ query: page });
-  const [selected, setSelected] = useState<Record.Shipping[]>([]);
+  const [selected, setSelected] = useState<Model.Shipping[]>([]);
 
   const only = Util.only(selected);
 
@@ -50,7 +49,7 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
-      <Table.Default<Record.Shipping>
+      <Table.Default<Model.Shipping>
         data={list.data}
         page={page}
         setPage={setPage}
@@ -65,7 +64,7 @@ export default function Component() {
           },
         ]}
       />
-      <Popup.Warehouse.Update open={openUpdate} onClose={setOpenUpdate} />
+      <Popup.Shipping.Update open={openUpdate} onClose={setOpenUpdate} />
     </Page>
   );
 }

@@ -119,16 +119,29 @@ export default function Component(props: Props) {
     switch (order.data.status) {
       case "OFFER_PREPARING":
         return isSales ? (
-          <RightSideSkeleton
-            icon={<TbAB />}
-            title={`매출 원지 정보를 입력하고 재고 승인 요청을 보내세요.`}
-            buttons={[
-              {
-                fn: cmdRequest,
-                label: `재고 승인 요청`,
-              },
-            ]}
-          />
+          order.data.srcCompany.managedById !== null ? (
+            <RightSideSkeleton
+              icon={<TbAB />}
+              title={`매출 재고를 선택하고 가상 매출처 대상 매출 등록을 완료하세요.`}
+              buttons={[
+                {
+                  fn: cmdAccept(true),
+                  label: `매입 등록 완료`,
+                },
+              ]}
+            />
+          ) : (
+            <RightSideSkeleton
+              icon={<TbAB />}
+              title={`매출 원지 정보를 입력하고 재고 승인 요청을 보내세요.`}
+              buttons={[
+                {
+                  fn: cmdRequest,
+                  label: `재고 승인 요청`,
+                },
+              ]}
+            />
+          )
         ) : (
           <RightSideSkeleton />
         );
@@ -174,16 +187,29 @@ export default function Component(props: Props) {
         );
       case "ORDER_PREPARING":
         return !isSales ? (
-          <RightSideSkeleton
-            icon={<TbAB />}
-            title={`거래 하려는 매입처와 재고를 선택하고 발주 요청을 보내세요.`}
-            buttons={[
-              {
-                fn: cmdRequest,
-                label: `발주 요청`,
-              },
-            ]}
-          />
+          order.data.dstCompany.managedById !== null ? (
+            <RightSideSkeleton
+              icon={<TbAB />}
+              title={`매입 재고를 선택하고 가상 매입처 대상 매입 등록을 완료하세요.`}
+              buttons={[
+                {
+                  fn: cmdAccept(true),
+                  label: `매입 등록 완료`,
+                },
+              ]}
+            />
+          ) : (
+            <RightSideSkeleton
+              icon={<TbAB />}
+              title={`거래 하려는 매입처와 재고를 선택하고 발주 요청을 보내세요.`}
+              buttons={[
+                {
+                  fn: cmdRequest,
+                  label: `발주 요청`,
+                },
+              ]}
+            />
+          )
         ) : (
           <RightSideSkeleton />
         );
@@ -299,6 +325,8 @@ function DataForm(props: DataFormProps) {
   });
 
   const packagingId = useWatch(["packagingId"], form);
+  const sizeX = useWatch(["sizeX"], form);
+  const sizeY = useWatch(["sizeY"], form);
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
   const editable =
@@ -318,6 +346,7 @@ function DataForm(props: DataFormProps) {
         locationId: props.initialOrder.orderStock.dstLocation.id,
         wantedDate: props.initialOrder.wantedDate,
         warehouseId: props.initialOrder.orderStock.warehouse?.id,
+        orderStockId: props.initialOrder.orderStock.orderStock?.id,
         productId: props.initialOrder.orderStock.product.id,
         packagingId: props.initialOrder.orderStock.packaging.id,
         grammage: props.initialOrder.orderStock.grammage,
@@ -330,6 +359,7 @@ function DataForm(props: DataFormProps) {
         quantity: props.initialOrder.orderStock.quantity,
         memo: props.initialOrder.memo,
       });
+      setWarehouse(props.initialOrder.orderStock.warehouse);
     } else {
       form.resetFields();
     }
@@ -434,7 +464,8 @@ function DataForm(props: DataFormProps) {
                 onSelect={(stockGroup) => {
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
-                    warehouseId: stockGroup.warehouse.id,
+                    warehouseId: stockGroup.warehouse?.id,
+                    orderStockId: stockGroup.orderStock.id,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -457,7 +488,8 @@ function DataForm(props: DataFormProps) {
                 onSelect={(stockGroup) => {
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
-                    warehouseId: stockGroup.warehouse.id,
+                    warehouseId: stockGroup.warehouse?.id,
+                    orderStockId: stockGroup.orderStock?.id,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -510,52 +542,49 @@ function DataForm(props: DataFormProps) {
           >
             <FormControl.SelectPackaging disabled={!editable || !manual} />
           </Form.Item>
-          <Form.Item>
-            <div className="flex justify-between gap-x-2">
-              <Form.Item
-                name="grammage"
-                label="평량"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number
-                  min={0}
-                  max={9999}
-                  pricision={0}
-                  unit={Util.UNIT_GPM}
-                  disabled={!editable || !manual}
-                />
-              </Form.Item>
-              <Form.Item
-                name="sizeX"
-                label="지폭"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number
-                  min={0}
-                  max={9999}
-                  pricision={0}
-                  unit="mm"
-                  disabled={!editable || !manual}
-                />
-              </Form.Item>
-              <Form.Item
-                name="sizeY"
-                label="지장"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number
-                  min={0}
-                  max={9999}
-                  pricision={0}
-                  unit="mm"
-                  disabled={!editable || !manual}
-                />
-              </Form.Item>
-            </div>
+          <Form.Item
+            name="grammage"
+            label="평량"
+            rules={[{ required: true }]}
+            rootClassName="flex-1"
+          >
+            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
           </Form.Item>
+          {packaging && (
+            <Form.Item>
+              <div className="flex justify-between gap-x-2">
+                {packaging.type !== "ROLL" && (
+                  <Form.Item label="규격" rootClassName="flex-1">
+                    <FormControl.Util.PaperSize
+                      sizeX={sizeX}
+                      sizeY={sizeY}
+                      onChange={(sizeX, sizeY) =>
+                        form.setFieldsValue({ sizeX, sizeY })
+                      }
+                    />
+                  </Form.Item>
+                )}
+                <Form.Item
+                  name="sizeX"
+                  label="지폭"
+                  rules={[{ required: true }]}
+                  rootClassName="flex-1"
+                >
+                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                </Form.Item>
+                {packaging.type !== "ROLL" && (
+                  <Form.Item
+                    name="sizeY"
+                    label="지장"
+                    rules={[{ required: true }]}
+                    rootClassName="flex-1"
+                  >
+                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                  </Form.Item>
+                )}
+              </div>
+            </Form.Item>
+          )}
           <Form.Item name="paperColorGroupId" label="색군">
             <FormControl.SelectColorGroup disabled={!editable || !manual} />
           </Form.Item>

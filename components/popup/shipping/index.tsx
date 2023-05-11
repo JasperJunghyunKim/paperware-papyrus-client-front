@@ -1,4 +1,4 @@
 import Update from "./Update";
-import CreateArrival from "./CreateArrival";
+import InvoiceConnection from "./InvoiceConnection";
 
-export { Update, CreateArrival };
+export { Update, InvoiceConnection };

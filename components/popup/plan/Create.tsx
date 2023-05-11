@@ -16,6 +16,8 @@ export default function Component(props: Props) {
 
   const [form] = useForm<Api.PlanCreateRequest>();
   const packagingId = useWatch(["packagingId"], form);
+  const sizeX = useWatch(["sizeX"], form);
+  const sizeY = useWatch(["sizeY"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
@@ -46,34 +48,49 @@ export default function Component(props: Props) {
           >
             <FormControl.SelectPackaging />
           </Form.Item>
-          <Form.Item>
-            <div className="flex justify-between gap-x-2">
-              <Form.Item
-                name="grammage"
-                label="평량"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
-              </Form.Item>
-              <Form.Item
-                name="sizeX"
-                label="지폭"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number min={0} max={9999} pricision={0} unit="mm" />
-              </Form.Item>
-              <Form.Item
-                name="sizeY"
-                label="지장"
-                rules={[{ required: true }]}
-                rootClassName="flex-1"
-              >
-                <Number min={0} max={9999} pricision={0} unit="mm" />
-              </Form.Item>
-            </div>
+          <Form.Item
+            name="grammage"
+            label="평량"
+            rules={[{ required: true }]}
+            rootClassName="flex-1"
+          >
+            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
           </Form.Item>
+          {packaging && (
+            <Form.Item>
+              <div className="flex justify-between gap-x-2">
+                {packaging.type !== "ROLL" && (
+                  <Form.Item label="규격" rootClassName="flex-1">
+                    <FormControl.Util.PaperSize
+                      sizeX={sizeX}
+                      sizeY={sizeY}
+                      onChange={(sizeX, sizeY) =>
+                        form.setFieldsValue({ sizeX, sizeY })
+                      }
+                    />
+                  </Form.Item>
+                )}
+                <Form.Item
+                  name="sizeX"
+                  label="지폭"
+                  rules={[{ required: true }]}
+                  rootClassName="flex-1"
+                >
+                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                </Form.Item>
+                {packaging.type !== "ROLL" && (
+                  <Form.Item
+                    name="sizeY"
+                    label="지장"
+                    rules={[{ required: true }]}
+                    rootClassName="flex-1"
+                  >
+                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                  </Form.Item>
+                )}
+              </div>
+            </Form.Item>
+          )}
           <Form.Item name="paperColorGroupId" label="색군">
             <FormControl.SelectColorGroup />
           </Form.Item>

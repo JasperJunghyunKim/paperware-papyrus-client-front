@@ -2,55 +2,88 @@ import { Api } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form } from "antd";
+import { Form, Input } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+
+export type OpenType =
+  | {
+      stockId: number;
+      planId: number;
+    }
+  | false;
 
 export interface Props {
-  open: boolean;
-  onClose: (unit: boolean) => void;
+  open: OpenType;
+  onClose: (unit: false) => void;
 }
 
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
-  const [form] = useForm<Api.StockCreateRequest>();
+  const [form] = useForm<Api.PlanCreateRequest>();
   const packagingId = useWatch(["packagingId"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
-  const api = ApiHook.Stock.StockInhouse.useCreate();
+  const api = ApiHook.Working.Plan.useCreate();
   const cmd = useCallback(
-    async (values: Api.StockCreateRequest) => {
+    async (values: Api.PlanCreateRequest) => {
       await api.mutateAsync({ data: values });
       form.resetFields();
       props.onClose(false);
     },
-    [api, form, props]
+    [api, form, props.onClose]
   );
 
+  const stock = ApiHook.Stock.StockInhouse.useGetItem({
+    id: props.open ? props.open.stockId : null,
+  });
+
+  useEffect(() => {
+    if (!stock.data) {
+      return;
+    }
+    form.setFieldsValue({
+      productId: stock.data.product.id,
+      packagingId: stock.data.packaging.id,
+      grammage: stock.data.grammage,
+      sizeX: stock.data.sizeX,
+      sizeY: stock.data.sizeY,
+      paperColorGroupId: stock.data.paperColorGroup?.id,
+      paperColorId: stock.data.paperColor?.id,
+      paperPatternId: stock.data.paperPattern?.id,
+      paperCertId: stock.data.paperCert?.id,
+    });
+  }, [stock.data]);
+
   return (
-    <Popup.Template.Property title="재고 추가" {...props}>
-      <div className="flex-1 p-4">
-        <Form form={form} onFinish={cmd} layout="vertical">
-          <Form.Item
-            name="warehouseId"
-            label="창고"
-            rules={[{ required: true }]}
-          >
-            <FormControl.SelectWarehouse />
+    <Popup.Template.Property
+      title="실투입 재고 등록"
+      {...props}
+      open={!!props.open}
+    >
+      <div className="flex-initial p-4 ">
+        <Form
+          form={form}
+          onFinish={cmd}
+          layout="vertical"
+          rootClassName="pb-16"
+        >
+          <Form.Item name="warehouseId" label="창고">
+            <FormControl.SelectWarehouse disabled />
           </Form.Item>
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-            <FormControl.SelectProduct />
+            <FormControl.SelectProduct disabled />
           </Form.Item>
           <Form.Item
             name="packagingId"
             label="포장"
             rules={[{ required: true }]}
           >
-            <FormControl.SelectPackaging />
+            <FormControl.SelectPackaging disabled />
           </Form.Item>
           <Form.Item
             name="grammage"
@@ -96,27 +129,24 @@ export default function Component(props: Props) {
             </Form.Item>
           )}
           <Form.Item name="paperColorGroupId" label="색군">
-            <FormControl.SelectColorGroup />
+            <FormControl.SelectColorGroup disabled />
           </Form.Item>
           <Form.Item name="paperColorId" label="색상">
-            <FormControl.SelectColor />
+            <FormControl.SelectColor disabled />
           </Form.Item>
           <Form.Item name="paperPatternId" label="무늬">
-            <FormControl.SelectPattern />
+            <FormControl.SelectPattern disabled />
           </Form.Item>
           <Form.Item name="paperCertId" label="인증">
-            <FormControl.SelectCert />
-          </Form.Item>
-          <Form.Item name="stockPrice" label="재고 금액">
-            <FormControl.StockPrice />
+            <FormControl.SelectCert disabled />
           </Form.Item>
           {packaging && (
-            <Form.Item name="quantity" label="재고 수량">
+            <Form.Item name="quantity" label="투입 수량">
               <FormControl.Quantity packaging={packaging} />
             </Form.Item>
           )}
-          <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="재고 추가" />
+          <Form.Item className="flex justify-end mt-4 ">
+            <Button.Preset.Submit label="실투입 재고 등록" />
           </Form.Item>
         </Form>
       </div>
