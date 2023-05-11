@@ -2,7 +2,6 @@
   "editor.formatOnSave": true,
   "explorer.compactFolders": false,
   "gitlens.views.commits.files.compact": false,
-  "git-graph.commitDetailsView.fileView.fileTree.compactFolders": false,
   "gitlens.views.commitDetails.files.compact": false,
   "gitlens.views.repositories.files.compact": false,
   "gitlens.views.fileHistory.files.compact": false,

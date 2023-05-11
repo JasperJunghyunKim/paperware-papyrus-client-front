@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import koKR from "antd/locale/ko_KR";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { RecoilRoot } from "recoil";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,9 +28,8 @@ export default function App({ Component, pageProps }: AppProps) {
   const [init, setInit] = useState(false);
 
   useEffect(() => {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${
-      localStorage.getItem("at") ?? ""
-    }`;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("at") ?? ""
+      }`;
     setInit(true);
   }, []);
 
@@ -55,7 +55,9 @@ export default function App({ Component, pageProps }: AppProps) {
       locale={koKR}
     >
       <QueryClientProvider client={queryClient}>
-        {init && <Component {...pageProps} />}
+        <RecoilRoot>
+          {init && <Component {...pageProps} />}
+        </RecoilRoot>
       </QueryClientProvider>
     </ConfigProvider>
   );

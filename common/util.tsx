@@ -51,9 +51,9 @@ export function comma(
   return typeof num === "number" && !isNaN(num) && !isFinite(num)
     ? ""
     : num.toLocaleString("ko-KR", {
-        minimumFractionDigits: precision,
-        maximumFractionDigits: precision,
-      });
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    });
 }
 
 export function passString(value: string | null | undefined) {
@@ -70,11 +70,9 @@ export interface Address {
 }
 
 export function encodeAddress(address: Partial<Address>) {
-  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${
-    address.roadAddressEnglish ?? ""
-  }]] [[${address.jibunAddress ?? ""}::${
-    address.jibunAddressEnglish ?? ""
-  }]] [[${address.detail ?? ""}]]`;
+  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${address.roadAddressEnglish ?? ""
+    }]] [[${address.jibunAddress ?? ""}::${address.jibunAddressEnglish ?? ""
+    }]] [[${address.detail ?? ""}]]`;
 }
 
 export function decodeAddress(address: string | null | undefined): Address {
@@ -126,9 +124,8 @@ export function formatAddress(address: string | Address | null | undefined) {
     return "";
   }
 
-  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${
-    decoded.detail === "" ? "" : `(${decoded.detail})`
-  }`;
+  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${decoded.detail === "" ? "" : `(${decoded.detail})`
+    }`;
 }
 
 export function formatPackaging(packaging: Model.Packaging) {

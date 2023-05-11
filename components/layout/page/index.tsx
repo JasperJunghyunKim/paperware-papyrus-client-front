@@ -15,6 +15,7 @@ import {
   TbChartDots,
   TbClipboardList,
   TbColorSwatch,
+  TbCompass,
   TbFunction,
   TbHome2,
   TbHomeMove,
@@ -116,6 +117,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbColorSwatch />,
         path: "/official-price",
         type: "wip",
+      },
+      { path: null },
+      {
+        label: "수금 내역",
+        icon: <TbCompass />,
+        path: "/collected-history",
+      },
+      {
+        label: "지급 내역",
+        icon: <TbCompass />,
+        path: "/paid-history",
       },
     ],
     [businessRelationshipRequestCount.data?.value]
