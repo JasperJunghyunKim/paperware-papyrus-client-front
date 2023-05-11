@@ -120,55 +120,49 @@ export function columnQuantity<T>(
     prefix?: string;
   }
 ): ColumnType<T>[] {
-  const spec = useCallback(
-    (record: T): PaperUtil.QuantitySpec => {
-      const stock = getStock(record);
-      return {
-        packaging: stock.packaging,
-        grammage: stock.grammage,
-        sizeX: stock.sizeX,
-        sizeY: stock.sizeY,
-      };
-    },
-    [getStock]
-  );
+  const spec = (record: T): PaperUtil.QuantitySpec => {
+    const stock = getStock(record);
+    return {
+      packaging: stock.packaging,
+      grammage: stock.grammage,
+      sizeX: stock.sizeX,
+      sizeY: stock.sizeY,
+    };
+  };
 
-  const getQuantity = useCallback(
-    (value: number, record: T): PaperUtil.Quantity => {
-      const stock = spec(record);
-      return PaperUtil.convertQuantity(stock, value);
-    },
-    [spec]
-  );
+  const getQuantity = (value: number, record: T): PaperUtil.Quantity => {
+    const stock = spec(record);
+    return PaperUtil.convertQuantity(stock, value);
+  };
 
-  const format = useCallback(
-    (quantity: Quantity, type: "packed" | "unpacked" | "weight") => {
-      switch (type) {
-        case "packed":
-          return quantity.packed
-            ? `${Util.comma(
-                quantity.packed.value,
-                PaperUtil.recommendedPrecision(quantity.packed.unit)
-              )} ${quantity.packed.unit}`
-            : null;
-        case "unpacked":
-          return quantity.unpacked
-            ? `${Util.comma(
-                quantity.unpacked.value,
-                PaperUtil.recommendedPrecision(quantity.unpacked.unit)
-              )} ${quantity.unpacked.unit}`
-            : null;
-        case "weight":
-          return quantity.grams
-            ? `${Util.comma(
-                quantity.grams * 0.000001,
-                PaperUtil.recommendedPrecision("T")
-              )} ${"T"}`
-            : null;
-      }
-    },
-    []
-  );
+  const format = (
+    quantity: Quantity,
+    type: "packed" | "unpacked" | "weight"
+  ) => {
+    switch (type) {
+      case "packed":
+        return quantity.packed
+          ? `${Util.comma(
+              quantity.packed.value,
+              PaperUtil.recommendedPrecision(quantity.packed.unit)
+            )} ${quantity.packed.unit}`
+          : null;
+      case "unpacked":
+        return quantity.unpacked
+          ? `${Util.comma(
+              quantity.unpacked.value,
+              PaperUtil.recommendedPrecision(quantity.unpacked.unit)
+            )} ${quantity.unpacked.unit}`
+          : null;
+      case "weight":
+        return quantity.grams
+          ? `${Util.comma(
+              quantity.grams * 0.000001,
+              PaperUtil.recommendedPrecision("T")
+            )} ${"T"}`
+          : null;
+    }
+  };
 
   return [
     {

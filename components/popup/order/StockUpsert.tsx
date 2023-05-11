@@ -465,7 +465,7 @@ function DataForm(props: DataFormProps) {
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
                     warehouseId: stockGroup.warehouse?.id,
-                    orderStockId: stockGroup.orderStock.id,
+                    orderStockId: stockGroup.orderStock?.id,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
