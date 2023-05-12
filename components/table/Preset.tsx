@@ -7,26 +7,14 @@ import { Icon } from "..";
 export function columnStockGroup<T>(
   getStock: (
     record: T
-  ) => Model.StockGroupBase | Model.OrderStockBase | Model.PartnerStockGroup,
+  ) =>
+    | Model.StockGroupBase
+    | Model.OrderStockBase
+    | Model.PartnerStockGroup
+    | Model.StockGroup,
   path: string[]
 ): ColumnType<T>[] {
   return [
-    {
-      title: "제품 유형",
-      dataIndex: [...path, "product", "paperDomain", "name"],
-    },
-    {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
-    },
-    {
-      title: "지군",
-      dataIndex: [...path, "product", "paperGroup", "name"],
-    },
-    {
-      title: "지종",
-      dataIndex: [...path, "product", "paperType", "name"],
-    },
     {
       title: "포장",
       dataIndex: [...path, "packaging", "type"],
@@ -42,6 +30,22 @@ export function columnStockGroup<T>(
           </div>
         </div>
       ),
+    },
+    {
+      title: "제품 유형",
+      dataIndex: [...path, "product", "paperDomain", "name"],
+    },
+    {
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
+    },
+    {
+      title: "지군",
+      dataIndex: [...path, "product", "paperGroup", "name"],
+    },
+    {
+      title: "지종",
+      dataIndex: [...path, "product", "paperType", "name"],
     },
     {
       title: "평량",

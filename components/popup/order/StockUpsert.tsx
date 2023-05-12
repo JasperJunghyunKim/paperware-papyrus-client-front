@@ -551,7 +551,7 @@ function DataForm(props: DataFormProps) {
             <Number
               min={0}
               max={9999}
-              pricision={0}
+              precision={0}
               unit={Util.UNIT_GPM}
               disabled={!editable || !manual}
             />
@@ -580,7 +580,7 @@ function DataForm(props: DataFormProps) {
                   <Number
                     min={0}
                     max={9999}
-                    pricision={0}
+                    precision={0}
                     unit="mm"
                     disabled={!editable || !manual}
                   />
@@ -595,7 +595,7 @@ function DataForm(props: DataFormProps) {
                     <Number
                       min={0}
                       max={9999}
-                      pricision={0}
+                      precision={0}
                       unit="mm"
                       disabled={!editable || !manual}
                     />
@@ -880,20 +880,12 @@ function RightSideOrder(props: RightSideOrderProps) {
           />
         </div>
       </div>
-      <div className="basis-px bg-gray-200" />
-      <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50">
-        <Form layout="vertical">
-          <Form.Item label="공정비">
-            <FormControl.Number />
-          </Form.Item>
-          <Form.Item label="공급가">
-            <FormControl.Number />
-          </Form.Item>
-          <Form.Item label="부가세">
-            <FormControl.Number />
-          </Form.Item>
-        </Form>
-      </div>
+      {props.order && (
+        <>
+          <div className="basis-px bg-gray-200" />
+          <PricePanel order={props.order} />
+        </>
+      )}
       <CreateArrival open={open} onClose={setOpen} />
     </div>
   );
@@ -1033,10 +1025,58 @@ function RightSideSales(props: RightSideSalesProps) {
       <div className="flex-1 overflow-y-scroll px-4 pb-4">
         <div className="flex-1"></div>
       </div>
-      <div className="basis-px bg-gray-200" />
-      <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50">
-        매출 정보
-      </div>
+      {props.order && (
+        <>
+          <div className="basis-px bg-gray-200" />
+          <PricePanel order={props.order} />
+        </>
+      )}
+    </div>
+  );
+}
+
+interface PricePanelProps {
+  order: Model.Order;
+}
+function PricePanel(props: PricePanelProps) {
+  const [form] = useForm();
+
+  const processPrice = useWatch(["processPrice"], form);
+  const suppliedPrice = useWatch(["suppliedPrice"], form);
+  const vatPrice = useWatch(["vatPrice"], form);
+
+  return (
+    <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50 flex">
+      <Form
+        form={form}
+        layout="vertical"
+        rootClassName="flex-initial basis-[500px]"
+        initialValues={{
+          price: FormControl.Util.Price.initialStockPrice(
+            props.order.orderStock.packaging.type
+          ),
+        }}
+      >
+        <Form.Item label="거래 금액" name={["price"]}>
+          <FormControl.StockPrice
+            spec={{
+              grammage: props.order.orderStock.grammage,
+              packaging: props.order.orderStock.packaging,
+              sizeX: props.order.orderStock.sizeX,
+              sizeY: props.order.orderStock.sizeY,
+            }}
+          />
+        </Form.Item>
+        <Form.Item name={"processPrice"} label="공정비">
+          <FormControl.Number />
+        </Form.Item>
+        <Form.Item name={"supplyPrice"} label="공급가">
+          <FormControl.Number />
+        </Form.Item>
+        <Form.Item name={"vatPrice"} label="부가세">
+          <FormControl.Number />
+        </Form.Item>
+      </Form>
     </div>
   );
 }

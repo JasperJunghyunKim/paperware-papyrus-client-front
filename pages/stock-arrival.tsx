@@ -3,7 +3,7 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 
 export default function Component() {
@@ -14,19 +14,13 @@ export default function Component() {
   const [selected, setSelected] = useState<Model.StockEvent[]>([]);
   const only = Util.only(selected);
 
-  const apiApply = ApiHook.Stock.StockArrival.useApply();
-  const cmdApply = useCallback(async () => {
-    if (!only) return;
-    if (!(await Util.confirm("선택한 재고를 입고하시겠습니까?"))) {
-      return;
+  const [openApply, setOpenApply] = useState<number | false>(false);
+
+  useEffect(() => {
+    if (list.data) {
+      setSelected([]);
     }
-
-    await apiApply.mutateAsync({
-      stockEventId: only.id,
-    });
-
-    setSelected([]);
-  }, [apiApply, only]);
+  }, [list.data]);
 
   return (
     <Page title="도착 예정 목록">
@@ -42,7 +36,7 @@ export default function Component() {
         <Toolbar.ButtonPreset.Continue
           label="재고 입고"
           disabled={!only}
-          onClick={cmdApply}
+          onClick={() => only && setOpenApply(only.id)}
         />
       </Toolbar.Container>
       <Table.Default<Model.StockEvent>
@@ -63,17 +57,57 @@ export default function Component() {
               )}`}</div>
             ),
           },
+          {
+            title: "주문 번호",
+            dataIndex: ["stock", "initialOrder", "orderNo"],
+            render: (value, record) => (
+              <div className="flex">
+                <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                  {value}
+                </div>
+              </div>
+            ),
+          },
+          {
+            title: "거래처",
+            dataIndex: ["stock", "initialOrder", "dstCompany", "businessName"],
+          },
+          {
+            title: "도착 예정일",
+            dataIndex: ["stock", "initialOrder", "wantedDate"],
+            render: (value) => Util.formatIso8601ToLocalDate(value),
+          },
+          {
+            title: "도착지",
+            dataIndex: [
+              "stock",
+              "initialOrder",
+              "orderStock",
+              "dstLocation",
+              "name",
+            ],
+          },
+          {
+            title: "예정일",
+          },
           ...Table.Preset.columnStockGroup<Model.StockEvent>(
             (p) => p.stock,
             ["stock"]
           ),
+          { title: "배정 수량" },
+          { title: "" },
+          { title: "배정 중량" },
+          { title: "입고 수량" },
+          { title: "" },
+          { title: "입고 중량" },
           ...Table.Preset.columnQuantity<Model.StockEvent>(
             (record) => record.stock,
             ["change"],
-            { prefix: "실물" }
+            { prefix: "전체" }
           ),
         ]}
       />
+      <Popup.Stock.ApplyArrival open={openApply} onClose={setOpenApply} />
     </Page>
   );
 }

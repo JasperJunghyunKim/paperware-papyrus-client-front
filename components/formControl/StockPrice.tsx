@@ -1,19 +1,20 @@
 import { Api, Model } from "@/@shared";
+import { PriceUtil } from "@/common";
 import { Select } from "antd";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Number } from ".";
 
 const OFFICIAL_PRICE_TYPE_OPTIONS = [
   {
-    label: "단가",
+    label: "고시가 미지정",
     value: "NONE" as Model.Enum.OfficialPriceType,
   },
   {
-    label: "고시가, 단가",
+    label: "고시가",
     value: "MANUAL_NONE" as Model.Enum.OfficialPriceType,
   },
   {
-    label: "고시가, 할인율",
+    label: "고시가 × 할인율",
     value: "MANUAL_DEFAULT" as Model.Enum.OfficialPriceType,
   },
 ];
@@ -33,49 +34,139 @@ const PRICE_UNIT_OPTIONS = [
 ];
 const DISCOUNT_TYPE_OPTIONS = [
   {
-    label: "기본",
+    label: "기본 할인율",
     value: "DEFAULT" as Model.Enum.DiscountType,
   },
   {
-    label: "특가",
+    label: "특가 할인율",
     value: "SPECIAL" as Model.Enum.DiscountType,
   },
 ];
 
 interface Props {
+  spec: PriceUtil.Spec;
   value?: Api.StockCreateStockPriceRequest;
   onChange?: (value: Api.StockCreateStockPriceRequest) => void;
 }
 
 export default function Component(props: Props) {
+  const unitOptions = useMemo(() => {
+    switch (props.spec.packaging.type) {
+      case "ROLL":
+        return PRICE_UNIT_OPTIONS.filter(
+          (option) => option.value === "WON_PER_TON"
+        );
+      case "BOX":
+        return PRICE_UNIT_OPTIONS.filter(
+          (option) => option.value === "WON_PER_BOX"
+        );
+      default:
+        return PRICE_UNIT_OPTIONS.filter(
+          (option) => option.value !== "WON_PER_BOX"
+        );
+    }
+  }, [props.spec.packaging.type]);
+
+  const calcDiscount = useCallback(
+    (p: {
+      officialPrice: number;
+      officialPriceUnit: Model.Enum.PriceUnit;
+      unitPrice: number;
+      unitPriceUnit: Model.Enum.PriceUnit;
+    }) => {
+      const srcUnit = p.unitPriceUnit;
+      const dstUnit = p.officialPriceUnit;
+      const tempPrice = PriceUtil.convertPrice({
+        srcUnit,
+        dstUnit,
+        origPrice: p.unitPrice ?? 0,
+        spec: props.spec,
+      });
+      return (1 - tempPrice / p.officialPrice) * 100;
+    },
+    [props.spec]
+  );
+
+  const calcUnitPrice = useCallback(
+    (p: {
+      officialPrice: number;
+      officialPriceUnit: Model.Enum.PriceUnit;
+      discountPrice: number;
+      unitPriceUnit: Model.Enum.PriceUnit;
+    }) => {
+      const srcUnit = p.officialPriceUnit;
+      const dstUnit = p.unitPriceUnit;
+      const tempPrice = PriceUtil.convertPrice({
+        srcUnit,
+        dstUnit,
+        origPrice: p.officialPrice ?? 0,
+        spec: props.spec,
+      });
+      return tempPrice * (1 - p.discountPrice / 100);
+    },
+    [props.spec]
+  );
+
   const changeOfficialPrice = useCallback(
     (
       type: Model.Enum.OfficialPriceType,
       value: number,
       unit: Model.Enum.PriceUnit
     ) => {
+      const isDiscount = type == "MANUAL_DEFAULT";
+
+      const newDiscountValue = isDiscount
+        ? props.value?.discountPrice ?? 0
+        : calcDiscount({
+            officialPrice: value,
+            officialPriceUnit: unit,
+            unitPrice: props.value?.unitPrice ?? 0,
+            unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
+          });
+
+      const newUnitPrice = isDiscount
+        ? calcUnitPrice({
+            officialPrice: value,
+            officialPriceUnit: unit,
+            discountPrice: props.value?.discountPrice ?? 0,
+            unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
+          })
+        : props.value?.unitPrice ?? 0;
+
       const newValue: Api.StockCreateStockPriceRequest = {
         officialPriceType: type,
         officialPrice: value,
         officialPriceUnit: unit,
         discountType: props.value?.discountType ?? "DEFAULT",
-        discountPrice: props.value?.discountPrice ?? 0,
-        unitPrice: props.value?.unitPrice ?? 0,
+        discountPrice: newDiscountValue,
+        unitPrice: newUnitPrice,
         unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
       };
+
       props.onChange?.(newValue);
     },
     [props]
   );
   const changeDiscount = useCallback(
     (type: Model.Enum.DiscountType, value: number) => {
+      const isDiscount = props.value?.officialPriceType == "MANUAL_DEFAULT";
+
+      const newUnitPrice = isDiscount
+        ? calcUnitPrice({
+            officialPrice: props.value?.officialPrice ?? 0,
+            officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+            discountPrice: value,
+            unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
+          })
+        : props.value?.unitPrice ?? 0;
+
       const newValue: Api.StockCreateStockPriceRequest = {
         officialPriceType: props.value?.officialPriceType ?? "NONE",
         officialPrice: props.value?.officialPrice ?? 0,
         officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
         discountType: type,
         discountPrice: value,
-        unitPrice: props.value?.unitPrice ?? 0,
+        unitPrice: newUnitPrice,
         unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
       };
       props.onChange?.(newValue);
@@ -84,13 +175,33 @@ export default function Component(props: Props) {
   );
   const changeUnitPrice = useCallback(
     (value: number, unit: Model.Enum.PriceUnit) => {
+      const isDiscount = props.value?.officialPriceType == "MANUAL_DEFAULT";
+
+      const newDiscountValue = isDiscount
+        ? props.value?.discountPrice ?? 0
+        : calcDiscount({
+            officialPrice: props.value?.officialPrice ?? 0,
+            officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+            unitPrice: value,
+            unitPriceUnit: unit,
+          });
+
+      const newUnitPrice = isDiscount
+        ? calcUnitPrice({
+            officialPrice: props.value?.officialPrice ?? 0,
+            officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+            discountPrice: props.value?.discountPrice ?? 0,
+            unitPriceUnit: unit,
+          })
+        : value;
+
       const newValue: Api.StockCreateStockPriceRequest = {
         officialPriceType: props.value?.officialPriceType ?? "NONE",
         officialPrice: props.value?.officialPrice ?? 0,
         officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
         discountType: props.value?.discountType ?? "DEFAULT",
-        discountPrice: props.value?.discountPrice ?? 0,
-        unitPrice: value,
+        discountPrice: newDiscountValue,
+        unitPrice: newUnitPrice,
         unitPriceUnit: unit,
       };
       props.onChange?.(newValue);
@@ -124,7 +235,7 @@ export default function Component(props: Props) {
           }
           min={0}
           max={9999999999}
-          pricision={0}
+          precision={0}
           unit="원"
           rootClassName="flex-1"
           disabled={props.value?.officialPriceType === "NONE"}
@@ -138,7 +249,7 @@ export default function Component(props: Props) {
               value
             )
           }
-          options={PRICE_UNIT_OPTIONS}
+          options={unitOptions}
           rootClassName="flex-1"
           disabled={props.value?.officialPriceType === "NONE"}
         />
@@ -158,7 +269,7 @@ export default function Component(props: Props) {
           onChange={(p) =>
             changeDiscount(props.value?.discountType ?? "DEFAULT", p ?? 0)
           }
-          pricision={3}
+          precision={3}
           unit="%"
           rootClassName="flex-[2_0_8px]"
           disabled={props.value?.officialPriceType !== "MANUAL_DEFAULT"}
@@ -172,7 +283,7 @@ export default function Component(props: Props) {
           }
           min={0}
           max={9999999999}
-          pricision={0}
+          precision={0}
           unit="원"
           rootClassName="flex-[2_0_8px]"
           disabled={props.value?.officialPriceType === "MANUAL_DEFAULT"}
@@ -182,7 +293,7 @@ export default function Component(props: Props) {
           onChange={(value) =>
             changeUnitPrice(props.value?.unitPrice ?? 0, value)
           }
-          options={PRICE_UNIT_OPTIONS}
+          options={unitOptions}
           rootClassName="flex-1"
         />
       </div>
