@@ -41,16 +41,16 @@ export default function Component(props: Props) {
       <Form.Item name="partnerNickName" label="거래처">
         <Input disabled />
       </Form.Item>
-      <Form.Item name="accountedDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`}>
+      <Form.Item name="accountedDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} rules={[{ required: true }]}>
         <FormControl.DatePicker />
       </Form.Item>
-      <Form.Item name="amount" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 금액`}>
+      <Form.Item name="amount" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 금액`} rules={[{ required: true }]}>
         <Input />
       </Form.Item>
-      <Form.Item name="accountedSubject" label="계정 과목">
+      <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
         <FormControl.SelectSubject accountedType={props.accountedType} />
       </Form.Item>
-      <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`}>
+      <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} rules={[{ required: true }]}>
         <FormControl.SelectMethod isDisabled={true} />
       </Form.Item>
       <Form.Item name="memo" label="비고">

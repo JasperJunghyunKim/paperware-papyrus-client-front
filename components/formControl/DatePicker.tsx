@@ -12,6 +12,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <DatePicker
+        defaultValue={Util.iso8601ToDate(new Date().toISOString())}
         value={Util.iso8601ToDate(props.value)}
         onChange={(x) => props.onChange?.(Util.dateToIso8601(x))}
         disabled={props.disabled}

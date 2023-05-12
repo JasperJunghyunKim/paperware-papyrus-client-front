@@ -15,8 +15,6 @@ import {
   TbChartDots,
   TbClipboardList,
   TbColorSwatch,
-  TbCompass,
-  TbFunction,
   TbHome2,
   TbHomeMove,
   TbInputSearch,
@@ -28,6 +26,8 @@ import {
   TbSubtask,
   TbTournament,
   TbTruck,
+  TbVector,
+  TbVectorTriangle
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -120,13 +120,13 @@ export default function Component(props: PropsWithChildren<Props>) {
       },
       { path: null },
       {
-        label: "수금 내역",
-        icon: <TbCompass />,
+        label: "수금 관리",
+        icon: <TbVector />,
         path: "/collected-history",
       },
       {
-        label: "지급 내역",
-        icon: <TbCompass />,
+        label: "지급 관리",
+        icon: <TbVectorTriangle />,
         path: "/paid-history",
       },
     ],

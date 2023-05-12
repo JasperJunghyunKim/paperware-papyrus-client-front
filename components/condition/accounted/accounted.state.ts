@@ -9,7 +9,7 @@ export const accountedAtom = atom<Omit<Api.AccountedQuery, 'skip' | 'take'>>({
     accountedType: 'PAID',
     accountedSubject: 'All',
     accountedMethod: 'All',
-    accountedFromDate: '',
-    accountedToDate: '',
+    accountedFromDate: new Date().toISOString(),
+    accountedToDate: new Date().toISOString(),
   },
 });
