@@ -72,18 +72,21 @@ export default function Component(props: Props) {
       {contextHolder}
       <Form
         layout={"vertical"}
-        className={"flex flex-row gap-4 w-full"}>
+        className={"flex flex-row gap-4 w-full"}
+        initialValues={{
+          ...condtiuon
+        }}>
         <Form.Item name="partnerId" label="거래처" className={"w-1/5"} getValueFromEvent={(value) => onChange('partnerId', value)}>
           <FormControl.SelectPartner isAll={true} />
         </Form.Item>
         <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
-          <FormControl.DatePicker value={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
+          <FormControl.DatePicker datePickerValue={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
         </Form.Item>
         <div className={"mt-8"}>
           ~
         </div>
         <Form.Item name="accountedToDate" label=" " className={"w-1/5 mt-30"}>
-          <FormControl.DatePicker value={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
+          <FormControl.DatePicker datePickerValue={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
         </Form.Item>
         <Form.Item name="accountedSubject" label="계정 과목" className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedSubject', value)}>
           <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} />
