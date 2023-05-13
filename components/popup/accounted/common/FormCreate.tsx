@@ -16,25 +16,47 @@ export default function Component(props: Props) {
       <Form.Item name="partnerId" label="거래처" rules={[{ required: true }]}>
         <FormControl.SelectPartner />
       </Form.Item>
-      <Form.Item name="accountedDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} rules={[{ required: true }]}>
+      <Form.Item
+        name="accountedDate"
+        label={`${props.accountedType === "PAID" ? "지급" : "수금"}일`}
+        rules={[{ required: true }]}
+      >
         <FormControl.DatePicker />
       </Form.Item>
-      <Form.Item name="amount" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 금액`} rules={[{ required: true }]}>
-        <FormControl.Number rootClassName="text-right" min={0} pricision={0} unit="원" />
+      <Form.Item
+        name="amount"
+        label={`${props.accountedType === "PAID" ? "지급" : "수금"} 금액`}
+        rules={[{ required: true }]}
+      >
+        <FormControl.Number
+          rootClassName="text-right"
+          min={0}
+          precision={0}
+          unit="원"
+        />
       </Form.Item>
-      <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
+      <Form.Item
+        name="accountedSubject"
+        label="계정 과목"
+        rules={[{ required: true }]}
+      >
         <FormControl.SelectSubject accountedType={props.accountedType} />
       </Form.Item>
-      <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} rules={[{ required: true }]}>
+      <Form.Item
+        name="accountedMethod"
+        label={`${props.accountedType === "PAID" ? "지급" : "수금"} 수단`}
+        rules={[{ required: true }]}
+      >
         <FormControl.SelectMethod />
       </Form.Item>
       <Form.Item name="memo" label="비고">
         <Input />
       </Form.Item>
       <Form.Item className="flex justify-end">
-        <Button.Preset.Submit label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 추가`} />
+        <Button.Preset.Submit
+          label={`${props.accountedType === "PAID" ? "지급" : "수금"} 추가`}
+        />
       </Form.Item>
     </Form>
   );
 }
-
