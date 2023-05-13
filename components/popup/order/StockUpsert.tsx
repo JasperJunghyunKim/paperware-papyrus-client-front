@@ -16,6 +16,7 @@ import {
   TbSend,
   TbSquare,
 } from "react-icons/tb";
+import _ from "lodash";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -508,11 +509,7 @@ function DataForm(props: DataFormProps) {
           {!manual && (
             <>
               {props.isSales ? (
-                <Form.Item
-                  name="warehouseId"
-                  label="창고"
-                  rules={[{ required: true }]}
-                >
+                <Form.Item name="warehouseId" label="창고">
                   <FormControl.SelectWarehouse disabled />
                 </Form.Item>
               ) : (
@@ -548,7 +545,13 @@ function DataForm(props: DataFormProps) {
             rules={[{ required: true }]}
             rootClassName="flex-1"
           >
-            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
+            <Number
+              min={0}
+              max={9999}
+              precision={0}
+              unit={Util.UNIT_GPM}
+              disabled={!editable || !manual}
+            />
           </Form.Item>
           {packaging && (
             <Form.Item>
@@ -561,6 +564,7 @@ function DataForm(props: DataFormProps) {
                       onChange={(sizeX, sizeY) =>
                         form.setFieldsValue({ sizeX, sizeY })
                       }
+                      disabled={!editable || !manual}
                     />
                   </Form.Item>
                 )}
@@ -570,7 +574,13 @@ function DataForm(props: DataFormProps) {
                   rules={[{ required: true }]}
                   rootClassName="flex-1"
                 >
-                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                  <Number
+                    min={0}
+                    max={9999}
+                    precision={0}
+                    unit="mm"
+                    disabled={!editable || !manual}
+                  />
                 </Form.Item>
                 {packaging.type !== "ROLL" && (
                   <Form.Item
@@ -579,7 +589,13 @@ function DataForm(props: DataFormProps) {
                     rules={[{ required: true }]}
                     rootClassName="flex-1"
                   >
-                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                    <Number
+                      min={0}
+                      max={9999}
+                      precision={0}
+                      unit="mm"
+                      disabled={!editable || !manual}
+                    />
                   </Form.Item>
                 )}
               </div>
@@ -861,10 +877,12 @@ function RightSideOrder(props: RightSideOrderProps) {
           />
         </div>
       </div>
-      <div className="basis-px bg-gray-200" />
-      <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50">
-        매입 정보
-      </div>
+      {props.order && (
+        <>
+          <div className="basis-px bg-gray-200" />
+          <PricePanel order={props.order} />
+        </>
+      )}
       <CreateArrival open={open} onClose={setOpen} />
     </div>
   );
@@ -1004,10 +1022,128 @@ function RightSideSales(props: RightSideSalesProps) {
       <div className="flex-1 overflow-y-scroll px-4 pb-4">
         <div className="flex-1"></div>
       </div>
-      <div className="basis-px bg-gray-200" />
-      <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50">
-        매출 정보
-      </div>
+      {props.order && (
+        <>
+          <div className="basis-px bg-gray-200" />
+          <PricePanel order={props.order} />
+        </>
+      )}
+    </div>
+  );
+}
+
+interface PricePanelProps {
+  order: Model.Order;
+}
+function PricePanel(props: PricePanelProps) {
+  const [form] = useForm();
+
+  const processPrice = useWatch(["processPrice"], form);
+  const suppliedPrice = useWatch(["suppliedPrice"], form);
+  const vatPrice = useWatch(["vatPrice"], form);
+
+  const data = ApiHook.Trade.OrderStock.useGetTradePrice({
+    orderId: props.order.id,
+  });
+
+  const me = ApiHook.Auth.useGetMe();
+
+  const apiUpdate = ApiHook.Trade.OrderStock.useUpdateTradePrice();
+  const cmdUpdate = useCallback(async () => {
+    if (!props.order || !me.data) return;
+    await form.validateFields();
+    const values = await form.getFieldsValue();
+
+    await apiUpdate.mutateAsync({
+      orderId: props.order.id,
+      data: {
+        companyId: me.data.companyId,
+        orderId: props.order.id,
+        orderStockTradePrice: {
+          officialPriceType: values.stockPrice.officialPriceType,
+          officialPrice: values.stockPrice.officialPrice,
+          officialPriceUnit: values.stockPrice.officialPriceUnit,
+          discountType: values.stockPrice.discountType,
+          discountPrice: _.isFinite(values.stockPrice.discountPrice)
+            ? values.stockPrice.discountPrice
+            : 0,
+          unitPrice: _.isFinite(values.stockPrice.unitPrice)
+            ? values.stockPrice.unitPrice
+            : 0,
+          unitPriceUnit: values.stockPrice.unitPriceUnit,
+          processPrice: values.processPrice ?? 0,
+        },
+        suppliedPrice: values.suppliedPrice ?? 0,
+        vatPrice: values.vatPrice ?? 0,
+      },
+    });
+  }, [props.order, form, apiUpdate]);
+
+  useEffect(() => {
+    console.log(data.data);
+    if (data.data && data.data.orderStockTradePrice) {
+      form.setFieldsValue({
+        stockPrice: {
+          officialPriceType: data.data.orderStockTradePrice.officialPriceType,
+          officialPrice: data.data.orderStockTradePrice.officialPrice,
+          officialPriceUnit: data.data.orderStockTradePrice.officialPriceUnit,
+          discountType: data.data.orderStockTradePrice.discountType,
+          discountPrice: data.data.orderStockTradePrice.discountPrice,
+          unitPrice: data.data.orderStockTradePrice.unitPrice,
+          unitPriceUnit: data.data.orderStockTradePrice.unitPriceUnit,
+        },
+        processPrice: data.data.orderStockTradePrice.processPrice,
+        suppliedPrice: data.data.suppliedPrice,
+        vatPrice: data.data.vatPrice,
+      });
+    } else {
+      form.setFieldsValue({
+        stockPrice: FormControl.Util.Price.initialStockPrice(
+          props.order.orderStock.packaging.type
+        ),
+        processPrice: 0,
+        suppliedPrice: 0,
+        vatPrice: 0,
+      });
+    }
+  }, [data.data, form, props.order.orderStock.packaging.type]);
+
+  return (
+    <div className="basis-[300px] overflow-y-scroll p-4 flex">
+      <Form
+        form={form}
+        layout="vertical"
+        rootClassName="flex-initial basis-[500px]"
+        initialValues={{
+          price: FormControl.Util.Price.initialStockPrice(
+            props.order.orderStock.packaging.type
+          ),
+        }}
+      >
+        <Form.Item label="거래 금액" name={["stockPrice"]}>
+          <FormControl.StockPrice
+            spec={{
+              grammage: props.order.orderStock.grammage,
+              packaging: props.order.orderStock.packaging,
+              sizeX: props.order.orderStock.sizeX,
+              sizeY: props.order.orderStock.sizeY,
+            }}
+          />
+        </Form.Item>
+        <Form.Item name={"processPrice"} label="공정비">
+          <FormControl.Number />
+        </Form.Item>
+        <Form.Item name={"suppliePrice"} label="공급가">
+          <FormControl.Number />
+        </Form.Item>
+        <Form.Item name={"vatPrice"} label="부가세">
+          <FormControl.Number />
+        </Form.Item>
+        <div className="flex-initial flex justify-end">
+          <Button.Default type="secondary" label="저장" onClick={cmdUpdate} />
+        </div>
+        <div className="h-8" />
+      </Form>
     </div>
   );
 }

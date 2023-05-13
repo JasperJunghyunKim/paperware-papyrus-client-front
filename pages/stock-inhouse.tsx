@@ -60,90 +60,37 @@ export default function Component() {
             record.paperColor?.id ?? "_"
           } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
             record.warehouse?.id ?? "_"
-          }`
+          } ${record.orderStock?.id ?? "_"}`
         }
         selected={selectedGroup}
         onSelectedChange={setSelectedGroup}
         selection="single"
         columns={[
           {
-            title: "창고",
-            dataIndex: ["warehouse", "name"],
+            title: "거래처",
+            dataIndex: ["orderCompanyInfo", "businessName"],
           },
           {
-            title: "제품 유형",
-            dataIndex: ["product", "paperDomain", "name"],
+            title: "도착지",
+            dataIndex: ["orderStock", "dstLocation", "name"],
           },
           {
-            title: "제지사",
-            dataIndex: ["product", "manufacturer", "name"],
-          },
-          {
-            title: "지군",
-            dataIndex: ["product", "paperGroup", "name"],
-          },
-          {
-            title: "지종",
-            dataIndex: ["product", "paperType", "name"],
-          },
-          {
-            title: "포장",
-            dataIndex: ["packaging", "type"],
-            render: (value, record) => (
-              <div className="font-fixed flex gap-x-1">
-                <div className="flex-initial flex flex-col justify-center text-lg">
-                  <Icon.PackagingType packagingType={record.packaging.type} />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {value}
-                </div>
+            title: "예정일",
+            dataIndex: ["orderInfo", "wantedDate"],
+            render: (value) => (
+              <div className="font-fixed">
+                {Util.formatIso8601ToLocalDate(value)}
               </div>
             ),
           },
           {
-            title: "평량",
-            dataIndex: "grammage",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)} ${
-                Util.UNIT_GPM
-              }`}</div>
-            ),
+            title: "창고",
+            dataIndex: ["warehouse", "name"],
           },
-          {
-            title: "지폭",
-            dataIndex: "sizeX",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )} mm`}</div>
-            ),
-          },
-          {
-            title: "지장",
-            dataIndex: "sizeY",
-            render: (value, record) =>
-              record.packaging.type !== "ROLL" ? (
-                <div className="text-right font-fixed">{`${Util.comma(
-                  value
-                )} mm`}</div>
-              ) : null,
-          },
-          {
-            title: "색군",
-            dataIndex: ["paperColorGroup", "name"],
-          },
-          {
-            title: "색상",
-            dataIndex: ["paperColor", "name"],
-          },
-          {
-            title: "무늬",
-            dataIndex: ["paperPattern", "name"],
-          },
-          {
-            title: "인증",
-            dataIndex: ["paperCert", "name"],
-          },
+          ...Table.Preset.columnStockGroup<Model.StockGroup>(
+            (record) => record,
+            []
+          ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
             ["totalQuantity"],
@@ -173,6 +120,10 @@ export default function Component() {
                 value
               )}`}</div>
             ),
+          },
+          {
+            title: "거래처",
+            dataIndex: ["initialOrder", "dstCompany", "businessName"],
           },
           {
             title: "재고 번호",

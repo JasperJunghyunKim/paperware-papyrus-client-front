@@ -1,5 +1,5 @@
 import { ApiHook } from "@/common";
-import { Button, FormControl, Popup, Toolbar } from "@/components";
+import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import classNames from "classnames";
 import { TaskMap } from "./common";
 import { useCallback, useEffect, useState } from "react";
@@ -8,6 +8,8 @@ import { useForm } from "antd/lib/form/Form";
 import { RegisterInputStock } from ".";
 import { RegisterInputStockRequest } from "@/@shared/api";
 import { OpenType } from "./RegisterInputStock";
+import { Model } from "@/@shared";
+import { usePage } from "@/common/hook";
 
 export interface Props {
   open: number | false;
@@ -21,6 +23,12 @@ export default function Component(props: Props) {
 
   const data = ApiHook.Working.Plan.useGetItem({
     id: props.open ? props.open : null,
+  });
+
+  const [inputStocksPage, setInputStocksPage] = usePage();
+  const inputStocks = ApiHook.Working.Plan.useGetInputList({
+    planId: props.open ? props.open : null,
+    query: inputStocksPage,
   });
 
   const apiStart = ApiHook.Working.Plan.useStart();
@@ -159,8 +167,39 @@ export default function Component(props: Props) {
             {data.data.status === "PROGRESSING" && (
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
-                <div className="flex-initial basis-48 flex">
-                  <div className="flex-1 flex p-4">실투입 재고</div>
+                <div className="flex-initial basis-48 flex h-0">
+                  <div className="flex-1 flex flex-col p-4 overflow-y-scroll">
+                    <Table.Default<Model.StockEvent>
+                      data={inputStocks.data}
+                      page={inputStocksPage}
+                      setPage={setInputStocksPage}
+                      keySelector={(record) => `${record.id}`}
+                      selection="none"
+                      columns={[
+                        {
+                          title: "재고 번호",
+                          dataIndex: ["stock", "serial"],
+                          render: (value, record) => (
+                            <div className="flex">
+                              <div className="flex font-fixed bg-yellow-100 px-1 text-yellow-800 rounded-md">
+                                {value}
+                              </div>
+                            </div>
+                          ),
+                        },
+                        ...Table.Preset.columnQuantity<Model.StockEvent>(
+                          (record) => record.stock,
+                          ["change"],
+                          { prefix: "사용", negative: true }
+                        ),
+                        ...Table.Preset.columnQuantity<Model.StockEvent>(
+                          (record) => record.stock,
+                          ["stock", "cachedQuantity"],
+                          { prefix: "총" }
+                        ),
+                      ]}
+                    />
+                  </div>
                   <div className="basis-px bg-gray-300" />
                   <div className="basis-[400px] flex p-4 bg-yellow-50">
                     <Form

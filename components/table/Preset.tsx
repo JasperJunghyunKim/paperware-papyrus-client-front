@@ -1,9 +1,96 @@
 import { Model } from "@/@shared";
-import { Icon } from "..";
 import { PaperUtil, Util } from "@/common";
-import { ColumnType } from "antd/lib/table/interface";
-import { useCallback, useMemo } from "react";
 import { Quantity } from "@/common/paperUtil";
+import { ColumnType } from "antd/lib/table/interface";
+import { Icon } from "..";
+
+export function columnStockGroup<T>(
+  getStock: (
+    record: T
+  ) =>
+    | Model.StockGroupBase
+    | Model.OrderStockBase
+    | Model.PartnerStockGroup
+    | Model.StockGroup,
+  path: string[]
+): ColumnType<T>[] {
+  return [
+    {
+      title: "포장",
+      dataIndex: [...path, "packaging", "type"],
+      render: (value: Model.Enum.PackagingType, record: T) => (
+        <div className="font-fixed flex gap-x-1">
+          <div className="flex-initial flex flex-col justify-center text-lg">
+            <Icon.PackagingType
+              packagingType={getStock(record).packaging.type}
+            />
+          </div>
+          <div className="flex-initial flex flex-col justify-center">
+            {value}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "제품 유형",
+      dataIndex: [...path, "product", "paperDomain", "name"],
+    },
+    {
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
+    },
+    {
+      title: "지군",
+      dataIndex: [...path, "product", "paperGroup", "name"],
+    },
+    {
+      title: "지종",
+      dataIndex: [...path, "product", "paperType", "name"],
+    },
+    {
+      title: "평량",
+      dataIndex: [...path, "grammage"],
+      render: (value: number) => (
+        <div className="text-right font-fixed">{`${Util.comma(value)} ${
+          Util.UNIT_GPM
+        }`}</div>
+      ),
+    },
+    {
+      title: "지폭",
+      dataIndex: [...path, "sizeX"],
+      render: (value: number) => (
+        <div className="text-right font-fixed">{`${Util.comma(value)} mm`}</div>
+      ),
+    },
+    {
+      title: "지장",
+      dataIndex: [...path, "sizeY"],
+      render: (value: number, record: T) =>
+        getStock(record).packaging.type !== "ROLL" ? (
+          <div className="text-right font-fixed">{`${Util.comma(
+            value
+          )} mm`}</div>
+        ) : null,
+    },
+    {
+      title: "색군",
+      dataIndex: [...path, "paperColorGroup", "name"],
+    },
+    {
+      title: "색상",
+      dataIndex: [...path, "paperColor", "name"],
+    },
+    {
+      title: "무늬",
+      dataIndex: [...path, "paperPattern", "name"],
+    },
+    {
+      title: "인증",
+      dataIndex: [...path, "paperCert", "name"],
+    },
+  ];
+}
 
 export function columnStock<T>(
   getStock: (record: T) => Model.Stock,
@@ -118,6 +205,7 @@ export function columnQuantity<T>(
   path: string[],
   options?: {
     prefix?: string;
+    negative?: boolean;
   }
 ): ColumnType<T>[] {
   const spec = (record: T): PaperUtil.QuantitySpec => {
@@ -132,7 +220,10 @@ export function columnQuantity<T>(
 
   const getQuantity = (value: number, record: T): PaperUtil.Quantity => {
     const stock = spec(record);
-    return PaperUtil.convertQuantity(stock, value);
+    return PaperUtil.convertQuantity(
+      stock,
+      (options?.negative ? -1 : 1) * value
+    );
   };
 
   const format = (

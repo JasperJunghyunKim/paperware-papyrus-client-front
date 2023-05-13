@@ -114,121 +114,15 @@ export default function Component() {
               "name",
             ],
           },
-          {
-            title: "제품 유형",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "product",
-              "paperDomain",
-              "name",
-            ],
-          },
-          {
-            title: "제지사",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "product",
-              "manufacturer",
-              "name",
-            ],
-          },
-          {
-            title: "지군",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "product",
-              "paperGroup",
-              "name",
-            ],
-          },
-          {
-            title: "지종",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "product",
-              "paperType",
-              "name",
-            ],
-          },
-          {
-            title: "포장",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "packaging",
-              "type",
-            ],
-            render: (value, record) => (
-              <div className="font-fixed flex gap-x-1">
-                <div className="flex-initial flex flex-col justify-center text-lg">
-                  <Icon.PackagingType
-                    packagingType={
-                      record.targetStockGroupEvent.stockGroup.packaging.type
-                    }
-                  />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {value}
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: "평량",
-            dataIndex: ["targetStockGroupEvent", "stockGroup", "grammage"],
-          },
-          {
-            title: "지폭",
-            dataIndex: ["targetStockGroupEvent", "stockGroup", "sizeX"],
-          },
-          {
-            title: "지장",
-            dataIndex: ["targetStockGroupEvent", "stockGroup", "sizeY"],
-          },
-          {
-            title: "색군",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "paperColorGroup",
-              "name",
-            ],
-          },
-          {
-            title: "색상",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "paperColor",
-              "name",
-            ],
-          },
-          {
-            title: "무늬",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "paperPattern",
-              "name",
-            ],
-          },
-          {
-            title: "인증",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "paperCert",
-              "name",
-            ],
-          },
-          {
-            title: "원지 수량",
-            dataIndex: ["targetStockGroupEvent", "change"],
-          },
+          ...Table.Preset.columnStockGroup<Model.Plan>(
+            (record) => record.targetStockGroupEvent.stockGroup,
+            ["targetStockGroupEvent", "stockGroup"]
+          ),
+          ...Table.Preset.columnQuantity<Model.Plan>(
+            (record) => record.targetStockGroupEvent.stockGroup,
+            ["targetStockGroupEvent", "change"],
+            { prefix: "원지", negative: true }
+          ),
         ]}
       />
       <Popup.Plan.Create open={openCreate} onClose={setOpenCreate} />

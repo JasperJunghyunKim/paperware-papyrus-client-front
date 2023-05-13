@@ -21,22 +21,30 @@ export interface Props {
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
-  const [form] = useForm<Api.PlanCreateRequest>();
+  const [form] = useForm();
   const packagingId = useWatch(["packagingId"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
+  const quantity = useWatch(["quantity"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
-  const api = ApiHook.Working.Plan.useCreate();
-  const cmd = useCallback(
-    async (values: Api.PlanCreateRequest) => {
-      await api.mutateAsync({ data: values });
-      form.resetFields();
-      props.onClose(false);
-    },
-    [api, form, props.onClose]
-  );
+  const api = ApiHook.Working.Plan.useRegisterInputStock();
+  const cmd = useCallback(async () => {
+    if (!props.open) {
+      return;
+    }
+
+    await api.mutateAsync({
+      id: props.open.planId,
+      data: {
+        stockId: props.open.stockId,
+        quantity: quantity,
+      },
+    });
+    form.resetFields();
+    props.onClose(false);
+  }, [api, form, props.onClose]);
 
   const stock = ApiHook.Stock.StockInhouse.useGetItem({
     id: props.open ? props.open.stockId : null,
@@ -51,13 +59,13 @@ export default function Component(props: Props) {
       packagingId: stock.data.packaging.id,
       grammage: stock.data.grammage,
       sizeX: stock.data.sizeX,
-      sizeY: stock.data.sizeY,
+      sizeY: stock.data.sizeY ?? 0,
       paperColorGroupId: stock.data.paperColorGroup?.id,
       paperColorId: stock.data.paperColor?.id,
       paperPatternId: stock.data.paperPattern?.id,
       paperCertId: stock.data.paperCert?.id,
     });
-  }, [stock.data]);
+  }, [form, stock.data]);
 
   return (
     <Popup.Template.Property
@@ -91,7 +99,13 @@ export default function Component(props: Props) {
             rules={[{ required: true }]}
             rootClassName="flex-1"
           >
-            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
+            <Number
+              min={0}
+              max={9999}
+              precision={0}
+              unit={Util.UNIT_GPM}
+              disabled
+            />
           </Form.Item>
           {packaging && (
             <Form.Item>
@@ -104,6 +118,7 @@ export default function Component(props: Props) {
                       onChange={(sizeX, sizeY) =>
                         form.setFieldsValue({ sizeX, sizeY })
                       }
+                      disabled
                     />
                   </Form.Item>
                 )}
@@ -113,7 +128,7 @@ export default function Component(props: Props) {
                   rules={[{ required: true }]}
                   rootClassName="flex-1"
                 >
-                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                  <Number min={0} max={9999} precision={0} unit="mm" disabled />
                 </Form.Item>
                 {packaging.type !== "ROLL" && (
                   <Form.Item
@@ -122,7 +137,13 @@ export default function Component(props: Props) {
                     rules={[{ required: true }]}
                     rootClassName="flex-1"
                   >
-                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                    <Number
+                      min={0}
+                      max={9999}
+                      precision={0}
+                      unit="mm"
+                      disabled
+                    />
                   </Form.Item>
                 )}
               </div>

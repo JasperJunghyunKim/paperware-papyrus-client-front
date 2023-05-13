@@ -8,7 +8,7 @@ interface Props {
   unit?: string;
   min?: number;
   max?: number;
-  pricision?: number;
+  precision?: number;
   rootClassName?: string;
   disabled?: boolean;
 }
@@ -19,9 +19,12 @@ export default function Component(props: Props) {
       value={props.value}
       onChange={(x) => props.onChange?.(x ?? null)}
       formatter={(x, state) =>
-        (state.userTyping ? x : Util.comma(x))?.toString() ?? ""
+        (state.userTyping
+          ? x
+          : Util.comma(x, props.precision ?? 0)
+        )?.toString() ?? ""
       }
-      precision={props.pricision}
+      precision={props.precision}
       min={props.min}
       max={props.max}
       rootClassName={classNames("w-full", props.rootClassName)}

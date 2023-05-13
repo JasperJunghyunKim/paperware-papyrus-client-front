@@ -4,7 +4,8 @@ import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
 import { Form } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import _ from "lodash";
+import { useCallback, useEffect } from "react";
 
 type OrderId = number;
 type OpenType = OrderId | false;
@@ -18,6 +19,7 @@ export default function Component(props: Props) {
 
   const [form] = useForm<Api.OrderStockArrivalCreateRequest>();
   const packagingId = useWatch(["packagingId"], form);
+  const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
 
@@ -30,13 +32,38 @@ export default function Component(props: Props) {
 
       await api.mutateAsync({
         orderId: props.open,
-        data: values,
+        data: {
+          ...values,
+          stockPrice: {
+            ...values.stockPrice,
+            officialPrice: _.isFinite(values.stockPrice?.officialPrice)
+              ? values.stockPrice?.officialPrice
+              : 0,
+            discountPrice: _.isFinite(values.stockPrice?.discountPrice)
+              ? values.stockPrice?.discountPrice
+              : 0,
+            unitPrice: _.isFinite(values.stockPrice?.unitPrice)
+              ? values.stockPrice?.unitPrice
+              : 0,
+          },
+        },
       });
 
       props.onClose(false);
     },
     [api, props]
   );
+
+  useEffect(() => {
+    if (!packaging) {
+      return;
+    }
+
+    form.setFieldValue(
+      "stockPrice",
+      FormControl.Util.Price.initialStockPrice(packaging.type)
+    );
+  }, [packagingId, grammage, sizeX, sizeY]);
 
   return (
     <Popup.Template.Property title="재고 추가" {...props} open={!!props.open}>
@@ -58,7 +85,7 @@ export default function Component(props: Props) {
             rules={[{ required: true }]}
             rootClassName="flex-1"
           >
-            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
+            <Number min={0} max={9999} precision={0} unit={Util.UNIT_GPM} />
           </Form.Item>
           {packaging && (
             <Form.Item>
@@ -80,7 +107,7 @@ export default function Component(props: Props) {
                   rules={[{ required: true }]}
                   rootClassName="flex-1"
                 >
-                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                  <Number min={0} max={9999} precision={0} unit="mm" />
                 </Form.Item>
                 {packaging.type !== "ROLL" && (
                   <Form.Item
@@ -89,7 +116,7 @@ export default function Component(props: Props) {
                     rules={[{ required: true }]}
                     rootClassName="flex-1"
                   >
-                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                    <Number min={0} max={9999} precision={0} unit="mm" />
                   </Form.Item>
                 )}
               </div>
@@ -107,9 +134,18 @@ export default function Component(props: Props) {
           <Form.Item name="paperCertId" label="인증">
             <FormControl.SelectCert />
           </Form.Item>
-          <Form.Item name="stockPrice" label="재고 금액">
-            <FormControl.StockPrice />
-          </Form.Item>
+          {packaging && (
+            <Form.Item name="stockPrice" label="재고 금액">
+              <FormControl.StockPrice
+                spec={{
+                  packaging,
+                  grammage,
+                  sizeX,
+                  sizeY,
+                }}
+              />
+            </Form.Item>
+          )}
           {packaging && (
             <Form.Item name="quantity" label="재고 수량">
               <FormControl.Quantity packaging={packaging} />

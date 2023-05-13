@@ -261,3 +261,42 @@ export function useCreateArrival() {
     }
   );
 }
+
+export function useGetTradePrice(params: { orderId: number | null }) {
+  return useQuery(["order", "tradePrice", params.orderId], async () => {
+    if (!params.orderId) {
+      return null;
+    }
+
+    const resp = await axios.get<Api.TradePriceResponse>(
+      `${API_HOST}/trade/${params.orderId}/price`
+    );
+    return resp.data;
+  });
+}
+
+export function useUpdateTradePrice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "tradePrice", "update"],
+    async (params: { orderId: number; data: Api.TradePriceUpdateRequest }) => {
+      const resp = await axios.put(
+        `${API_HOST}/trade/${params.orderId}/price`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("거래가격을 저장했습니다.");
+      },
+    }
+  );
+}

@@ -1,3 +1,4 @@
 import Create from "./Create";
+import ApplyArrival from "./ApplyArrival";
 
-export { Create };
+export { Create, ApplyArrival };

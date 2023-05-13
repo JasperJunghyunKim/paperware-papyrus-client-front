@@ -54,7 +54,7 @@ export default function Component(props: Props) {
             rules={[{ required: true }]}
             rootClassName="flex-1"
           >
-            <Number min={0} max={9999} pricision={0} unit={Util.UNIT_GPM} />
+            <Number min={0} max={9999} precision={0} unit={Util.UNIT_GPM} />
           </Form.Item>
           {packaging && (
             <Form.Item>
@@ -76,7 +76,7 @@ export default function Component(props: Props) {
                   rules={[{ required: true }]}
                   rootClassName="flex-1"
                 >
-                  <Number min={0} max={9999} pricision={0} unit="mm" />
+                  <Number min={0} max={9999} precision={0} unit="mm" />
                 </Form.Item>
                 {packaging.type !== "ROLL" && (
                   <Form.Item
@@ -85,7 +85,7 @@ export default function Component(props: Props) {
                     rules={[{ required: true }]}
                     rootClassName="flex-1"
                   >
-                    <Number min={0} max={9999} pricision={0} unit="mm" />
+                    <Number min={0} max={9999} precision={0} unit="mm" />
                   </Form.Item>
                 )}
               </div>

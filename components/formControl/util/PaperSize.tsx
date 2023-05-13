@@ -5,6 +5,7 @@ interface Props {
   sizeX: number | null | undefined;
   sizeY: number | null | undefined;
   onChange: (sizeX: number, sizeY: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -25,6 +26,7 @@ export default function Component(props: Props) {
         props.onChange(sizeX, sizeY);
       }}
       placeholder="규격 없음"
+      disabled={props.disabled}
     />
   );
 }

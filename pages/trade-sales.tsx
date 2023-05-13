@@ -156,91 +156,15 @@ export default function Component() {
               </div>
             ),
           },
-          {
-            title: "제품 유형",
-            dataIndex: ["orderStock", "product", "paperDomain", "name"],
-          },
-          {
-            title: "제지사",
-            dataIndex: ["orderStock", "product", "manufacturer", "name"],
-          },
-          {
-            title: "지군",
-            dataIndex: ["orderStock", "product", "paperGroup", "name"],
-          },
-          {
-            title: "지종",
-            dataIndex: ["orderStock", "product", "paperType", "name"],
-          },
-          {
-            title: "포장",
-            dataIndex: ["orderStock", "packaging", "type"],
-            render: (value, record) => (
-              <div className="font-fixed flex gap-x-1">
-                <div className="flex-initial flex flex-col justify-center text-lg">
-                  <Icon.PackagingType
-                    packagingType={record.orderStock.packaging.type}
-                  />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {value}
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: "평량",
-            dataIndex: "grammage",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)} ${
-                Util.UNIT_GPM
-              }`}</div>
-            ),
-          },
-          {
-            title: "지폭",
-            dataIndex: "sizeX",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )} mm`}</div>
-            ),
-          },
-          {
-            title: "지장",
-            dataIndex: "sizeY",
-            render: (value, record) =>
-              record.orderStock.packaging.type !== "ROLL" ? (
-                <div className="text-right font-fixed">{`${Util.comma(
-                  value
-                )} mm`}</div>
-              ) : null,
-          },
-          {
-            title: "색군",
-            dataIndex: ["orderStock", "paperColorGroup", "name"],
-          },
-          {
-            title: "색상",
-            dataIndex: ["orderStock", "paperColor", "name"],
-          },
-          {
-            title: "무늬",
-            dataIndex: ["orderStock", "paperPattern", "name"],
-          },
-          {
-            title: "인증",
-            dataIndex: ["orderStock", "paperCert", "name"],
-          },
-          {
-            title: "주문 수량",
-            dataIndex: ["orderStock", "quantity"],
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
+          ...Table.Preset.columnStockGroup<Model.Order>(
+            (record) => record.orderStock,
+            ["orderStock"]
+          ),
+          ...Table.Preset.columnQuantity<Model.Order>(
+            (record) => record.orderStock,
+            ["orderStock", "quantity"],
+            { prefix: "주문" }
+          ),
         ]}
       />
       <Popup.Order.StockUpsert

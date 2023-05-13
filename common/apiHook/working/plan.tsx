@@ -95,7 +95,8 @@ export function useRegisterInputStock() {
     ["plan", "registerInputStock"],
     async (params: { id: number; data: Api.RegisterInputStockRequest }) => {
       const resp = await axios.post(
-        `${API_HOST}/working/plan/${params.id}/register-stock`
+        `${API_HOST}/working/plan/${params.id}/register-stock`,
+        params.data
       );
       return resp.data;
     },
@@ -105,4 +106,23 @@ export function useRegisterInputStock() {
       },
     }
   );
+}
+
+export function useGetInputList(params: {
+  planId: number | null;
+  query: Partial<Api.PlanInputListQuery>;
+}) {
+  return useQuery(["plan", "item", params.planId, "input-stock"], async () => {
+    if (!params.planId) {
+      return {
+        items: [],
+        total: 0,
+      };
+    }
+
+    const resp = await axios.get<Api.PlanInputListResponse>(
+      `${API_HOST}/working/plan/${params.planId}/input-stock`
+    );
+    return resp.data;
+  });
 }
