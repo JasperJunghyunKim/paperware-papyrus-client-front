@@ -121,7 +121,7 @@ export default function Component() {
           ...Table.Preset.columnQuantity<Model.Plan>(
             (record) => record.targetStockGroupEvent.stockGroup,
             ["targetStockGroupEvent", "change"],
-            { prefix: "원지" }
+            { prefix: "원지", negative: true }
           ),
         ]}
       />

@@ -60,7 +60,7 @@ export default function Component() {
             record.paperColor?.id ?? "_"
           } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
             record.warehouse?.id ?? "_"
-          }`
+          } ${record.orderStock?.id ?? "_"}`
         }
         selected={selectedGroup}
         onSelectedChange={setSelectedGroup}

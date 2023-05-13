@@ -59,13 +59,13 @@ export default function Component(props: Props) {
       packagingId: stock.data.packaging.id,
       grammage: stock.data.grammage,
       sizeX: stock.data.sizeX,
-      sizeY: stock.data.sizeY,
+      sizeY: stock.data.sizeY ?? 0,
       paperColorGroupId: stock.data.paperColorGroup?.id,
       paperColorId: stock.data.paperColor?.id,
       paperPatternId: stock.data.paperPattern?.id,
       paperCertId: stock.data.paperCert?.id,
     });
-  }, [stock.data]);
+  }, [form, stock.data]);
 
   return (
     <Popup.Template.Property

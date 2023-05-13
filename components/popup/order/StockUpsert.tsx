@@ -16,6 +16,7 @@ import {
   TbSend,
   TbSquare,
 } from "react-icons/tb";
+import _ from "lodash";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -508,11 +509,7 @@ function DataForm(props: DataFormProps) {
           {!manual && (
             <>
               {props.isSales ? (
-                <Form.Item
-                  name="warehouseId"
-                  label="창고"
-                  rules={[{ required: true }]}
-                >
+                <Form.Item name="warehouseId" label="창고">
                   <FormControl.SelectWarehouse disabled />
                 </Form.Item>
               ) : (
@@ -1045,8 +1042,74 @@ function PricePanel(props: PricePanelProps) {
   const suppliedPrice = useWatch(["suppliedPrice"], form);
   const vatPrice = useWatch(["vatPrice"], form);
 
+  const data = ApiHook.Trade.OrderStock.useGetTradePrice({
+    orderId: props.order.id,
+  });
+
+  const me = ApiHook.Auth.useGetMe();
+
+  const apiUpdate = ApiHook.Trade.OrderStock.useUpdateTradePrice();
+  const cmdUpdate = useCallback(async () => {
+    if (!props.order || !me.data) return;
+    await form.validateFields();
+    const values = await form.getFieldsValue();
+
+    await apiUpdate.mutateAsync({
+      orderId: props.order.id,
+      data: {
+        companyId: me.data.companyId,
+        orderId: props.order.id,
+        orderStockTradePrice: {
+          officialPriceType: values.stockPrice.officialPriceType,
+          officialPrice: values.stockPrice.officialPrice,
+          officialPriceUnit: values.stockPrice.officialPriceUnit,
+          discountType: values.stockPrice.discountType,
+          discountPrice: _.isFinite(values.stockPrice.discountPrice)
+            ? values.stockPrice.discountPrice
+            : 0,
+          unitPrice: _.isFinite(values.stockPrice.unitPrice)
+            ? values.stockPrice.unitPrice
+            : 0,
+          unitPriceUnit: values.stockPrice.unitPriceUnit,
+          processPrice: values.processPrice ?? 0,
+        },
+        suppliedPrice: values.suppliedPrice ?? 0,
+        vatPrice: values.vatPrice ?? 0,
+      },
+    });
+  }, [props.order, form, apiUpdate]);
+
+  useEffect(() => {
+    console.log(data.data);
+    if (data.data && data.data.orderStockTradePrice) {
+      form.setFieldsValue({
+        stockPrice: {
+          officialPriceType: data.data.orderStockTradePrice.officialPriceType,
+          officialPrice: data.data.orderStockTradePrice.officialPrice,
+          officialPriceUnit: data.data.orderStockTradePrice.officialPriceUnit,
+          discountType: data.data.orderStockTradePrice.discountType,
+          discountPrice: data.data.orderStockTradePrice.discountPrice,
+          unitPrice: data.data.orderStockTradePrice.unitPrice,
+          unitPriceUnit: data.data.orderStockTradePrice.unitPriceUnit,
+        },
+        processPrice: data.data.orderStockTradePrice.processPrice,
+        suppliedPrice: data.data.suppliedPrice,
+        vatPrice: data.data.vatPrice,
+      });
+    } else {
+      form.setFieldsValue({
+        stockPrice: FormControl.Util.Price.initialStockPrice(
+          props.order.orderStock.packaging.type
+        ),
+        processPrice: 0,
+        suppliedPrice: 0,
+        vatPrice: 0,
+      });
+    }
+  }, [data.data, form, props.order.orderStock.packaging.type]);
+
   return (
-    <div className="basis-[300px] overflow-y-scroll p-4 bg-yellow-50 flex">
+    <div className="basis-[300px] overflow-y-scroll p-4 flex">
       <Form
         form={form}
         layout="vertical"
@@ -1057,7 +1120,7 @@ function PricePanel(props: PricePanelProps) {
           ),
         }}
       >
-        <Form.Item label="거래 금액" name={["price"]}>
+        <Form.Item label="거래 금액" name={["stockPrice"]}>
           <FormControl.StockPrice
             spec={{
               grammage: props.order.orderStock.grammage,
@@ -1070,12 +1133,16 @@ function PricePanel(props: PricePanelProps) {
         <Form.Item name={"processPrice"} label="공정비">
           <FormControl.Number />
         </Form.Item>
-        <Form.Item name={"supplyPrice"} label="공급가">
+        <Form.Item name={"suppliePrice"} label="공급가">
           <FormControl.Number />
         </Form.Item>
         <Form.Item name={"vatPrice"} label="부가세">
           <FormControl.Number />
         </Form.Item>
+        <div className="flex-initial flex justify-end">
+          <Button.Default type="secondary" label="저장" onClick={cmdUpdate} />
+        </div>
+        <div className="h-8" />
       </Form>
     </div>
   );

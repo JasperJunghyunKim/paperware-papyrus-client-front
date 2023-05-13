@@ -4,6 +4,7 @@ import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
 import { Form } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
+import _ from "lodash";
 import { useCallback, useEffect } from "react";
 
 type OrderId = number;
@@ -31,7 +32,21 @@ export default function Component(props: Props) {
 
       await api.mutateAsync({
         orderId: props.open,
-        data: values,
+        data: {
+          ...values,
+          stockPrice: {
+            ...values.stockPrice,
+            officialPrice: _.isFinite(values.stockPrice?.officialPrice)
+              ? values.stockPrice?.officialPrice
+              : 0,
+            discountPrice: _.isFinite(values.stockPrice?.discountPrice)
+              ? values.stockPrice?.discountPrice
+              : 0,
+            unitPrice: _.isFinite(values.stockPrice?.unitPrice)
+              ? values.stockPrice?.unitPrice
+              : 0,
+          },
+        },
       });
 
       props.onClose(false);
