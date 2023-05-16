@@ -126,6 +126,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbVectorTriangle />,
         path: "/paid-history",
       },
+      { path: null },
+      {
+        label: "카드 관리",
+        icon: <TbVectorTriangle />,
+        path: "/card",
+      },
+      {
+        label: "계좌 관리",
+        icon: <TbVectorTriangle />,
+        path: "/account",
+      },
     ],
     [businessRelationshipRequestCount.data?.value]
   );
