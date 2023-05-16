@@ -55,7 +55,7 @@ export default function Component(props: Props) {
   );
 
   useEffect(() => {
-    if (!isVirtual && searched) {
+    if (!isVirtual && searched?.company) {
       formCreate.setFieldsValue({
         phoneNo: searched.company.phoneNo,
         faxNo: searched.company.faxNo,
