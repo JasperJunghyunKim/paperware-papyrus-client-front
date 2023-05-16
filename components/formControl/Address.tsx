@@ -7,6 +7,7 @@ import { TbSearch } from "react-icons/tb";
 interface Props {
   value?: string;
   onChange?: (value: string) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -64,24 +65,28 @@ export default function Component(props: Props) {
         value={value.zonecode}
         rootClassName="custom-addon"
         readOnly
+        disabled={props.disabled}
       />
       <Input
         addonBefore={<Addon label="도로명 주소" />}
         value={value.roadAddress}
         rootClassName="custom-addon"
         readOnly
+        disabled={props.disabled}
       />
       <Input
         addonBefore={<Addon label="지번 주소" />}
         value={value.jibunAddress}
         rootClassName="custom-addon"
         readOnly
+        disabled={props.disabled}
       />
       <Input
         addonBefore={<Addon label="상세 주소" />}
         value={value.detail}
         onChange={(p) => updateDetail(p.target.value ?? "")}
         rootClassName="custom-addon"
+        disabled={props.disabled}
       />
     </div>
   );

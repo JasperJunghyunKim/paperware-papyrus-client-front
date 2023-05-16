@@ -27,7 +27,7 @@ export default function Component(props: PropsWithChildren<PropertyProps>) {
         className="w-full h-full flex flex-col overflow-hidden"
         style={{ height: props.height ?? "calc(100vh - 220px)" }}
       >
-        <div className="flex-initial flex px-3 py-2 font-bold text-lg bg-cyan-800 text-white rounded-t select-none">
+        <div className="flex-initial flex px-3 py-2 font-bold text-lg bg-cyan-800 text-white rounded-t-sm select-none">
           <div className="flex-1 mb-0.5">{props.title}</div>
           <div
             className="flex-initial cursor-pointer flex flex-col justify-center p-2 -m-2 hover:text-red-500"

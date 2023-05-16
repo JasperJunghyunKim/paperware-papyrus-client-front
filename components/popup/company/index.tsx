@@ -1,9 +1,11 @@
-import BusinessRelationshipRequest from "./BusinessRelationRequest";
 import BusinessRelationshipReceived from "./BusinessRelationReceived";
+import BusinessRelationshipSended from "./BusinessRelationSended";
 import RegisterSales from "./RegisterSales";
+import Register from "./Register";
 
 export {
-  BusinessRelationshipRequest,
   BusinessRelationshipReceived,
+  BusinessRelationshipSended,
   RegisterSales,
+  Register,
 };

@@ -27,7 +27,7 @@ import {
   TbTournament,
   TbTruck,
   TbVector,
-  TbVectorTriangle
+  TbVectorTriangle,
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -79,22 +79,11 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbClipboardList />,
         path: "/trade-order",
       },
-      {
-        label: "매입처 관리",
-        icon: <TbHome2 />,
-        path: "/business-relationship-purchase",
-      },
       { path: null },
       {
         label: "매출 수주 목록",
         icon: <TbSubtask />,
         path: "/trade-sales",
-      },
-      {
-        label: "매출처 관리",
-        icon: <TbHomeMove />,
-        path: "/business-relationship-sales",
-        noti: businessRelationshipRequestCount.data?.value,
       },
       { path: null },
       {
@@ -104,6 +93,12 @@ export default function Component(props: PropsWithChildren<Props>) {
       },
       { label: "배송 목록", icon: <TbTruck />, path: "/shipping" },
       { path: null },
+      {
+        label: "거래처 관리",
+        icon: <TbHomeMove />,
+        path: "/business-relationship",
+        noti: businessRelationshipRequestCount.data?.value,
+      },
       {
         label: "도착지 관리",
         icon: <TbMapPin />,
