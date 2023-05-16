@@ -5,3 +5,4 @@ export * as Location from "./location";
 export * as VirtualCompany from "./virtualCompany";
 export * as Warehouse from "./warehouse";
 export * as Card from "./card";
+export * as BankAccount from "./bankAccount";

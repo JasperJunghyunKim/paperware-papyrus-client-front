@@ -135,7 +135,7 @@ export default function Component(props: PropsWithChildren<Props>) {
       {
         label: "계좌 관리",
         icon: <TbVectorTriangle />,
-        path: "/account",
+        path: "/bank-account",
       },
     ],
     [businessRelationshipRequestCount.data?.value]
