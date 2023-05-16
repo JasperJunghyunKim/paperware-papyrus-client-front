@@ -69,13 +69,18 @@ export default function Component() {
   const [method, setMethod] = useState<Enum.Method | null>(null);
   const [page, setPage] = usePage();
   const [selectedCollected, setSelectedCollected] = useState<Model.Accounted[]>([]);
-  const only = Util.only(selectedCollected);
+  const [only, setOnly] = useState<Model.Accounted>();
 
   const list = ApiHook.Partner.Accounted.useAccountedList({
     query: {
       ...page,
       ...condition,
       accountedType: "COLLECTED",
+    },
+    successCallback: (data) => {
+      if (data?.items.length === 0) {
+        setOnly(undefined);
+      }
     }
   });
   const apiByCashDelete = ApiHook.Partner.ByCash.useByCashDelete();
@@ -151,11 +156,12 @@ export default function Component() {
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) => {
-          return record.accountedId
-        }}
+        keySelector={(record) => record.accountedId}
         selected={selectedCollected}
-        onSelectedChange={setSelectedCollected}
+        onSelectedChange={(selected) => {
+          setSelectedCollected(selected);
+          setOnly(Util.only(selected));
+        }}
         selection="single"
         columns={[
           {

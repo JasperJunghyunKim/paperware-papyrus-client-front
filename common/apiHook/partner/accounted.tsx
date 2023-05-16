@@ -7,6 +7,7 @@ import { useQuery } from "react-query";
 
 export function useAccountedList(params: {
 	query: Partial<Api.AccountedQuery>;
+	successCallback?: (data?: Api.AccountedListResponse) => void;
 }) {
 	return useQuery(
 		[
@@ -35,6 +36,11 @@ export function useAccountedList(params: {
 				}
 			);
 			return resp.data;
+		},
+		{
+			onSuccess: (data) => {
+				params.successCallback?.(data);
+			},
 		}
 	);
 }

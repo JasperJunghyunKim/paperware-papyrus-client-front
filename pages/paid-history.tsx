@@ -5,7 +5,7 @@ import { usePage } from "@/common/hook";
 import { Condition, Popup, Table, Toolbar } from "@/components";
 import { accountedAtom } from "@/components/condition/accounted/accounted.state";
 import { Page } from "@/components/layout";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 
 const METHOD_OPTIONS = [
@@ -69,15 +69,21 @@ export default function Component() {
   const [method, setMethod] = useState<Enum.Method | null>(null);
   const [page, setPage] = usePage();
   const [selectedPaid, setSelectedPaid] = useState<Model.Accounted[]>([]);
-  const only = Util.only(selectedPaid);
+  const [only, setOnly] = useState<Model.Accounted>();
 
   const list = ApiHook.Partner.Accounted.useAccountedList({
     query: {
       ...page,
       ...condition,
       accountedType: "PAID",
+    },
+    successCallback: (data) => {
+      if (data?.items.length === 0) {
+        setOnly(undefined);
+      }
     }
   });
+
   const apiByCashDelete = ApiHook.Partner.ByCash.useByCashDelete();
   const apiByEtcDelete = ApiHook.Partner.ByEtc.useByEtcDelete();
 
@@ -151,11 +157,12 @@ export default function Component() {
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) => {
-          return record.accountedId
-        }}
+        keySelector={(record) => record.accountedId}
         selected={selectedPaid}
-        onSelectedChange={setSelectedPaid}
+        onSelectedChange={(selected) => {
+          setSelectedPaid(selected);
+          setOnly(Util.only(selected));
+        }}
         selection="single"
         columns={[
           {
