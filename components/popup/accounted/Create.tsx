@@ -34,7 +34,7 @@ export default function Component(props: Props) {
         case 'PROMISSORY_NOTE':
           // TODO
           break;
-        case 'SET_OFF':
+        case 'OFFSET':
           // TODO
           break;
         case 'CASH':

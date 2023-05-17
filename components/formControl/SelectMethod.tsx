@@ -26,7 +26,7 @@ const METHOD_OPTIONS = [
   },
   // {
   //   label: "상계",
-  //   value: "SET_OFF" as Model.Enum.Method,
+  //   value: "OFFSET" as Model.Enum.Method,
   // },
   {
     label: "기타",

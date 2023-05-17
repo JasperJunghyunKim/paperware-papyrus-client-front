@@ -27,7 +27,7 @@ const METHOD_OPTIONS = [
   },
   {
     label: "상계",
-    value: "SET_OFF" as Model.Enum.Method,
+    value: "OFFSET" as Model.Enum.Method,
   },
   {
     label: "기타",
@@ -107,7 +107,7 @@ export default function Component() {
       case 'PROMISSORY_NOTE':
         // TODO
         break;
-      case 'SET_OFF':
+      case 'OFFSET':
         // TODO
         break;
       case 'CASH':
