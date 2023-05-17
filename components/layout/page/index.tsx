@@ -15,6 +15,7 @@ import {
   TbChartDots,
   TbClipboardList,
   TbColorSwatch,
+  TbDiscount,
   TbHome2,
   TbHomeMove,
   TbInputSearch,
@@ -108,6 +109,12 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "고시가 설정",
         icon: <TbColorSwatch />,
         path: "/official-price",
+      },
+      {
+        label: "할인율 설정",
+        icon: <TbDiscount />,
+        path: "/discount",
+        type: "wip",
       },
       { path: null },
       {
