@@ -2,6 +2,8 @@ import { Api } from "@/@shared";
 import { AccountedType } from "@/@shared/models/enum";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input } from "antd";
+import dayjs from "dayjs";
+import { useState } from "react";
 
 interface Props {
   accountedType: AccountedType;
@@ -12,6 +14,8 @@ interface Props {
 }
 
 export default function Component(props: Props) {
+  const [labelName] = useState<string>(`${props.accountedType === 'PAID' ? '지급' : '수금'}`);
+
   return (
     <Form
       form={props.form}
@@ -41,16 +45,16 @@ export default function Component(props: Props) {
       <Form.Item name="partnerNickName" label="거래처">
         <Input disabled />
       </Form.Item>
-      <Form.Item name="accountedDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} rules={[{ required: true }]}>
+      <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]} getValueProps={(i) => ({ value: i })}>
         <FormControl.DatePicker />
       </Form.Item>
-      <Form.Item name="amount" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 금액`} rules={[{ required: true }]}>
+      <Form.Item name="amount" label={`${labelName} 금액`} rules={[{ required: true }]}>
         <Input />
       </Form.Item>
       <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
         <FormControl.SelectSubject accountedType={props.accountedType} />
       </Form.Item>
-      <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} rules={[{ required: true }]}>
+      <Form.Item name="accountedMethod" label={`${labelName} 수단`} rules={[{ required: true }]}>
         <FormControl.SelectMethod isDisabled={true} />
       </Form.Item>
       <Form.Item name="memo" label="비고">

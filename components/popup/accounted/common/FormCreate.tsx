@@ -2,7 +2,8 @@ import { Api } from "@/@shared";
 import { AccountedType } from "@/@shared/models/enum";
 import { Button, FormControl } from "@/components";
 import { Form, FormInstance, Input } from "antd";
-import { useEffect } from "react";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 interface Props {
   accountedType: AccountedType;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function Component(props: Props) {
+  const [labelName] = useState<string>(`${props.accountedType === 'PAID' ? '지급' : '수금'}`);
   return (
     <Form form={props.form} onFinish={props.onFinish} layout="vertical">
       <Form.Item name="partnerId" label="거래처" rules={[{ required: true }]}>
@@ -18,14 +20,14 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item
         name="accountedDate"
-        label={`${props.accountedType === "PAID" ? "지급" : "수금"}일`}
+        label={`${labelName}일`}
         rules={[{ required: true }]}
       >
-        <FormControl.DatePicker />
+        <FormControl.DatePicker datePickerValue={dayjs().toISOString()} />
       </Form.Item>
       <Form.Item
         name="amount"
-        label={`${props.accountedType === "PAID" ? "지급" : "수금"} 금액`}
+        label={`${labelName} 금액`}
         rules={[{ required: true }]}
       >
         <FormControl.Number
@@ -44,7 +46,7 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item
         name="accountedMethod"
-        label={`${props.accountedType === "PAID" ? "지급" : "수금"} 수단`}
+        label={`${labelName} 수단`}
         rules={[{ required: true }]}
       >
         <FormControl.SelectMethod />
@@ -54,7 +56,7 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item className="flex justify-end">
         <Button.Preset.Submit
-          label={`${props.accountedType === "PAID" ? "지급" : "수금"} 추가`}
+          label={`${labelName} 추가`}
         />
       </Form.Item>
     </Form>

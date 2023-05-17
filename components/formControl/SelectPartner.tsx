@@ -32,14 +32,14 @@ export default function Component(props: Props) {
       return acc;
     }, [])
 
-    return itemList;
+    return itemList?.length === 1 ? [] : itemList;
   }, [staticData, props.isAll]);
 
   return (
     <div className="flex flex-col gap-y-1">
       <Select
         defaultValue={props.isAll ? 0 : undefined}
-        value={props.value}
+        value={props.value === 0 ? undefined : props.value}
         onChange={props.onChange}
         options={options}
         placeholder="거래처"

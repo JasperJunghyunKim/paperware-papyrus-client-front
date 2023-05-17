@@ -3,9 +3,10 @@ import { Enum } from "@/@shared/models";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FormCreate } from "./common";
 import { AccountedType } from "@/@shared/models/enum";
+import dayjs from "dayjs";
 
 export interface Props {
   accountedType: AccountedType;
@@ -49,6 +50,12 @@ export default function Component(props: Props) {
     },
     [apiByCash, apiByEtc, form, props]
   );
+
+  useEffect(() => {
+    form.setFieldsValue({
+      accountedDate: dayjs().toISOString(),
+    } as Api.ByCashCreateRequest | Api.ByEtcCreateRequest);
+  }, [form])
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} {...props}>
