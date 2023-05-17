@@ -7,32 +7,48 @@ import { TbHome, TbHomeLink } from "react-icons/tb";
 import classNames from "classnames";
 
 export function columnStockGroup<T>(
-  getStock: (
-    record: T
-  ) =>
+  getStock: (record: T) =>
     | Model.StockGroupBase
     | Model.OrderStockBase
     | Model.PartnerStockGroup
-    | Model.StockGroup,
-  path: string[]
+    | Model.StockGroup
+    | {
+        product: Model.Product;
+        packaging?: Model.Packaging;
+        grammage: number;
+        sizeX: number;
+        sizeY: number;
+        paperColorGroup: Model.PaperColorGroup | null;
+        paperColor: Model.PaperColor | null;
+        paperPattern: Model.PaperPattern | null;
+        paperCert: Model.PaperCert | null;
+      },
+  path: string[],
+  options?: {
+    excludePackaging?: boolean;
+  }
 ): ColumnType<T>[] {
   return [
-    {
-      title: "포장",
-      dataIndex: [...path, "packaging", "type"],
-      render: (value: Model.Enum.PackagingType, record: T) => (
-        <div className="font-fixed flex gap-x-1">
-          <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType
-              packagingType={getStock(record).packaging.type}
-            />
-          </div>
-          <div className="flex-initial flex flex-col justify-center">
-            {value}
-          </div>
-        </div>
-      ),
-    },
+    ...(options?.excludePackaging
+      ? []
+      : [
+          {
+            title: "포장",
+            dataIndex: [...path, "packaging", "type"],
+            render: (value: Model.Enum.PackagingType, record: T) => (
+              <div className="font-fixed flex gap-x-1">
+                <div className="flex-initial flex flex-col justify-center text-lg">
+                  <Icon.PackagingType
+                    packagingType={getStock(record).packaging?.type}
+                  />
+                </div>
+                <div className="flex-initial flex flex-col justify-center">
+                  {value}
+                </div>
+              </div>
+            ),
+          },
+        ]),
     {
       title: "제품 유형",
       dataIndex: [...path, "product", "paperDomain", "name"],
@@ -69,7 +85,7 @@ export function columnStockGroup<T>(
       title: "지장",
       dataIndex: [...path, "sizeY"],
       render: (value: number, record: T) =>
-        getStock(record).packaging.type !== "ROLL" ? (
+        getStock(record).packaging?.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             value
           )} mm`}</div>

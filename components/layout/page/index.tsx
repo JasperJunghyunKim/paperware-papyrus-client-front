@@ -108,7 +108,6 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "고시가 설정",
         icon: <TbColorSwatch />,
         path: "/official-price",
-        type: "wip",
       },
       { path: null },
       {
