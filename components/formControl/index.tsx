@@ -19,7 +19,9 @@ export * as Util from "./util";
 import SelectPartner from "./SelectPartner";
 import SelectMethod from "./SelectMethod";
 import SelectSubject from "./SelectSubject";
-import SelectBank from "./SelectCard";
+import SelectCard from "./SelectCard";
+import SelectBank from "./SelectBank";
+import SelectBankAccount from "./SelectBankAccount";
 
 export {
   Address,
@@ -42,5 +44,7 @@ export {
   SelectLocationForSales,
   DatePicker,
   StockPrice,
-  SelectBank
+  SelectBank,
+  SelectCard,
+  SelectBankAccount
 };

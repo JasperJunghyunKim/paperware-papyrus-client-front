@@ -35,6 +35,9 @@ export function useGetCardItem(params: {
 			params.id
 		],
 		async () => {
+			if (params.id === false) {
+				return null;
+			}
 			const resp = await axios.get<Api.CardItemResponse>(
 				`${API_HOST}/card/${params.id}`,
 			);

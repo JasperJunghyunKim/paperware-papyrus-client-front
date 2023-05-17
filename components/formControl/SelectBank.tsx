@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { Select } from "antd";
 
-const BANK_OPTIONS = [
+export const BANK_OPTIONS = [
   {
     label: "카카오뱅크",
     value: "KAKAO_BANK" as Model.Enum.Bank,

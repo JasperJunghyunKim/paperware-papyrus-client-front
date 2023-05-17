@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { Select } from "antd";
 
-const BANK_ACCOUNT_OPTIONS = [
+export const BANK_ACCOUNT_OPTIONS = [
   {
     label: "보통예금",
     value: "DEPOSIT",

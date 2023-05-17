@@ -22,7 +22,7 @@ export default function Component(props: Props) {
         label={"카드 회사"}
         rules={[{ required: true }]}
       >
-        <FormControl.SelectBank />
+        <FormControl.SelectCard />
       </Form.Item>
       <Form.Item
         name="cardNumber"

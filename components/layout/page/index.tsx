@@ -27,7 +27,9 @@ import {
   TbTournament,
   TbTruck,
   TbVector,
-  TbVectorTriangle
+  TbVectorTriangle,
+  TbCards,
+  TbBuildingBank
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -129,12 +131,12 @@ export default function Component(props: PropsWithChildren<Props>) {
       { path: null },
       {
         label: "카드 관리",
-        icon: <TbVectorTriangle />,
+        icon: <TbCards />,
         path: "/card",
       },
       {
         label: "계좌 관리",
-        icon: <TbVectorTriangle />,
+        icon: <TbBuildingBank />,
         path: "/bank-account",
       },
     ],

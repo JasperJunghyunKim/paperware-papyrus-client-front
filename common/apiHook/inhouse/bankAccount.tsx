@@ -35,6 +35,9 @@ export function useGetBankAccountItem(params: {
 			params.id
 		],
 		async () => {
+			if (params.id === false) {
+				return null;
+			}
 			const resp = await axios.get<Api.BankAccountItemResponse>(
 				`${API_HOST}/bank-account/${params.id}`,
 			);

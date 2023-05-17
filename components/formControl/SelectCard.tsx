@@ -1,8 +1,7 @@
 import { Model } from "@/@shared";
 import { Select } from "antd";
 
-
-const CARD_OPTIONS = [
+export const CARD_OPTIONS = [
   {
     label: "비씨카드",
     value: "BC_CARD" as Model.Enum.CardCompany,

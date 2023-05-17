@@ -2,6 +2,8 @@ import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
+import { BANK_OPTIONS } from "@/components/formControl/SelectBank";
+import { BANK_ACCOUNT_OPTIONS } from "@/components/formControl/SelectBankAccount";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
 
@@ -63,6 +65,7 @@ export default function Component() {
           {
             title: "은행 이름",
             dataIndex: ["bankComapny"],
+            render: (value) => BANK_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
             title: "계좌 이름",
@@ -71,6 +74,7 @@ export default function Component() {
           {
             title: "계좌 종류",
             dataIndex: ["accountType"],
+            render: (value) => BANK_ACCOUNT_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
             title: "계좌 번호",

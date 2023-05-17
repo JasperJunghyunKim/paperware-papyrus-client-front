@@ -14,7 +14,6 @@ export default function Component(props: Props) {
   const [form] = useForm<Api.BankAccountUpdateRequest>();
   const [edit, setEdit] = useState(false);
 
-  const res = ApiHook.Inhouse.BankAccount.useGetBankAccountItem({ id: props.open });
   const api = ApiHook.Inhouse.BankAccount.useBankAccountUpdate();
 
   const cmd = useCallback(
@@ -31,7 +30,13 @@ export default function Component(props: Props) {
     [api, props]
   );
 
+  const res = ApiHook.Inhouse.BankAccount.useGetBankAccountItem({ id: props.open });
+
   useEffect(() => {
+    if (!res.data || edit) {
+      return;
+    }
+
     form.setFieldsValue({
       bankComapny: res.data?.bankComapny,
       accountName: res.data?.accountName,
@@ -40,7 +45,7 @@ export default function Component(props: Props) {
       accountHolder: res.data?.accountHolder,
     } as Api.BankAccountUpdateRequest);
 
-  }, [props, form, res, edit]);
+  }, [form, res.data, edit]);
 
   return (
     <Popup.Template.Property title={`계좌 상세`} {...props} open={!!props.open}>

@@ -19,7 +19,7 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item
         name="accountName"
-        label={"계좌"}
+        label={"계좌 이름"}
         rules={[{ required: true }]}
       >
         <Input />
@@ -29,7 +29,7 @@ export default function Component(props: Props) {
         label="계좌 종류"
         rules={[{ required: true }]}
       >
-        <Input />
+        <FormControl.SelectBankAccount />
       </Form.Item>
       <Form.Item
         name="accountNumber"

@@ -14,7 +14,6 @@ export default function Component(props: Props) {
   const [form] = useForm<Api.CardUpdateRequest>();
   const [edit, setEdit] = useState(false);
 
-  const res = ApiHook.Inhouse.Card.useGetCardItem({ id: props.open });
   const api = ApiHook.Inhouse.Card.useCardUpdate();
 
   const cmd = useCallback(
@@ -31,15 +30,21 @@ export default function Component(props: Props) {
     [api, props]
   );
 
+  const data = ApiHook.Inhouse.Card.useGetCardItem({ id: props.open });
+
   useEffect(() => {
+    if (!data.data || edit) {
+      return;
+    }
+
     form.setFieldsValue({
-      cardCompany: res.data?.cardCompany,
-      cardName: res.data?.cardName,
-      cardNumber: res.data?.cardNumber,
-      cardHolder: res.data?.cardHolder,
+      cardCompany: data.data?.cardCompany,
+      cardName: data.data?.cardName,
+      cardNumber: data.data?.cardNumber,
+      cardHolder: data.data?.cardHolder,
     } as Api.CardUpdateRequest);
 
-  }, [props, form, res, edit]);
+  }, [form, data.data, edit]);
 
   return (
     <Popup.Template.Property title={`카드 상세`} {...props} open={!!props.open}>

@@ -2,6 +2,7 @@ import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
+import { CARD_OPTIONS } from "@/components/formControl/SelectCard";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
 
@@ -65,15 +66,16 @@ export default function Component() {
             dataIndex: ["cardName"],
           },
           {
-            title: "수금일",
+            title: "카드사 명",
             dataIndex: ["cardCompany"],
+            render: (value) => CARD_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
-            title: "수금 금액",
+            title: "카드 번호",
             dataIndex: ["cardNumber"],
           },
           {
-            title: "계정 과목",
+            title: "카드 소유자",
             dataIndex: ["cardHolder"],
           },
         ]}
