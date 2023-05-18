@@ -152,7 +152,7 @@ export function stockUnit(packagingType: Model.Enum.PackagingType): string {
       return "BOX";
     case "SKID":
     case "REAM":
-      return "R";
+      return "매";
   }
 }
 
@@ -270,9 +270,7 @@ export function orderStatusToString(status: Record.OrderStatus) {
 }
 
 export function formatIso8601ToLocalDate(date: string | null) {
-  return date === null
-    ? ""
-    : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd)");
+  return !date ? "" : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd)");
 }
 
 export function falsyToUndefined<T>(
@@ -290,7 +288,7 @@ export const UNIT_GPM = "g/m²";
 export function iso8601ToDate(
   date: string | null | undefined
 ): Dayjs | undefined {
-  if (date === null || date === undefined) {
+  if (!date) {
     return undefined;
   }
 

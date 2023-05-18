@@ -16,10 +16,18 @@ export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
   const [form] = useForm<Api.StockCreateRequest>();
+  const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const sizeX = useWatch<number>(["sizeX"], form);
   const sizeY = useWatch<number>(["sizeY"], form);
   const grammage = useWatch(["grammage"], form);
+  const paperColorGroupId = useWatch<number | null>(
+    ["paperColorGroupId"],
+    form
+  );
+  const paperColorId = useWatch<number | null>(["paperColorId"], form);
+  const paperPatternId = useWatch<number | null>(["paperPatternId"], form);
+  const paperCertId = useWatch<number | null>(["paperCertId"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
@@ -145,6 +153,13 @@ export default function Component(props: Props) {
                   grammage,
                   sizeX,
                   sizeY,
+                }}
+                additional={{
+                  productId,
+                  paperColorGroupId,
+                  paperColorId,
+                  paperPatternId,
+                  paperCertId,
                 }}
               />
             </Form.Item>

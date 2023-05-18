@@ -98,7 +98,7 @@ export function useDelete() {
 }
 
 export function useGetMappingList(params: {
-  query: OfficialPriceMappingQuery;
+  query: Partial<OfficialPriceMappingQuery>;
 }) {
   return useQuery(
     [
@@ -115,6 +115,15 @@ export function useGetMappingList(params: {
       params.query.paperCertId,
     ],
     async () => {
+      if (
+        !params.query.productId ||
+        !params.query.grammage ||
+        !params.query.sizeX ||
+        !params.query.sizeY
+      ) {
+        return null;
+      }
+
       const { data } = await axios.get<OfficialPriceMappingResponse>(
         `${API_HOST}/official-price/mapping`,
         {

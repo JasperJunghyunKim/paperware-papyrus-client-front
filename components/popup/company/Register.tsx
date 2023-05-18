@@ -31,7 +31,6 @@ export default function Component(props: Props) {
     ApiHook.Inhouse.BusinessRelationship.useRegisterPartner();
   const cmdSendRequest = useCallback(
     async (values: Api.RegisterPartnerRequest) => {
-      console.log(values);
       await apiSendRequest.mutateAsync({
         data: {
           ...values,
@@ -78,7 +77,6 @@ export default function Component(props: Props) {
         <Form
           form={form}
           layout="vertical"
-          onValuesChange={(values) => console.log(values)}
           onFinish={cmdSearch}
           autoComplete="off"
         >

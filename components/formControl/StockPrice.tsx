@@ -1,5 +1,5 @@
 import { Api, Model } from "@/@shared";
-import { PriceUtil } from "@/common";
+import { ApiHook, PriceUtil } from "@/common";
 import { Select } from "antd";
 import { useCallback, useMemo } from "react";
 import { Number } from ".";
@@ -10,12 +10,8 @@ const OFFICIAL_PRICE_TYPE_OPTIONS = [
     value: "NONE" as Model.Enum.OfficialPriceType,
   },
   {
-    label: "고시가",
+    label: "직접 입력",
     value: "MANUAL_NONE" as Model.Enum.OfficialPriceType,
-  },
-  {
-    label: "고시가 × 할인율",
-    value: "MANUAL_DEFAULT" as Model.Enum.OfficialPriceType,
   },
 ];
 const PRICE_UNIT_OPTIONS = [
@@ -34,6 +30,14 @@ const PRICE_UNIT_OPTIONS = [
 ];
 const DISCOUNT_TYPE_OPTIONS = [
   {
+    label: "할인 없음",
+    value: "NONE" as Model.Enum.DiscountType,
+  },
+  {
+    label: "직접 입력",
+    value: "MANUAL" as Model.Enum.DiscountType,
+  },
+  {
     label: "기본 할인율",
     value: "DEFAULT" as Model.Enum.DiscountType,
   },
@@ -43,10 +47,20 @@ const DISCOUNT_TYPE_OPTIONS = [
   },
 ];
 
+interface OfficialPriceSpec {
+  productId: number;
+  paperColorGroupId?: number | null;
+  paperColorId?: number | null;
+  paperPatternId?: number | null;
+  paperCertId?: number | null;
+}
+
 interface Props {
   spec: PriceUtil.Spec;
+  additional?: OfficialPriceSpec;
   value?: Api.StockCreateStockPriceRequest;
   onChange?: (value: Api.StockCreateStockPriceRequest) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -113,7 +127,8 @@ export default function Component(props: Props) {
       value: number,
       unit: Model.Enum.PriceUnit
     ) => {
-      const isDiscount = type == "MANUAL_DEFAULT";
+      const typeChanged = props.value?.officialPriceType !== type;
+      const isDiscount = !typeChanged && type == "MANUAL_DEFAULT";
 
       const newDiscountValue = isDiscount
         ? props.value?.discountPrice ?? 0
@@ -137,7 +152,9 @@ export default function Component(props: Props) {
         officialPriceType: type,
         officialPrice: value,
         officialPriceUnit: unit,
-        discountType: props.value?.discountType ?? "DEFAULT",
+        discountType: typeChanged
+          ? ("NONE" as any)
+          : props.value?.discountType ?? "DEFAULT",
         discountPrice: newDiscountValue,
         unitPrice: newUnitPrice,
         unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
@@ -149,7 +166,7 @@ export default function Component(props: Props) {
   );
   const changeDiscount = useCallback(
     (type: Model.Enum.DiscountType, value: number) => {
-      const isDiscount = props.value?.officialPriceType == "MANUAL_DEFAULT";
+      const isDiscount = type === ("MANUAL" as any);
 
       const newUnitPrice = isDiscount
         ? calcUnitPrice({
@@ -175,7 +192,7 @@ export default function Component(props: Props) {
   );
   const changeUnitPrice = useCallback(
     (value: number, unit: Model.Enum.PriceUnit) => {
-      const isDiscount = props.value?.officialPriceType == "MANUAL_DEFAULT";
+      const isDiscount = props.value?.discountType === ("MANUAL" as any);
 
       const newDiscountValue = isDiscount
         ? props.value?.discountPrice ?? 0
@@ -209,6 +226,74 @@ export default function Component(props: Props) {
     [props]
   );
 
+  const apiMapping = ApiHook.Inhouse.OfficialPrice.useGetMappingList({
+    query: {
+      productId: props.additional?.productId,
+      grammage: props.spec.grammage,
+      sizeX: props.spec.sizeX,
+      sizeY: props.spec.sizeY,
+      paperColorGroupId: props.additional?.paperColorGroupId ?? undefined,
+      paperColorId: props.additional?.paperColorId ?? undefined,
+      paperPatternId: props.additional?.paperPatternId ?? undefined,
+      paperCertId: props.additional?.paperCertId ?? undefined,
+    },
+  });
+
+  const officialPriceTypeOptions = useMemo(() => {
+    const options = [...OFFICIAL_PRICE_TYPE_OPTIONS];
+    apiMapping.data
+      ?.filter((p) => unitOptions.some((q) => q.value === p.officialPriceUnit))
+      .forEach((item) => {
+        switch (item.officialPriceMapType) {
+          case "WHOLESALE":
+            options.push({
+              label: "도가",
+              value: "WHOLESALE",
+            });
+            break;
+          case "RETAIL":
+            options.push({
+              label: "실가",
+              value: "RETAIL",
+            });
+            break;
+        }
+      });
+    return options;
+  }, [apiMapping.data, unitOptions]);
+
+  const discountTypeOptions = useMemo(() => {
+    const options = [...DISCOUNT_TYPE_OPTIONS];
+    return options;
+  }, []);
+
+  const findOfficialPrice = useCallback(
+    (type: Model.Enum.OfficialPriceType) => {
+      const mapping = apiMapping.data?.find(
+        (item) =>
+          item.officialPriceMapType === type &&
+          unitOptions.some((p) => p.value === item.officialPriceUnit)
+      );
+
+      const price = mapping?.officialPrice ?? props.value?.officialPrice ?? 0;
+      const unit =
+        mapping?.officialPriceUnit ??
+        props.value?.officialPriceUnit ??
+        "WON_PER_TON";
+
+      return {
+        price,
+        unit,
+      };
+    },
+    [
+      apiMapping.data,
+      unitOptions,
+      props.value?.officialPrice,
+      props.value?.officialPriceUnit,
+    ]
+  );
+
   return (
     <div className="flex flex-col gap-y-2">
       <div className="flex gap-x-2">
@@ -217,12 +302,13 @@ export default function Component(props: Props) {
           onChange={(value) =>
             changeOfficialPrice(
               value,
-              props.value?.officialPrice ?? 0,
-              "WON_PER_TON"
+              findOfficialPrice(value).price,
+              findOfficialPrice(value).unit
             )
           }
-          options={OFFICIAL_PRICE_TYPE_OPTIONS}
+          options={officialPriceTypeOptions}
           rootClassName="flex-1"
+          disabled={props.disabled}
         />
         <Number
           value={props.value?.officialPrice}
@@ -238,7 +324,9 @@ export default function Component(props: Props) {
           precision={0}
           unit="원"
           rootClassName="flex-1"
-          disabled={props.value?.officialPriceType === "NONE"}
+          disabled={
+            props.disabled || props.value?.officialPriceType !== "MANUAL_NONE"
+          }
         />
         <Select
           value={props.value?.officialPriceUnit}
@@ -251,7 +339,9 @@ export default function Component(props: Props) {
           }
           options={unitOptions}
           rootClassName="flex-1"
-          disabled={props.value?.officialPriceType === "NONE"}
+          disabled={
+            props.disabled || props.value?.officialPriceType !== "MANUAL_NONE"
+          }
         />
       </div>
       <div className="flex gap-x-2">
@@ -260,9 +350,14 @@ export default function Component(props: Props) {
           onChange={(value) =>
             changeDiscount(value, props.value?.discountPrice ?? 0)
           }
-          options={DISCOUNT_TYPE_OPTIONS}
+          options={discountTypeOptions}
           rootClassName="flex-1"
-          disabled={props.value?.officialPriceType !== "MANUAL_DEFAULT"}
+          disabled={
+            props.disabled ||
+            (props.value?.officialPriceType !== "MANUAL_NONE" &&
+              props.value?.officialPriceType !== "RETAIL" &&
+              props.value?.officialPriceType !== "WHOLESALE")
+          }
         />
         <Number
           value={props.value?.discountPrice}
@@ -272,7 +367,9 @@ export default function Component(props: Props) {
           precision={3}
           unit="%"
           rootClassName="flex-[2_0_8px]"
-          disabled={props.value?.officialPriceType !== "MANUAL_DEFAULT"}
+          disabled={
+            props.disabled || props.value?.discountType !== ("MANUAL" as any)
+          }
         />
       </div>
       <div className="flex gap-x-2">
@@ -286,7 +383,11 @@ export default function Component(props: Props) {
           precision={0}
           unit="원"
           rootClassName="flex-[2_0_8px]"
-          disabled={props.value?.officialPriceType === "MANUAL_DEFAULT"}
+          disabled={
+            props.disabled ||
+            (props.value?.officialPriceType !== "NONE" &&
+              props.value?.discountType !== ("NONE" as any))
+          }
         />
         <Select
           value={props.value?.unitPriceUnit}
@@ -295,6 +396,7 @@ export default function Component(props: Props) {
           }
           options={unitOptions}
           rootClassName="flex-1"
+          disabled={props.disabled}
         />
       </div>
     </div>

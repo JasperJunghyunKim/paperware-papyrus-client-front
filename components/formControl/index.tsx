@@ -1,4 +1,5 @@
 import Address from "./Address";
+import Alt from "./Alt";
 import SelectCert from "./SelectCert";
 import SelectColor from "./SelectColor";
 import SelectColorGroup from "./SelectColorGroup";
@@ -22,6 +23,7 @@ import SelectSubject from "./SelectSubject";
 
 export {
   Address,
+  Alt,
   SelectPartner,
   SelectProduct,
   SelectColorGroup,
