@@ -3,7 +3,7 @@ import { Select } from "antd";
 import { DefaultOptionType } from "antd/es/select";
 import { useMemo } from "react";
 
-const PAID_SUBJECT_OPTIONS = [
+export const PAID_SUBJECT_OPTIONS = [
   {
     label: "전체",
     value: "All" as Model.Enum.Subject,
@@ -34,7 +34,7 @@ const PAID_SUBJECT_OPTIONS = [
   },
 ];
 
-const COLLECTED_OPTIONS = [
+export const COLLECTED_OPTIONS = [
   {
     label: "전체",
     value: "All" as Model.Enum.Subject,

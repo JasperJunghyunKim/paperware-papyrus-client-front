@@ -4,21 +4,21 @@ import { API_HOST } from "@/common/const";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
-export function useGetCardList(params: {
-	query: Partial<Api.CardQuery>;
+export function useGetCardList(params?: {
+	query?: Partial<Api.CardQuery>;
 }) {
 	return useQuery(
 		[
 			"card",
 			"list",
-			params.query.skip,
-			params.query.take,
+			params?.query?.skip,
+			params?.query?.take,
 		],
 		async () => {
 			const resp = await axios.get<Api.CardListResponse>(
 				`${API_HOST}/card`,
 				{
-					params: params.query,
+					params: params?.query,
 				}
 			);
 			return resp.data;

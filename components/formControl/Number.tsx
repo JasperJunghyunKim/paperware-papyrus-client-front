@@ -3,6 +3,7 @@ import { InputNumber } from "antd";
 import classNames from "classnames";
 
 interface Props {
+  ref?: any;
   value?: number | null;
   onChange?: (value: number | null) => void;
   unit?: string;
@@ -16,6 +17,7 @@ interface Props {
 export default function Component(props: Props) {
   return (
     <InputNumber
+      ref={props.ref}
       value={props.value}
       onChange={(x) => props.onChange?.(x ?? null)}
       formatter={(x, state) =>

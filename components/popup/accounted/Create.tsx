@@ -8,53 +8,59 @@ import { FormCreate } from "./common";
 import { AccountedType } from "@/@shared/models/enum";
 import dayjs from "dayjs";
 
-export interface Props {
+type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest;
+
+interface Props {
   accountedType: AccountedType;
   open: boolean;
   onClose: (unit: boolean) => void;
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.ByCashCreateRequest | Api.ByEtcCreateRequest>();
+  const [form] = useForm<Request>();
 
   const apiByCash = ApiHook.Partner.ByCash.useByCashCreate();
   const apiByEtc = ApiHook.Partner.ByEtc.useByEtcCreate();
+  const apiByBankAccount = ApiHook.Partner.ByBankAccount.useByBankAccountCreate();
+  const apiByCard = ApiHook.Partner.ByCard.useByCardCreate();
+  const apiByOffset = ApiHook.Partner.ByOffset.useByOffsetCreate();
+
   const cmd = useCallback(
-    async (values: Api.ByCashCreateRequest | Api.ByEtcCreateRequest) => {
+    async (values: Request) => {
       const method: Enum.Method = form.getFieldValue("accountedMethod");
       values.accountedType = props.accountedType;
 
       switch (method) {
         case 'ACCOUNT_TRANSFER':
-          // TODO
+          await apiByBankAccount.mutateAsync({ data: values as Api.ByBankAccountCreateRequest });
           break;
         case 'CARD_PAYMENT':
-          // TODO
+          await apiByCard.mutateAsync({ data: values as Api.ByCardCreateRequest });
           break;
         case 'PROMISSORY_NOTE':
           // TODO
           break;
         case 'OFFSET':
-          // TODO
+          await apiByOffset.mutateAsync({ data: values as Api.ByOffsetCreateRequest });
           break;
         case 'CASH':
-          await apiByCash.mutateAsync({ data: values });
+          await apiByCash.mutateAsync({ data: values as Api.ByCashCreateRequest });
           break;
         case 'ETC':
-          await apiByEtc.mutateAsync({ data: values });
+          await apiByEtc.mutateAsync({ data: values as Api.ByEtcCreateRequest });
           break;
       }
 
       form.resetFields();
       props.onClose(false);
     },
-    [apiByCash, apiByEtc, form, props]
+    [apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, form, props]
   );
 
   useEffect(() => {
     form.setFieldsValue({
       accountedDate: dayjs().toISOString(),
-    } as Api.ByCashCreateRequest | Api.ByEtcCreateRequest);
+    } as Request);
   }, [form])
 
   return (

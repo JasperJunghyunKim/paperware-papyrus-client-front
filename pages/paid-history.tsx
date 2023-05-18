@@ -4,63 +4,11 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Condition, Popup, Table, Toolbar } from "@/components";
 import { accountedAtom } from "@/components/condition/accounted/accounted.state";
+import { METHOD_OPTIONS } from "@/components/formControl/SelectMethod";
+import { PAID_SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
 import { Page } from "@/components/layout";
 import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
-
-const METHOD_OPTIONS = [
-  {
-    label: "계좌 이체",
-    value: "ACCOUNT_TRANSFER" as Model.Enum.Method,
-  },
-  {
-    label: "유가증권",
-    value: "PROMISSORY_NOTE" as Model.Enum.Method,
-  },
-  {
-    label: "카드입금",
-    value: "CARD_PAYMENT" as Model.Enum.Method,
-  },
-  {
-    label: "현금",
-    value: "CASH" as Model.Enum.Method,
-  },
-  {
-    label: "상계",
-    value: "OFFSET" as Model.Enum.Method,
-  },
-  {
-    label: "기타",
-    value: "ETC" as Model.Enum.Method,
-  },
-];
-
-const PAID_SUBJECT_OPTIONS = [
-  {
-    label: "외상 매출금",
-    value: "PAID_ACCOUNTS_RECEIVABLE" as Model.Enum.Subject,
-  },
-  {
-    label: "미수금",
-    value: "PAID_UNPAID_AMOUNTS" as Model.Enum.Subject,
-  },
-  {
-    label: "선수금",
-    value: "PAID_ADVANCES" as Model.Enum.Subject,
-  },
-  {
-    label: "잡이익",
-    value: "PAID_MISCELLANEOUS_INCOME" as Model.Enum.Subject,
-  },
-  {
-    label: "상품 매출",
-    value: "PAID_PRODUCT_SALES" as Model.Enum.Subject,
-  },
-  {
-    label: "기타",
-    value: "ETC" as Model.Enum.Subject,
-  },
-];
 
 export default function Component() {
   const condition = useRecoilValue(accountedAtom);
@@ -86,6 +34,9 @@ export default function Component() {
 
   const apiByCashDelete = ApiHook.Partner.ByCash.useByCashDelete();
   const apiByEtcDelete = ApiHook.Partner.ByEtc.useByEtcDelete();
+  const apiByBankAccountDelete = ApiHook.Partner.ByBankAccount.useByBankAccountDelete();
+  const apiByCardDelete = ApiHook.Partner.ByCard.useByCardDelete();
+  const apiByOffsetDelete = ApiHook.Partner.ByOffset.useByOffsetDelete();
 
   const cmdDelete = useCallback(async () => {
     if (
@@ -99,16 +50,25 @@ export default function Component() {
 
     switch (method) {
       case 'ACCOUNT_TRANSFER':
-        // TODO
+        await apiByBankAccountDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'CARD_PAYMENT':
-        // TODO
+        await apiByCardDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'PROMISSORY_NOTE':
         // TODO
         break;
       case 'OFFSET':
-        // TODO
+        await apiByOffsetDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'CASH':
         await apiByCashDelete.mutateAsync({
@@ -124,7 +84,7 @@ export default function Component() {
         break;
     }
 
-  }, [apiByCashDelete, apiByEtcDelete, only]);
+  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, only]);
 
   return (
     <Page title="지급 내역 조회">
