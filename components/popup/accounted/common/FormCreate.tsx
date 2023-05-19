@@ -49,8 +49,19 @@ export default function Component(props: Props) {
     }
   }, [props, amount, chargeAmount, messageApi])
 
+
+  useEffect(() => {
+    if (props.form !== undefined) {
+      props.form.setFieldsValue({
+        accountedDate: dayjs().toISOString(),
+        amount: 0,
+      } as Request);
+    }
+  }, [props])
+
   return (
     <Form form={props.form} onFinish={props.onFinish} layout="vertical">
+      {contextHolder}
       <Form.Item name="partnerId" label="거래처" rules={[{ required: true }]}>
         <FormControl.SelectPartner />
       </Form.Item>

@@ -99,7 +99,7 @@ export default function Component(props: Props) {
       </Form.Item>
 
       <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
-        <FormControl.SelectSubject isAll={false} accountedType={props.accountedType} />
+        <FormControl.SelectSubject accountedType={props.accountedType} />
       </Form.Item>
       <Form.Item name="accountedMethod" label={`${labelName} 수단`} rules={[{ required: true }]}>
         <FormControl.SelectMethod accountedType={props.accountedType} isDisabled={true} />

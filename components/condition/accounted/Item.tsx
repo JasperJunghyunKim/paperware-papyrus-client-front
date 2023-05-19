@@ -76,8 +76,8 @@ export default function Component(props: Props) {
         initialValues={{
           ...condtiuon
         }}>
-        <Form.Item name="partnerId" label="거래처" className={"w-1/5"} getValueFromEvent={(value) => onChange('partnerId', value)}>
-          <FormControl.SelectPartner isAll={true} />
+        <Form.Item name="partnerId" label="거래처" className={"w-1/5"}>
+          <FormControl.SelectPartner isAll={true} value={condtiuon.partnerId} onChange={(value) => onChange('partnerId', value)} />
         </Form.Item>
         <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
           <FormControl.DatePicker datePickerValue={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
@@ -88,11 +88,11 @@ export default function Component(props: Props) {
         <Form.Item name="accountedToDate" label=" " className={"w-1/5 mt-30"}>
           <FormControl.DatePicker datePickerValue={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
         </Form.Item>
-        <Form.Item name="accountedSubject" label="계정 과목" className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedSubject', value)}>
-          <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} />
+        <Form.Item name="accountedSubject" label="계정 과목" className={"w-1/5"}>
+          <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} onChange={(value) => onChange('accountedSubject', value)} />
         </Form.Item>
-        <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedMethod', value)}>
-          <FormControl.SelectMethod accountedType={props.accountedType} isAll={true} />
+        <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} className={"w-1/5"}>
+          <FormControl.SelectMethod accountedType={props.accountedType} isAll={true} onChange={(value) => onChange('accountedMethod', value)} />
         </Form.Item>
       </Form>
     </div>

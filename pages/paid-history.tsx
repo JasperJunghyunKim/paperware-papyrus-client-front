@@ -1,11 +1,12 @@
 import { Model } from "@/@shared";
+import { accountedSubject } from "@/@shared/helper/enum.util";
 import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Condition, Popup, Table, Toolbar } from "@/components";
 import { accountedAtom } from "@/components/condition/accounted/accounted.state";
 import { METHOD_OPTIONS } from "@/components/formControl/SelectMethod";
-import { PAID_SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
+import { SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
 import { Page } from "@/components/layout";
 import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
@@ -147,7 +148,7 @@ export default function Component() {
             title: "계정 과목",
             dataIndex: ["accountedSubject"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${PAID_SUBJECT_OPTIONS.filter((item) => item.value === value)[0].label}`}</div>
+              <div className="text-right font-fixed">{`${accountedSubject('PAID', SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value)}`}</div>
             ),
           },
           {

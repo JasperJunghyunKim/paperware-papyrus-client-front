@@ -57,12 +57,6 @@ export default function Component(props: Props) {
     [apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, form, props]
   );
 
-  useEffect(() => {
-    form.setFieldsValue({
-      accountedDate: dayjs().toISOString(),
-    } as Request);
-  }, [form])
-
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} {...props}>
       <div className="flex-1 p-4">
