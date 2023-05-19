@@ -35,7 +35,7 @@ const DISCOUNT_TYPE_OPTIONS = [
   },
   {
     label: "직접 입력",
-    value: "MANUAL" as Model.Enum.DiscountType,
+    value: "MANUAL_NONE" as Model.Enum.DiscountType,
   },
   {
     label: "기본 할인율",
@@ -55,9 +55,20 @@ interface OfficialPriceSpec {
   paperCertId?: number | null;
 }
 
+interface DiscountSpec {
+  productId: number;
+  paperColorGroupId?: number | null;
+  paperColorId?: number | null;
+  paperPatternId?: number | null;
+  paperCertId?: number | null;
+  companyRegistrationNumber: string;
+  discountRateType: "PURCHASE" | "SALES";
+}
+
 interface Props {
   spec: PriceUtil.Spec;
-  additional?: OfficialPriceSpec;
+  officialSpec?: OfficialPriceSpec;
+  discountSpec?: DiscountSpec;
   value?: Api.StockCreateStockPriceRequest;
   onChange?: (value: Api.StockCreateStockPriceRequest) => void;
   disabled?: boolean;
@@ -128,7 +139,7 @@ export default function Component(props: Props) {
       unit: Model.Enum.PriceUnit
     ) => {
       const typeChanged = props.value?.officialPriceType !== type;
-      const isDiscount = !typeChanged && type == "MANUAL_DEFAULT";
+      const isDiscount = !typeChanged && type == "MANUAL_NONE";
 
       const newDiscountValue = isDiscount
         ? props.value?.discountPrice ?? 0
@@ -226,22 +237,47 @@ export default function Component(props: Props) {
     [props]
   );
 
-  const apiMapping = ApiHook.Inhouse.OfficialPrice.useGetMappingList({
+  const metadata = ApiHook.Static.PaperMetadata.useGetAll();
+  const product = metadata.data?.products.find(
+    (p) => p.id === props.discountSpec?.productId
+  );
+
+  const apiOfficialMapping = ApiHook.Inhouse.OfficialPrice.useGetMappingList({
     query: {
-      productId: props.additional?.productId,
+      productId: props.officialSpec?.productId,
       grammage: props.spec.grammage,
       sizeX: props.spec.sizeX,
       sizeY: props.spec.sizeY,
-      paperColorGroupId: props.additional?.paperColorGroupId ?? undefined,
-      paperColorId: props.additional?.paperColorId ?? undefined,
-      paperPatternId: props.additional?.paperPatternId ?? undefined,
-      paperCertId: props.additional?.paperCertId ?? undefined,
+      paperColorGroupId: props.officialSpec?.paperColorGroupId ?? undefined,
+      paperColorId: props.officialSpec?.paperColorId ?? undefined,
+      paperPatternId: props.officialSpec?.paperPatternId ?? undefined,
+      paperCertId: props.officialSpec?.paperCertId ?? undefined,
+    },
+  });
+
+  const apiDiscountMapping = ApiHook.Inhouse.Discount.useGetMapping({
+    query: {
+      companyRegistrationNumber:
+        props.discountSpec?.companyRegistrationNumber ?? "",
+      discountRateType: props.discountSpec?.discountRateType,
+      paperDomainId: product?.paperDomain.id,
+      paperGroupId: product?.paperGroup.id,
+      paperTypeId: product?.paperType.id,
+      manufacturerId: product?.manufacturer.id,
+      packagingType: props.spec.packaging.type,
+      grammage: props.spec.grammage,
+      sizeX: props.spec.sizeX,
+      sizeY: props.spec.sizeY,
+      paperColorGroupId: props.discountSpec?.paperColorGroupId ?? undefined,
+      paperColorId: props.discountSpec?.paperColorId ?? undefined,
+      paperPatternId: props.discountSpec?.paperPatternId ?? undefined,
+      paperCertId: props.discountSpec?.paperCertId ?? undefined,
     },
   });
 
   const officialPriceTypeOptions = useMemo(() => {
     const options = [...OFFICIAL_PRICE_TYPE_OPTIONS];
-    apiMapping.data
+    apiOfficialMapping.data
       ?.filter((p) => unitOptions.some((q) => q.value === p.officialPriceUnit))
       .forEach((item) => {
         switch (item.officialPriceMapType) {
@@ -260,7 +296,7 @@ export default function Component(props: Props) {
         }
       });
     return options;
-  }, [apiMapping.data, unitOptions]);
+  }, [apiOfficialMapping.data, unitOptions]);
 
   const discountTypeOptions = useMemo(() => {
     const options = [...DISCOUNT_TYPE_OPTIONS];
@@ -269,7 +305,7 @@ export default function Component(props: Props) {
 
   const findOfficialPrice = useCallback(
     (type: Model.Enum.OfficialPriceType) => {
-      const mapping = apiMapping.data?.find(
+      const mapping = apiOfficialMapping.data?.find(
         (item) =>
           item.officialPriceMapType === type &&
           unitOptions.some((p) => p.value === item.officialPriceUnit)
@@ -287,7 +323,7 @@ export default function Component(props: Props) {
       };
     },
     [
-      apiMapping.data,
+      apiOfficialMapping.data,
       unitOptions,
       props.value?.officialPrice,
       props.value?.officialPriceUnit,

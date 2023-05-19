@@ -1,5 +1,9 @@
 import Address from "./Address";
 import Alt from "./Alt";
+import SelectPaperDomain from "./SelectPaperDomain";
+import SelectPaperGroup from "./SelectPaperGroup";
+import SelectPaperType from "./SelectPaperType";
+import SelectManufacturer from "./SelectManufacturer";
 import SelectCert from "./SelectCert";
 import SelectColor from "./SelectColor";
 import SelectColorGroup from "./SelectColorGroup";
@@ -24,6 +28,10 @@ import SelectSubject from "./SelectSubject";
 export {
   Address,
   Alt,
+  SelectPaperDomain,
+  SelectPaperGroup,
+  SelectPaperType,
+  SelectManufacturer,
   SelectPartner,
   SelectProduct,
   SelectColorGroup,

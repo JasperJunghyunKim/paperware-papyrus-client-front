@@ -1,6 +1,5 @@
 import { Model } from "@/@shared";
 import { Util } from "@/common";
-import { Record } from "@/common/protocol";
 import { InputNumber } from "antd";
 import { useMemo } from "react";
 

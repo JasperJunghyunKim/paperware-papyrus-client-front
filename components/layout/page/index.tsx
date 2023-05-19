@@ -111,9 +111,15 @@ export default function Component(props: PropsWithChildren<Props>) {
         path: "/official-price",
       },
       {
-        label: "할인율 설정",
+        label: "매출 할인율 설정",
         icon: <TbDiscount />,
-        path: "/discount",
+        path: "/discount-sales",
+        type: "wip",
+      },
+      {
+        label: "매입 할인율 설정",
+        icon: <TbDiscount />,
+        path: "/discount-purchase",
         type: "wip",
       },
       { path: null },

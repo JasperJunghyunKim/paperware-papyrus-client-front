@@ -154,7 +154,7 @@ export default function Component(props: Props) {
                   sizeX,
                   sizeY,
                 }}
-                additional={{
+                officialSpec={{
                   productId,
                   paperColorGroupId,
                   paperColorId,

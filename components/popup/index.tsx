@@ -10,3 +10,5 @@ export * as StockFinder from "./stockFinder";
 export * as Shipping from "./shipping";
 export * as Accounted from "./accounted";
 export * as OfficialPrice from "./officialPrice";
+export * as Discount from "./discount";
+export * as DiscountFinder from "./discountFinder";

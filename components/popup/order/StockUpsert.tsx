@@ -1,26 +1,24 @@
 import { Api, Model } from "@/@shared";
+import { OrderStatus } from "@/@shared/models/enum";
+import { ApiHook, PaperUtil, Util } from "@/common";
+import { usePage } from "@/common/hook";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
+import { Number } from "@/components/formControl";
 import { Alert, Form, Input, Steps } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
+import classNames from "classnames";
+import _ from "lodash";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Number } from "@/components/formControl";
-import { ApiHook, PaperUtil, PriceUtil, Util } from "@/common";
-import { OrderStatus } from "@/@shared/models/enum";
-import { usePage } from "@/common/hook";
-import { CreateArrival } from ".";
 import {
   TbAB,
   TbBrandMixpanel,
-  TbCalculator,
   TbHandStop,
   TbInfoCircle,
   TbRubberStamp,
   TbSend,
   TbSquare,
-  TbWritingSign,
 } from "react-icons/tb";
-import _ from "lodash";
-import classNames from "classnames";
+import { CreateArrival } from ".";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -1055,6 +1053,7 @@ function RightSideSales(props: RightSideSalesProps) {
 
 interface PricePanelProps {
   order: Model.Order;
+  
 }
 function PricePanel(props: PricePanelProps) {
   const [form] = useForm();
@@ -1185,6 +1184,10 @@ function PricePanel(props: PricePanelProps) {
     );
   }, [altSizeX, altSizeY, props.order.orderStock.packaging.type]);
 
+  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
+    .filter((_) => me.data)
+    .find((p) => p.id !== me.data?.companyId);
+
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
       <Form
@@ -1207,27 +1210,42 @@ function PricePanel(props: PricePanelProps) {
         />
         <FormControl.Util.Split label="거래 금액 정보" />
         <Form.Item label="거래 단가" name={["stockPrice"]}>
-          <FormControl.StockPrice
-            spec={{
-              grammage: props.order.orderStock.grammage,
-              packaging:
-                altSizeX && altSizeY
-                  ? {
-                      packA: 0,
-                      packB: 0,
-                      type: "SKID",
-                    }
-                  : altSizeX
-                  ? {
-                      packA: 0,
-                      packB: 0,
-                      type: "ROLL",
-                    }
-                  : props.order.orderStock.packaging,
-              sizeX: altSizeX ?? props.order.orderStock.sizeX,
-              sizeY: altSizeY ?? props.order.orderStock.sizeY,
-            }}
-          />
+          {positiveCompany && (
+            <FormControl.StockPrice
+              spec={{
+                grammage: props.order.orderStock.grammage,
+                packaging:
+                  altSizeX && altSizeY
+                    ? {
+                        packA: 0,
+                        packB: 0,
+                        type: "SKID",
+                      }
+                    : altSizeX
+                    ? {
+                        packA: 0,
+                        packB: 0,
+                        type: "ROLL",
+                      }
+                    : props.order.orderStock.packaging,
+                sizeX: altSizeX ?? props.order.orderStock.sizeX,
+                sizeY: altSizeY ?? props.order.orderStock.sizeY,
+              }}
+              officialSpec={{
+                productId: props.order.orderStock.product.id,
+                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
+                paperColorId: props.order.orderStock.paperColor?.id,
+                paperPatternId: props.order.orderStock.paperPattern?.id,
+                paperCertId: props.order.orderStock.paperCert?.id,
+              }}
+              discountSpec={{
+                companyRegistrationNumber:
+                  positiveCompany?.companyRegistrationNumber,
+                productId: props.order.orderStock.product.id,
+                discountRateType: ,
+              }}
+            />
+          )}
         </Form.Item>
         <Form.Item name={"processPrice"} label="공정비">
           <FormControl.Number unit="원" />

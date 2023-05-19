@@ -5,6 +5,8 @@ import { ColumnType } from "antd/lib/table/interface";
 import { Icon } from "..";
 import { TbHome, TbHomeLink } from "react-icons/tb";
 import classNames from "classnames";
+import DiscountRate from "@/@shared/models/discount-rate";
+import { useCallback } from "react";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
@@ -324,6 +326,43 @@ export function columnConnection<T>(path: string[]): ColumnType<T>[] {
           </div>
           <div className="flex flex-col justify-center">
             {value ? "비연결 거래처" : "연결 거래처"}
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function columnDiscountRate<T>(
+  path: string[],
+  options?: {
+    prefix?: string;
+  }
+): ColumnType<T>[] {
+  const unit = (value: DiscountRate) => {
+    switch (value.discountRateUnit) {
+      case "PERCENT":
+        return "%";
+      case "WON_PER_BOX":
+        return "원/BOX";
+      case "WON_PER_REAM":
+        return "원/R";
+      case "WON_PER_TON":
+        return "원/T";
+    }
+  };
+  return [
+    {
+      title: `${options?.prefix} 할인율`.trim(),
+      dataIndex: path,
+      render: (value: DiscountRate) => (
+        <div className={"flex flex-row gap-2 justify-end"}>
+          <div className="flex text-right font-fixed">
+            {Util.comma(
+              value.discountRate,
+              value.discountRateUnit === "PERCENT" ? 3 : 0
+            )}{" "}
+            {unit(value)}
           </div>
         </div>
       ),
