@@ -1,7 +1,7 @@
 import { Api, Model } from "@/@shared";
 import { AccountedType } from "@/@shared/models/enum";
 import { Button, FormControl } from "@/components";
-import { Checkbox, Form, FormInstance, Input } from "antd";
+import { Checkbox, Form, FormInstance, Input, message } from "antd";
 import { useWatch } from "antd/lib/form/Form";
 import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
@@ -17,18 +17,26 @@ interface Props {
 export default function Component(props: Props) {
   const [labelName] = useState<string>(`${props.accountedType === 'PAID' ? '지급' : '수금'}`);
   const toatlAmountInputRef = useRef(null);
-  const amount = useWatch('amount', props.form)
-  const chargeAmount = useWatch('chargeAmount', props.form)
+  const amount = useWatch('amount', props.form);
+  const chargeAmount = useWatch('chargeAmount', props.form);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (toatlAmountInputRef !== null) {
       if (props.accountedType === 'PAID') {
-        /*
-         * 지급(카드결제)
-         * 수수료 포함 : 지급합계 = 카드결제금액(즉, 돈을 받는 거래처가 수수료를 부담함)
-         * 수수료 미포함 : 지급합계 = 카드결제금액 - 수수료(즉, 지급등록하는 자사가 수수료를 부담함)
-         */
-        props.form.setFieldsValue({ totalAmount: amount - chargeAmount })
+        if (amount < chargeAmount) {
+          return messageApi.open({
+            type: 'error',
+            content: '수수료가 지급금액보다 큽니다.'
+          })
+        } else {
+          /*
+           * 지급(카드결제)
+           * 수수료 포함 : 지급합계 = 카드결제금액(즉, 돈을 받는 거래처가 수수료를 부담함)
+           * 수수료 미포함 : 지급합계 = 카드결제금액 - 수수료(즉, 지급등록하는 자사가 수수료를 부담함)
+           */
+          props.form.setFieldsValue({ totalAmount: amount - chargeAmount })
+        }
       } else {
         /*
          * 수금(카드입금)
@@ -39,7 +47,7 @@ export default function Component(props: Props) {
       }
 
     }
-  }, [props, amount, chargeAmount])
+  }, [props, amount, chargeAmount, messageApi])
 
   return (
     <Form form={props.form} onFinish={props.onFinish} layout="vertical">

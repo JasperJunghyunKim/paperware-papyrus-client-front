@@ -38,7 +38,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        defaultValue={props.isAll ? 0 : undefined}
+        defaultValue={props.isAll ? 0 : props.value}
         value={props.value === 0 ? undefined : props.value}
         onChange={props.onChange}
         options={options}

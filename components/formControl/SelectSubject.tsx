@@ -76,19 +76,19 @@ export default function Component(props: Props) {
   const options = useMemo(() => {
     let list = [];
 
-    if (props.accountedType && props.accountedType === 'PAID') {
+    if (props.accountedType === 'PAID') {
       list = PAID_SUBJECT_OPTIONS.filter((item) => props.isAll ? true : item.value !== 'All')
     } else {
       list = COLLECTED_OPTIONS.filter((item) => props.isAll ? true : item.value !== 'All')
     }
 
     return list;
-  }, [props.isAll, props.accountedType]);
+  }, [props]);
 
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        defaultValue={props.isAll ? 'All' : undefined as unknown as Model.Enum.Method as any}
+        defaultValue={props.isAll ? undefined : props.value as unknown as Model.Enum.Method as any}
         value={props.value as unknown as Model.Enum.Subject as any}
         onChange={props.onChange}
         options={options as DefaultOptionType[]}

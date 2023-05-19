@@ -59,7 +59,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        defaultValue={props.isAll ? 'All' : undefined as unknown as Model.Enum.Method as any}
+        defaultValue={props.isAll ? 'All' : props.value as unknown as Model.Enum.Method as any}
         disabled={props.isDisabled}
         value={props.value as unknown as Model.Enum.Method as any}
         onChange={props.onChange}

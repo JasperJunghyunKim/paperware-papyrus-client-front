@@ -92,7 +92,7 @@ export default function Component(props: Props) {
           <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} />
         </Form.Item>
         <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedMethod', value)}>
-          <FormControl.SelectMethod isAll={true} />
+          <FormControl.SelectMethod accountedType={props.accountedType} isAll={true} />
         </Form.Item>
       </Form>
     </div>

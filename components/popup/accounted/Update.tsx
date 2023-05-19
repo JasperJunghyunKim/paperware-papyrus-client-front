@@ -7,7 +7,7 @@ import { Api } from "@/@shared";
 import { Enum } from "@/@shared/models";
 import { AccountedType } from "@/@shared/models/enum";
 
-type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest;
+type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest | { partnerNickName?: string, accountedType?: string };
 
 export interface Props {
   method: Enum.Method | null;
@@ -86,6 +86,7 @@ export default function Component(props: Props) {
     switch (props.method) {
       case 'ACCOUNT_TRANSFER':
         form.setFieldsValue({
+          partnerNickName: resByBankAccount.data?.partnerNickName,
           accountedDate: resByBankAccount.data?.accountedDate,
           accountedMethod: resByBankAccount.data?.accountedMethod,
           accountedSubject: resByBankAccount.data?.accountedSubject,
@@ -96,9 +97,10 @@ export default function Component(props: Props) {
         break;
       case 'CARD_PAYMENT':
         form.setFieldsValue({
+          partnerNickName: resByCard.data?.partnerNickName,
           accountedDate: resByCard.data?.accountedDate,
           accountedMethod: resByCard.data?.accountedMethod,
-          accountedSubject: resByCash.data?.accountedSubject,
+          accountedSubject: resByCard.data?.accountedSubject,
           memo: resByCard.data?.memo,
           amount: resByCard.data?.amount,
           cardId: resByCard.data?.cardId,
@@ -113,6 +115,7 @@ export default function Component(props: Props) {
         break;
       case 'OFFSET':
         form.setFieldsValue({
+          partnerNickName: resByOffset.data?.partnerNickName,
           accountedDate: resByOffset.data?.accountedDate,
           accountedMethod: resByOffset.data?.accountedMethod,
           accountedSubject: resByOffset.data?.accountedSubject,
@@ -122,6 +125,7 @@ export default function Component(props: Props) {
         break;
       case 'CASH':
         form.setFieldsValue({
+          partnerNickName: resByCash.data?.partnerNickName,
           accountedDate: resByCash.data?.accountedDate,
           accountedMethod: resByCash.data?.accountedMethod,
           accountedSubject: resByCash.data?.accountedSubject,
@@ -131,6 +135,7 @@ export default function Component(props: Props) {
         break;
       case 'ETC':
         form.setFieldsValue({
+          partnerNickName: resByEtc.data?.partnerNickName,
           accountedDate: resByEtc.data?.accountedDate,
           accountedMethod: resByEtc.data?.accountedMethod,
           accountedSubject: resByEtc.data?.accountedSubject,

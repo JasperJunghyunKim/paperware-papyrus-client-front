@@ -1,11 +1,11 @@
 import { Api, Model } from "@/@shared";
 import { AccountedType } from "@/@shared/models/enum";
 import { Button, FormControl } from "@/components";
-import { Checkbox, Form, FormInstance, Input } from "antd";
-import { useWatch } from "antd/es/form/Form";
+import { Checkbox, Form, FormInstance, Input, message } from "antd";
+import { useWatch } from "antd/lib/form/Form";
 import { useEffect, useRef, useState } from "react";
 
-type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest;
+type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest | { partnerNickName?: string, accountedType?: string };;
 
 interface Props {
   accountedType: AccountedType;
@@ -19,18 +19,27 @@ export default function Component(props: Props) {
   const [labelName] = useState<string>(`${props.accountedType === 'PAID' ? '지급' : '수금'}`);
 
   const toatlAmountInputRef = useRef(null);
-  const amount = useWatch('amount', props.form)
-  const chargeAmount = useWatch('chargeAmount', props.form)
+  const amount = useWatch('amount', props.form);
+  const chargeAmount = useWatch('chargeAmount', props.form);
+  const accountedDate = useWatch('accountedDate', props.form);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (toatlAmountInputRef !== null) {
       if (props.accountedType === 'PAID') {
-        /*
-         * 지급(카드결제)
-         * 수수료 포함 : 지급합계 = 카드결제금액(즉, 돈을 받는 거래처가 수수료를 부담함)
-         * 수수료 미포함 : 지급합계 = 카드결제금액 - 수수료(즉, 지급등록하는 자사가 수수료를 부담함)
-         */
-        props.form.setFieldsValue({ totalAmount: amount - chargeAmount })
+        if (amount < chargeAmount) {
+          return messageApi.open({
+            type: 'error',
+            content: '수수료가 지급금액보다 큽니다.'
+          })
+        } else {
+          /*
+           * 지급(카드결제)
+           * 수수료 포함 : 지급합계 = 카드결제금액(즉, 돈을 받는 거래처가 수수료를 부담함)
+           * 수수료 미포함 : 지급합계 = 카드결제금액 - 수수료(즉, 지급등록하는 자사가 수수료를 부담함)
+           */
+          props.form.setFieldsValue({ totalAmount: amount - chargeAmount })
+        }
       } else {
         /*
          * 수금(카드입금)
@@ -41,7 +50,7 @@ export default function Component(props: Props) {
       }
 
     }
-  }, [props, amount, chargeAmount])
+  }, [props, amount, chargeAmount, messageApi])
 
   return (
     <Form
@@ -53,6 +62,7 @@ export default function Component(props: Props) {
       disabled={!props.edit}
       rootClassName="flex flex-col gap-y-4"
     >
+      {contextHolder}
       <div className="flex flex-row justify-end gap-x-2">
         <Button.Preset.Edit
           label="내용 수정"
@@ -72,14 +82,24 @@ export default function Component(props: Props) {
       <Form.Item name="partnerNickName" label="거래처">
         <Input disabled />
       </Form.Item>
-      <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]} getValueProps={(i) => ({ value: i })}>
-        <FormControl.DatePicker />
+      <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]}>
+        <FormControl.DatePicker datePickerValue={accountedDate} />
       </Form.Item>
-      <Form.Item name="amount" label={`${labelName} 금액`} rules={[{ required: true }]}>
-        <Input />
+
+      <Form.Item
+        name="amount"
+        label={`${labelName} 금액`}
+        rules={[{ required: true }]}
+      >
+        <FormControl.Number
+          min={0}
+          precision={0}
+          unit="원"
+        />
       </Form.Item>
+
       <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
-        <FormControl.SelectSubject accountedType={props.accountedType} />
+        <FormControl.SelectSubject isAll={false} accountedType={props.accountedType} />
       </Form.Item>
       <Form.Item name="accountedMethod" label={`${labelName} 수단`} rules={[{ required: true }]}>
         <FormControl.SelectMethod accountedType={props.accountedType} isDisabled={true} />

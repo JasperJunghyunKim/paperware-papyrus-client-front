@@ -1,6 +1,7 @@
 import { Util } from "@/common";
 import { InputNumber } from "antd";
 import classNames from "classnames";
+import { forwardRef } from "react";
 
 interface Props {
   ref?: any;
@@ -14,10 +15,11 @@ interface Props {
   disabled?: boolean;
 }
 
-export default function Component(props: Props) {
+export default forwardRef(function Component(props: Props, ref: any) {
   return (
     <InputNumber
-      ref={props.ref}
+      {...props}
+      ref={ref}
       value={props.value}
       onChange={(x) => props.onChange?.(x ?? null)}
       formatter={(x, state) =>
@@ -34,4 +36,4 @@ export default function Component(props: Props) {
       disabled={props.disabled}
     />
   );
-}
+})
