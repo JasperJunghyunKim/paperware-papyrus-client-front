@@ -15,6 +15,7 @@ export function useAccountedList(params: {
 			"list",
 			params.query.skip,
 			params.query.take,
+			params.query.companyId,
 			params.query.companyRegistrationNumber,
 			params.query.accountedType,
 			params.query.accountedSubject,

@@ -1,12 +1,11 @@
 import { Api } from "@/@shared";
 import { Enum } from "@/@shared/models";
+import { AccountedType } from "@/@shared/models/enum";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { FormCreate } from "./common";
-import { AccountedType } from "@/@shared/models/enum";
-import dayjs from "dayjs";
 
 type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest;
 

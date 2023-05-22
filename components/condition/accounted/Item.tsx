@@ -19,11 +19,19 @@ export default function Component(props: Props) {
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
       case 'companyRegistrationNumber':
-        setCondtiuon((prev) => ({
-          ...prev,
-          companyId: parseInt((value as string)?.split('/')[0]),
-          companyRegistrationNumber: (value as string)?.split('/')[1],
-        }));
+        if (value !== '') {
+          setCondtiuon((prev) => ({
+            ...prev,
+            companyId: parseInt((value as string)?.split('/')[0]),
+            companyRegistrationNumber: (value as string)?.split('/')[1],
+          }));
+        } else {
+          setCondtiuon((prev) => ({
+            ...prev,
+            companyId: 0,
+            companyRegistrationNumber: '',
+          }));
+        }
         break;
       case 'accountedFromDate':
         if (!isValidDateRange(new Date(value ?? ''), new Date(condtiuon.accountedToDate ?? ''))) {
