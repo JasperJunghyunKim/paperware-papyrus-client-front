@@ -62,7 +62,7 @@ export default function Component(props: Props) {
   return (
     <Form form={props.form} onFinish={props.onFinish} layout="vertical">
       {contextHolder}
-      <Form.Item name="partnerId" label="거래처" rules={[{ required: true }]}>
+      <Form.Item name="partnerNickName" label="거래처" rules={[{ required: true }]}>
         <FormControl.SelectPartner />
       </Form.Item>
       <Form.Item

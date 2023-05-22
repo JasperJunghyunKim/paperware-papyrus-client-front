@@ -21,7 +21,8 @@ export default function Component(props: Props) {
       case 'companyRegistrationNumber':
         setCondtiuon((prev) => ({
           ...prev,
-          companyRegistrationNumber: value as string
+          companyId: parseInt((value as string)?.split('/')[0]),
+          companyRegistrationNumber: (value as string)?.split('/')[1],
         }));
         break;
       case 'accountedFromDate':

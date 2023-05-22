@@ -28,7 +28,7 @@ export default function Component(props: Props) {
 
       acc.push({
         label: <Item item={crr} />,
-        value: crr.companyRegistrationNumber,
+        value: `${crr.companyId}/${crr.companyRegistrationNumber}`,
       });
       return acc;
     }, []);

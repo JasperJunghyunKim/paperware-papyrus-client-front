@@ -30,6 +30,9 @@ export default function Component(props: Props) {
       const method: Enum.Method = form.getFieldValue("accountedMethod");
       values.accountedType = props.accountedType;
 
+      values.companyId = parseInt((values as any).partnerNickName.split('/')[0]);
+      values.companyRegistrationNumber = (values as any).partnerNickName.split('/')[1];
+
       switch (method) {
         case 'ACCOUNT_TRANSFER':
           await apiByBankAccount.mutateAsync({ data: values as Api.ByBankAccountCreateRequest });
