@@ -148,7 +148,14 @@ export default function Component(props: Props) {
           )}
           {packaging && (
             <Form.Item name="quantity" label="재고 수량">
-              <FormControl.Quantity packaging={packaging} />
+              <FormControl.Quantity
+                spec={{
+                  grammage,
+                  sizeX,
+                  sizeY,
+                  packaging,
+                }}
+              />
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">

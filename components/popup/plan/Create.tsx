@@ -16,6 +16,7 @@ export default function Component(props: Props) {
 
   const [form] = useForm<Api.PlanCreateRequest>();
   const packagingId = useWatch(["packagingId"], form);
+  const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
 
@@ -105,7 +106,14 @@ export default function Component(props: Props) {
           </Form.Item>
           {packaging && (
             <Form.Item name="quantity" label="재고 수량">
-              <FormControl.Quantity packaging={packaging} />
+              <FormControl.Quantity
+                spec={{
+                  grammage,
+                  sizeX,
+                  sizeY,
+                  packaging,
+                }}
+              />
             </Form.Item>
           )}
           <Form.Item name="memo" label="메모">

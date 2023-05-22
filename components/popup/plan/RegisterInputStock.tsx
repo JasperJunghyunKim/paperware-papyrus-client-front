@@ -23,6 +23,7 @@ export default function Component(props: Props) {
 
   const [form] = useForm();
   const packagingId = useWatch(["packagingId"], form);
+  const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
   const quantity = useWatch(["quantity"], form);
@@ -163,7 +164,14 @@ export default function Component(props: Props) {
           </Form.Item>
           {packaging && (
             <Form.Item name="quantity" label="투입 수량">
-              <FormControl.Quantity packaging={packaging} />
+              <FormControl.Quantity
+                spec={{
+                  grammage: grammage,
+                  sizeX,
+                  sizeY,
+                  packaging,
+                }}
+              />
             </Form.Item>
           )}
           <Form.Item className="flex justify-end mt-4 ">

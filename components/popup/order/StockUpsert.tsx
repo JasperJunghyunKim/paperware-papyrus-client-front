@@ -624,7 +624,15 @@ function DataForm(props: DataFormProps) {
       )}
       {packaging && (
         <Form.Item name="quantity" label="매입 수량">
-          <FormControl.Quantity packaging={packaging} disabled={!editable} />
+          <FormControl.Quantity
+            spec={{
+              grammage,
+              sizeX,
+              sizeY,
+              packaging,
+            }}
+            disabled={!editable}
+          />
         </Form.Item>
       )}
       <FormControl.Util.Split label="기타" />
