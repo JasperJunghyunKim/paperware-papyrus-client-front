@@ -6,6 +6,7 @@ import { Number } from ".";
 import { TbSearch } from "react-icons/tb";
 import _ from "lodash";
 import { Popup } from "..";
+import classNames from "classnames";
 
 const OFFICIAL_PRICE_TYPE_OPTIONS = [
   {
@@ -477,13 +478,24 @@ export default function Component(props: Props) {
             changeDiscount(props.value?.discountType ?? "DEFAULT", p ?? 0)
           }
           precision={3}
-          unit={`% ${
-            props.value?.discountType === "DEFAULT"
-              ? "기본"
-              : props.value?.discountType === "SPECIAL"
-              ? "특가"
-              : ""
-          }`.trim()}
+          unit={
+            <div
+              className={classNames({
+                "font-bold text-blue-800":
+                  props.value?.discountType === "DEFAULT",
+                "font-bold text-amber-800":
+                  props.value?.discountType === "SPECIAL",
+              })}
+            >
+              {`% ${
+                props.value?.discountType === "DEFAULT"
+                  ? "기본"
+                  : props.value?.discountType === "SPECIAL"
+                  ? "특가"
+                  : ""
+              }`.trim()}
+            </div>
+          }
           rootClassName="flex-[2_0_8px] w-0"
           disabled={
             props.disabled || props.value?.discountType !== "MANUAL_NONE"

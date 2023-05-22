@@ -16,6 +16,7 @@ import {
   TbClipboardList,
   TbColorSwatch,
   TbDiscount,
+  TbDiscount2,
   TbHome2,
   TbHomeMove,
   TbInputSearch,
@@ -117,7 +118,7 @@ export default function Component(props: PropsWithChildren<Props>) {
       },
       {
         label: "매입 할인율 설정",
-        icon: <TbDiscount />,
+        icon: <TbDiscount2 />,
         path: "/discount-purchase",
       },
       { path: null },

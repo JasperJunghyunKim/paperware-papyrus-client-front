@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, PaperUtil, Util } from "@/common";
 import { Button, Icon } from "@/components";
 import { ConfigProvider, InputNumber } from "antd";
 import classNames from "classnames";
@@ -304,6 +304,7 @@ interface MiniFormProps {
   onChange?: (value: number) => void;
   unit?: string;
   disabled?: boolean;
+  precision?: number;
 }
 function MiniFormNumber(props: MiniFormProps) {
   return (
@@ -315,7 +316,7 @@ function MiniFormNumber(props: MiniFormProps) {
           onChange={(p) => props.onChange?.(p ?? 0)}
           min={0}
           max={9999}
-          precision={0}
+          precision={props.precision ?? 0}
           rootClassName="w-full"
           addonAfter={props.unit}
           disabled={props.disabled}
@@ -650,6 +651,27 @@ function QuantityNode(props: QuantityProps) {
     return initialQ !== q;
   }, [initialQ, q]);
 
+  const getWeight = useCallback(() => {
+    let parent = props.parent;
+    return (
+      (PaperUtil.convertQuantityWith(
+        {
+          ...props.plan.targetStockGroupEvent.stockGroup,
+          sizeX:
+            parent?.value.taskConverting?.sizeX ??
+            parent?.value.taskGuillotine?.sizeX ??
+            0,
+          sizeY:
+            parent?.value.taskConverting?.sizeY ??
+            parent?.value.taskGuillotine?.sizeY ??
+            0,
+        },
+        "매",
+        props.data.quantity
+      )?.grams ?? 0) * 0.000001
+    );
+  }, [props.current, props.parent]);
+
   return (
     <div className="flex-initial flex flex-col gap-y-2">
       <div className="flex-1 flex flex-col gap-y-2 p-4">
@@ -663,7 +685,13 @@ function QuantityNode(props: QuantityProps) {
             unit="매"
             disabled={props.plan.status !== "PREPARING"}
           />
-          <MiniFormNumber label="중량" value={0} unit="톤" disabled />
+          <MiniFormNumber
+            label="중량"
+            value={getWeight()}
+            unit="톤"
+            disabled
+            precision={3}
+          />
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
           )}

@@ -5,7 +5,7 @@ import classNames from "classnames";
 interface Props {
   value?: number | null;
   onChange?: (value: number | null) => void;
-  unit?: string;
+  unit?: string | React.ReactNode;
   min?: number;
   max?: number;
   precision?: number;
