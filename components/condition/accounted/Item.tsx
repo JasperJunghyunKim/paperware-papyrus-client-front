@@ -6,7 +6,7 @@ import { accountedAtom } from "./accounted.state";
 import { AccountedType } from "@/@shared/models/enum";
 import { isValidDateRange } from "@/@shared/helper/util";
 
-type NamePath = 'partnerId' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
+type NamePath = 'companyRegistrationNumber' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
 
 interface Props {
   accountedType: AccountedType;
@@ -18,10 +18,10 @@ export default function Component(props: Props) {
 
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
-      case 'partnerId':
+      case 'companyRegistrationNumber':
         setCondtiuon((prev) => ({
           ...prev,
-          partnerId: value as number
+          companyRegistrationNumber: value as string
         }));
         break;
       case 'accountedFromDate':
@@ -76,8 +76,8 @@ export default function Component(props: Props) {
         initialValues={{
           ...condtiuon
         }}>
-        <Form.Item name="partnerId" label="거래처" className={"w-1/5"}>
-          <FormControl.SelectPartner isAll={true} value={condtiuon.partnerId} onChange={(value) => onChange('partnerId', value)} />
+        <Form.Item name="companyRegistrationNumber" label="거래처" className={"w-1/5"}>
+          <FormControl.SelectPartner isAll={true} value={condtiuon.companyRegistrationNumber} onChange={(value) => onChange('companyRegistrationNumber', value)} />
         </Form.Item>
         <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
           <FormControl.DatePicker datePickerValue={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />

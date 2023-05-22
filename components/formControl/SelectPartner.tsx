@@ -5,7 +5,7 @@ import { useCallback, useMemo } from "react";
 
 interface Props {
   isAll?: boolean;
-  value?: number;
+  value?: number | string;
   onChange?: (value: number) => void;
 }
 
@@ -16,8 +16,13 @@ export default function Component(props: Props) {
     const itemList = staticData.data?.reduce((acc: any[], crr, idx) => {
       if (idx === 0 && props.isAll) {
         acc.push({
-          label: <Item item={null} />,
-          value: undefined,
+          label: <Item item={{
+            companyRegistrationNumber: '',
+            companyId: 0,
+            memo: '',
+            partnerNickName: '전체'
+          }} />,
+          value: '',
         });
       }
 
@@ -37,14 +42,14 @@ export default function Component(props: Props) {
     }
 
     if (props.isAll) {
-      return 0;
+      return '';
     }
   }, [staticData, props])
 
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        value={props.value === 0 ? value() : props.value}
+        value={props.value === 0 ? value() : props.value as any}
         onChange={props.onChange}
         placeholder="거래처"
         options={options}
