@@ -1,7 +1,6 @@
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Record } from "@/common/protocol";
 import { Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
 
@@ -15,9 +14,9 @@ export default function Component(props: Props) {
   const list = ApiHook.Inhouse.BusinessRelationshipRequest.useGetList({
     query: page,
   });
-  const [selected, setSelected] = useState<
-    Record.BusinessRelationshipRequest[]
-  >([]);
+  const [selected, setSelected] = useState<Model.BusinessRelationshipRequest[]>(
+    []
+  );
   const only = Util.only(selected);
 
   const apiAccept = ApiHook.Inhouse.BusinessRelationshipRequest.useAccept();
@@ -56,7 +55,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Property
-      title="매출처 등록 요청 목록"
+      title="거래처 등록 수신 목록"
       width={"800px"}
       height="500px"
       {...props}
@@ -83,7 +82,7 @@ export default function Component(props: Props) {
           </Toolbar.Container>
         </div>
         <div className="flex-1">
-          <Table.Default<Record.BusinessRelationshipRequest>
+          <Table.Default<Model.BusinessRelationshipRequest>
             data={list.data}
             page={page}
             setPage={setPage}
@@ -95,8 +94,16 @@ export default function Component(props: Props) {
             selection="single"
             columns={[
               {
-                title: "상호명",
+                title: "거래처명",
                 dataIndex: ["srcCompany", "businessName"],
+              },
+              {
+                title: "사업자등록번호",
+                dataIndex: ["srcCompany", "companyRegistrationNumber"],
+              },
+              {
+                title: "대표자명",
+                dataIndex: ["srcCompany", "ceoName"],
               },
               {
                 title: "대표 전화",
@@ -109,6 +116,19 @@ export default function Component(props: Props) {
               {
                 title: "이메일",
                 dataIndex: ["srcCompany", "email"],
+              },
+              {
+                title: "거래 관계",
+                render: (_value, record) => (
+                  <div>
+                    {[
+                      record.isSales ? "매출" : null,
+                      record.isPurchase ? "매입" : null,
+                    ]
+                      .filter((p) => !!p)
+                      .join(" & ")}
+                  </div>
+                ),
               },
             ]}
           />

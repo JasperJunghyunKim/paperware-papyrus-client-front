@@ -3,6 +3,8 @@ import { PaperUtil, Util } from "@/common";
 import { Quantity } from "@/common/paperUtil";
 import { ColumnType } from "antd/lib/table/interface";
 import { Icon } from "..";
+import { TbHome, TbHomeLink } from "react-icons/tb";
+import classNames from "classnames";
 
 export function columnStockGroup<T>(
   getStock: (
@@ -280,6 +282,33 @@ export function columnQuantity<T>(
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
           {format(getQuantity(value, record), "weight")}
+        </div>
+      ),
+    },
+  ];
+}
+
+export function columnConnection<T>(path: string[]): ColumnType<T>[] {
+  return [
+    {
+      title: "연결 거래처 여부",
+      dataIndex: path,
+      render: (value) => (
+        <div
+          className={classNames("flex flex-row gap-2", {
+            "text-purple-800": value,
+          })}
+        >
+          <div className="flex flex-col justify-center">
+            {value ? (
+              <TbHomeLink className="text-lg" />
+            ) : (
+              <TbHome className="text-lg" />
+            )}
+          </div>
+          <div className="flex flex-col justify-center">
+            {value ? "비연결 거래처" : "연결 거래처"}
+          </div>
         </div>
       ),
     },

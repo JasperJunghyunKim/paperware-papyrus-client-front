@@ -16,22 +16,17 @@ export default function Component(props: Props) {
     const itemList = staticData.data?.reduce((acc: any[], crr, idx) => {
       if (idx === 0 && props.isAll) {
         acc.push({
-          label: <Item item={{
-            partnerId: 0,
-            partnerNickName: "전체",
-          }} />,
-          text: '전체',
-          value: 0,
-        })
+          label: <Item item={null} />,
+          value: undefined,
+        });
       }
 
       acc.push({
         label: <Item item={crr} />,
-        text: `${crr.partnerNickName}`,
-        value: crr.partnerId,
+        value: crr.companyRegistrationNumber,
       });
       return acc;
-    }, [])
+    }, []);
 
     return itemList;
   }, [props.isAll, staticData]);
@@ -59,15 +54,14 @@ export default function Component(props: Props) {
 }
 
 interface ItemProps {
-  item: Model.Partner;
+  item: Model.Partner | null;
 }
 
 function Item(props: ItemProps) {
   const { item } = props;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div style={{ display: 'none' }}>{item.partnerId}</div>
-      <div className="flex-1">{item.partnerNickName}</div>
+      <div className="flex-1">{item?.partnerNickName}</div>
     </div>
   );
 }

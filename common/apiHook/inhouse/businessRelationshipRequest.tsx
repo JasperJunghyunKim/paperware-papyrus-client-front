@@ -10,12 +10,36 @@ export function useGetList(params: {
     [
       "inhouse",
       "business-relationship-request",
+      "received",
       params.query.skip,
       params.query.take,
     ],
     async () => {
       const resp = await axios.get<Api.BusinessRelationshipRequestListResponse>(
-        `${API_HOST}/inhouse/business-relationship-request`,
+        `${API_HOST}/inhouse/business-relationship-request/received`,
+        {
+          params: params.query,
+        }
+      );
+      return resp.data;
+    }
+  );
+}
+
+export function useGetSendedList(params: {
+  query: Partial<Api.BusinessRelationshipRequestListQuery>;
+}) {
+  return useQuery(
+    [
+      "inhouse",
+      "business-relationship-request",
+      "sended",
+      params.query.skip,
+      params.query.take,
+    ],
+    async () => {
+      const resp = await axios.get<Api.BusinessRelationshipRequestListResponse>(
+        `${API_HOST}/inhouse/business-relationship-request/sended`,
         {
           params: params.query,
         }
@@ -34,28 +58,6 @@ export function useGetPendingCount() {
           `${API_HOST}/inhouse/business-relationship-request/pending-count`
         );
       return resp.data;
-    }
-  );
-}
-
-export function useCreate() {
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    async (params: { data: Api.BusinessRelationshipRequestCreateRequest }) => {
-      const resp = await axios.post(
-        `${API_HOST}/inhouse/business-relationship-request`,
-        params.data
-      );
-      return resp.data;
-    },
-    {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries([
-          "inhouse",
-          "business-relationship-request",
-        ]);
-      },
     }
   );
 }
