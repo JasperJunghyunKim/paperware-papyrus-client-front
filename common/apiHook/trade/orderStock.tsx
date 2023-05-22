@@ -269,7 +269,7 @@ export function useGetTradePrice(params: { orderId: number | null }) {
     }
 
     const resp = await axios.get<Api.TradePriceResponse>(
-      `${API_HOST}/trade/${params.orderId}/price`
+      `${API_HOST}/order/${params.orderId}/price`
     );
     return resp.data;
   });
@@ -282,7 +282,7 @@ export function useUpdateTradePrice() {
     ["order", "tradePrice", "update"],
     async (params: { orderId: number; data: Api.TradePriceUpdateRequest }) => {
       const resp = await axios.put(
-        `${API_HOST}/trade/${params.orderId}/price`,
+        `${API_HOST}/order/${params.orderId}/price`,
         params.data
       );
       return resp.data;

@@ -1,25 +1,33 @@
-import { Api, Model } from "@/@shared";
-import { OfficialPriceUpdateRequest } from "@/@shared/api/inhouse/official-price.request";
-import { Button, FormControl } from "@/components";
-import { Form, FormInstance, Input, Select, Switch } from "antd";
-import { Number } from "@/components/formControl";
-import { useWatch } from "antd/lib/form/Form";
+import { Model } from "@/@shared";
+import { DiscountRateUpdateRequest } from "@/@shared/api/inhouse/discount-rate.request";
+import DiscountRateCondition from "@/@shared/models/discount-rate-condition";
 import { Util } from "@/common";
+import { Button, FormControl } from "@/components";
+import { Number } from "@/components/formControl";
+import { Form, FormInstance, Select } from "antd";
+import { useWatch } from "antd/lib/form/Form";
 
-type RecordType = Model.OfficialPriceCondition;
-type DataType = OfficialPriceUpdateRequest;
-const PRICE_UNIT_OPTIONS = [
+type RecordType = DiscountRateCondition;
+type DataType = DiscountRateUpdateRequest;
+const PRICE_UNIT_OPTIONS: {
+  label: string;
+  value: Model.Enum.DiscountRateUnit;
+}[] = [
   {
-    label: "/T",
-    value: "WON_PER_TON" as Model.Enum.PriceUnit,
+    label: "%",
+    value: "PERCENT",
   },
   {
-    label: "/BOX",
-    value: "WON_PER_BOX" as Model.Enum.PriceUnit,
+    label: "원/T",
+    value: "WON_PER_TON",
   },
   {
-    label: "/R",
-    value: "WON_PER_REAM" as Model.Enum.PriceUnit,
+    label: "원/BOX",
+    value: "WON_PER_BOX",
+  },
+  {
+    label: "원/R",
+    value: "WON_PER_REAM",
   },
 ];
 
@@ -31,6 +39,14 @@ interface Props {
 }
 
 export default function Component(props: Props) {
+  const basicUnit = useWatch(
+    ["basicDiscountRate", "discountRateUnit"],
+    props.form
+  );
+  const specialUnit = useWatch(
+    ["specialDiscountRate", "discountRateUnit"],
+    props.form
+  );
   const sizeX = useWatch("sizeX", props.form);
   const sizeY = useWatch("sizeY", props.form);
 
@@ -58,15 +74,22 @@ export default function Component(props: Props) {
         <Button.Preset.Submit label="내용 저장" hidden={!props.edit} />
       </div>
       <div className="h-px bg-gray-200" />
-      <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-        <FormControl.SelectProduct disabled />
+      <Form.Item name="paperDomainId" label="제품 유형">
+        <FormControl.SelectPaperDomain disabled />
       </Form.Item>
-      <Form.Item
-        name="grammage"
-        label="평량"
-        rules={[{ required: true }]}
-        rootClassName="flex-1"
-      >
+      <Form.Item name="paperGroupId" label="지군">
+        <FormControl.SelectPaperGroup disabled />
+      </Form.Item>
+      <Form.Item name="paperTypeId" label="지종">
+        <FormControl.SelectPaperType disabled />
+      </Form.Item>
+      <Form.Item name="manufacturerId" label="제지사">
+        <FormControl.SelectManufacturer disabled />
+      </Form.Item>
+      <Form.Item name="packagingType" label="포장 유형">
+        <FormControl.SelectPackagingType disabled />
+      </Form.Item>
+      <Form.Item name="grammage" label="평량" rootClassName="flex-1">
         <Number
           min={0}
           max={9999}
@@ -85,20 +108,10 @@ export default function Component(props: Props) {
               disabled
             />
           </Form.Item>
-          <Form.Item
-            name="sizeX"
-            label="지폭"
-            rules={[{ required: true }]}
-            rootClassName="flex-1"
-          >
+          <Form.Item name="sizeX" label="지폭" rootClassName="flex-1">
             <Number min={0} max={9999} precision={0} unit="mm" disabled />
           </Form.Item>
-          <Form.Item
-            name="sizeY"
-            label="지장"
-            rules={[{ required: true }]}
-            rootClassName="flex-1"
-          >
+          <Form.Item name="sizeY" label="지장" rootClassName="flex-1">
             <Number min={0} max={9999} precision={0} unit="mm" disabled />
           </Form.Item>
         </div>
@@ -115,17 +128,21 @@ export default function Component(props: Props) {
       <Form.Item name="paperCertId" label="인증">
         <FormControl.SelectCert disabled />
       </Form.Item>
-      <Form.Item label="도가" required>
+      <Form.Item label="기본" required>
         <div className="flex gap-x-2">
           <Form.Item
-            name={["wholesalePrice", "officialPrice"]}
+            name={["basicDiscountRate", "discountRate"]}
             rootClassName="flex-1"
             rules={[{ required: true }]}
           >
-            <Number min={0} max={99999999} precision={0} unit="원" />
+            <Number
+              min={0}
+              max={99999999}
+              precision={basicUnit === "PERCENT" ? 3 : 0}
+            />
           </Form.Item>
           <Form.Item
-            name={["wholesalePrice", "officialPriceUnit"]}
+            name={["basicDiscountRate", "discountRateUnit"]}
             rootClassName="flex-1"
             rules={[{ required: true }]}
           >
@@ -133,23 +150,30 @@ export default function Component(props: Props) {
           </Form.Item>
         </div>
       </Form.Item>
-      <Form.Item label="실가" required>
+      <Form.Item label="특가" required>
         <div className="flex gap-x-2">
           <Form.Item
-            name={["retailPrice", "officialPrice"]}
+            name={["specialDiscountRate", "discountRate"]}
             rootClassName="flex-1"
             rules={[{ required: true }]}
           >
-            <Number min={0} max={99999999} precision={0} unit="원" />
+            <Number
+              min={0}
+              max={99999999}
+              precision={specialUnit === "PERCENT" ? 3 : 0}
+            />
           </Form.Item>
           <Form.Item
-            name={["retailPrice", "officialPriceUnit"]}
+            name={["specialDiscountRate", "discountRateUnit"]}
             rootClassName="flex-1"
             rules={[{ required: true }]}
           >
             <Select options={PRICE_UNIT_OPTIONS} rootClassName="flex-1" />
           </Form.Item>
         </div>
+      </Form.Item>
+      <Form.Item className="flex justify-end">
+        <Button.Preset.Submit label="할인율 추가" />
       </Form.Item>
       <div className="h-16" />
     </Form>

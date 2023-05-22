@@ -1,13 +1,9 @@
-import { Api, Model } from "@/@shared";
-import {
-  DiscountRateCreateRequest,
-  DiscountRateUpdateRequest,
-} from "@/@shared/api/inhouse/discount-rate.request";
-import { OfficialPriceCreateRequest } from "@/@shared/api/inhouse/official-price.request";
-import { ApiHook, Util } from "@/common";
+import { Model } from "@/@shared";
+import { DiscountRateCreateRequest } from "@/@shared/api/inhouse/discount-rate.request";
+import { Util } from "@/common";
 import { Button, FormControl } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form, FormInstance, Input, Select, Switch } from "antd";
+import { Form, FormInstance, Select } from "antd";
 import { useWatch } from "antd/lib/form/Form";
 
 type DataType = DiscountRateCreateRequest;
@@ -68,8 +64,11 @@ export default function Component(props: Props) {
       <Form.Item name="paperTypeId" label="지종">
         <FormControl.SelectPaperType />
       </Form.Item>
-      <Form.Item name="manufacturer" label="제지사">
+      <Form.Item name="manufacturerId" label="제지사">
         <FormControl.SelectManufacturer />
+      </Form.Item>
+      <Form.Item name="packagingType" label="포장 유형">
+        <FormControl.SelectPackagingType />
       </Form.Item>
       <Form.Item name="grammage" label="평량" rootClassName="flex-1">
         <Number min={0} max={9999} precision={0} unit={Util.UNIT_GPM} />

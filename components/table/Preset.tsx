@@ -353,7 +353,7 @@ export function columnDiscountRate<T>(
   };
   return [
     {
-      title: `${options?.prefix} 할인율`.trim(),
+      title: `${options?.prefix ?? ""} 할인율`.trim(),
       dataIndex: path,
       render: (value: DiscountRate) => (
         <div className={"flex flex-row gap-2 justify-end"}>

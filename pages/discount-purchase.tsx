@@ -7,7 +7,7 @@ import { useCallback, useState } from "react";
 import { TbDiscount } from "react-icons/tb";
 
 type Record = DiscountRateCondition;
-const RATE_TYPE = "SALES";
+const RATE_TYPE = "PURCHASE";
 
 export default function Component() {
   const info = ApiHook.Auth.useGetMe();
@@ -43,7 +43,7 @@ export default function Component() {
   }, [apiDelete, only]);
 
   return (
-    <Page title="매출 할인율 설정">
+    <Page title="매입 할인율 설정">
       <StatBar.Container>
         <StatBar.Item icon={<TbDiscount />} label="할인율" value={"-"} />
       </StatBar.Container>

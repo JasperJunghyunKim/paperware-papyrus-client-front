@@ -38,6 +38,9 @@ export interface User {
   username: string;
   name: string;
   email: string | null;
+  company: {
+    companyRegistrationNumber: string;
+  };
 }
 
 export interface Warehouse {

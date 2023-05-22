@@ -45,6 +45,7 @@ export default function Component(props: Props) {
         addonAfter={unit.unit}
         disabled={props.disabled}
       />
+      <InputNumber addonAfter="T" />
     </div>
   );
 }

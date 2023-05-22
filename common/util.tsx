@@ -4,6 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ko";
 import { Protocol } from ".";
 import { Model } from "@/@shared";
+import _ from "lodash";
 
 export type PromiseOrFn = (() => Promise<void>) | (() => any);
 export async function call(p?: PromiseOrFn) {
@@ -39,6 +40,16 @@ export async function confirm(message: string) {
       content: message,
       onOk: () => resolve(true),
       onCancel: () => resolve(false),
+    });
+  });
+}
+
+export async function warn(message: string) {
+  return new Promise<void>((resolve) => {
+    Modal.warn({
+      title: "확인",
+      content: message,
+      onOk: () => resolve(),
     });
   });
 }
@@ -431,4 +442,12 @@ export function convertQuantity(
     packedQuantity,
     weight,
   };
+}
+
+export function nanToZero(value: number | null | undefined) {
+  if (!_.isFinite(value)) {
+    return 0;
+  }
+
+  return value;
 }

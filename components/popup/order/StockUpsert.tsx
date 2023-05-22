@@ -40,7 +40,9 @@ export interface Props {
 export default function Component(props: Props) {
   const me = ApiHook.Auth.useGetMe();
   const [initialOrderId, setInitialOrderId] = useState<OrderId | null>(null);
-  const order = ApiHook.Trade.OrderStock.useGetItem({ id: initialOrderId });
+  const order = ApiHook.Trade.OrderStock.useGetItem({
+    id: initialOrderId,
+  });
 
   const isOffer = props.open === "CREATE_OFFER";
   const isSales = isOffer || me.data?.companyId === order.data?.dstCompany.id;
@@ -50,6 +52,7 @@ export default function Component(props: Props) {
       setInitialOrderId(props.open);
     } else {
       setInitialOrderId(null);
+      order.remove();
     }
   }, [props.open]);
 
@@ -891,7 +894,7 @@ function RightSideOrder(props: RightSideOrderProps) {
       {props.order && (
         <>
           <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} />
+          <PricePanel order={props.order} orderId={props.order.id} />
         </>
       )}
       <CreateArrival open={open} onClose={setOpen} />
@@ -1044,7 +1047,7 @@ function RightSideSales(props: RightSideSalesProps) {
       {props.order && (
         <>
           <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} />
+          <PricePanel order={props.order} orderId={props.order.id} />
         </>
       )}
     </div>
@@ -1053,7 +1056,7 @@ function RightSideSales(props: RightSideSalesProps) {
 
 interface PricePanelProps {
   order: Model.Order;
-  
+  orderId: number | null;
 }
 function PricePanel(props: PricePanelProps) {
   const [form] = useForm();
@@ -1166,7 +1169,7 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: 0,
       });
     }
-  }, [data.data, form, props.order.orderStock.packaging.type]);
+  }, [props.orderId, data.data, form, props.order.orderStock.packaging.type]);
 
   const defaultSuppliedPrice = stockSuppliedPrice + (processPrice ?? 0);
   const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
@@ -1187,6 +1190,8 @@ function PricePanel(props: PricePanelProps) {
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)
     .find((p) => p.id !== me.data?.companyId);
+
+  const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -1242,7 +1247,11 @@ function PricePanel(props: PricePanelProps) {
                 companyRegistrationNumber:
                   positiveCompany?.companyRegistrationNumber,
                 productId: props.order.orderStock.product.id,
-                discountRateType: ,
+                discountRateType: isSales ? "SALES" : "PURCHASE",
+                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
+                paperColorId: props.order.orderStock.paperColor?.id,
+                paperPatternId: props.order.orderStock.paperPattern?.id,
+                paperCertId: props.order.orderStock.paperCert?.id,
               }}
             />
           )}

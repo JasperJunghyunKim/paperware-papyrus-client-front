@@ -114,13 +114,11 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "매출 할인율 설정",
         icon: <TbDiscount />,
         path: "/discount-sales",
-        type: "wip",
       },
       {
         label: "매입 할인율 설정",
         icon: <TbDiscount />,
         path: "/discount-purchase",
-        type: "wip",
       },
       { path: null },
       {

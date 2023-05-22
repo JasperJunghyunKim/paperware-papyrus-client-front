@@ -40,6 +40,7 @@ export default function Component(props: Props) {
       address: data.data.address,
     });
   }, [form, data.data, edit]);
+
   return (
     <Popup.Template.Property title="도착지 상세" {...props} open={!!props.open}>
       <div className="flex-1 p-4">

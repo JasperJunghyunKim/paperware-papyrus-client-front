@@ -79,6 +79,10 @@ export function useAccept() {
           "inhouse",
           "business-relationship-request",
         ]);
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "business-relationship",
+        ]);
       },
     }
   );

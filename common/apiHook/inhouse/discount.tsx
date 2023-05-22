@@ -1,5 +1,6 @@
 import {
   DiscountRateCreateRequest,
+  DiscountRateDeleteQuery,
   DiscountRateListQuery,
   DiscountRateMappingQuery,
   DiscountRateUpdateRequest,
@@ -36,31 +37,31 @@ export function useGetList(params: { query: Partial<DiscountRateListQuery> }) {
 }
 
 export function useGetMapping(params: {
-  query: Partial<DiscountRateMappingQuery>;
+  query?: Partial<DiscountRateMappingQuery>;
 }) {
   return useQuery(
     [
       "inhouse",
       "discount",
       "mapping",
-      params.query.companyRegistrationNumber,
-      params.query.packagingType,
-      params.query.paperDomainId,
-      params.query.manufacturerId,
-      params.query.paperGroupId,
-      params.query.paperTypeId,
-      params.query.grammage,
-      params.query.sizeX,
-      params.query.sizeY,
-      params.query.paperColorGroupId,
-      params.query.paperColorId,
-      params.query.paperPatternId,
-      params.query.paperCertId,
+      params.query?.companyRegistrationNumber,
+      params.query?.packagingType,
+      params.query?.paperDomainId,
+      params.query?.manufacturerId,
+      params.query?.paperGroupId,
+      params.query?.paperTypeId,
+      params.query?.grammage,
+      params.query?.sizeX,
+      params.query?.sizeY,
+      params.query?.paperColorGroupId,
+      params.query?.paperColorId,
+      params.query?.paperPatternId,
+      params.query?.paperCertId,
     ],
     async () => {
       if (
-        !params.query.companyRegistrationNumber ||
-        !params.query.discountRateType
+        !params.query?.companyRegistrationNumber ||
+        !params.query?.discountRateType
       ) {
         return null;
       }
@@ -76,17 +77,28 @@ export function useGetMapping(params: {
   );
 }
 
-export function useGetItem(params: { id: number | null }) {
-  return useQuery(["inhouse", "discount", "item", params.id], async () => {
-    if (!params.id) {
-      return null;
-    }
+export function useGetItem(params: {
+  id: number | null;
+  discountRateType: "PURCHASE" | "SALES";
+}) {
+  return useQuery(
+    ["inhouse", "discount", "item", params.id, params.discountRateType],
+    async () => {
+      if (!params.id) {
+        return null;
+      }
 
-    const { data } = await axios.get<DiscountRateResponse>(
-      `${API_HOST}/discount-rate/${params.id}`
-    );
-    return data;
-  });
+      const { data } = await axios.get<DiscountRateResponse>(
+        `${API_HOST}/discount-rate/${params.id}`,
+        {
+          params: {
+            discountRateType: params.discountRateType,
+          },
+        }
+      );
+      return data;
+    }
+  );
 }
 
 export function useCreate() {
@@ -128,9 +140,15 @@ export function useUpdate() {
 export function useDelete() {
   const queryClient = useQueryClient();
   return useMutation(
-    async (params: { discountRateConditionId: number }) => {
+    async (params: {
+      discountRateConditionId: number;
+      query: Partial<DiscountRateDeleteQuery>;
+    }) => {
       const { data } = await axios.delete(
-        `${API_HOST}/discount-rate/${params.discountRateConditionId}`
+        `${API_HOST}/discount-rate/${params.discountRateConditionId}`,
+        {
+          params: params.query,
+        }
       );
       return data;
     },

@@ -7,6 +7,7 @@ interface Props {
   isAll?: boolean;
   value?: number;
   onChange?: (value: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -40,6 +41,7 @@ export default function Component(props: Props) {
         onChange={props.onChange}
         options={options}
         placeholder="거래처"
+        disabled={props.disabled}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Button, FormControl, Popup } from "@/components";
-import { Alert, Form, Input, Radio } from "antd";
+import { Alert, Form, Input, Radio, message } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 
@@ -43,14 +43,24 @@ export default function Component(props: Props) {
     [apiSendRequest, props, isVirtual]
   );
 
+  const me = ApiHook.Auth.useGetMe();
+
   const apiSearch = ApiHook.Inhouse.BusinessRelationship.useSearchPartnerItem();
   const cmdSearch = useCallback(
     async (values: Api.SearchPartnerRequest) => {
+      if (
+        values.companyRegistrationNumber ===
+        me.data?.company.companyRegistrationNumber
+      ) {
+        Util.warn("자사를 거래처로 등록할 수 없습니다.");
+        return;
+      }
+
       const resp = await apiSearch.mutateAsync({ data: values });
       setSearched(resp);
       form.setFieldValue("isVirtual", resp.company ? false : true);
     },
-    [apiSearch]
+    [apiSearch, me]
   );
 
   useEffect(() => {
@@ -68,6 +78,9 @@ export default function Component(props: Props) {
   useEffect(() => {
     if (!props.open) {
       setSelected([]);
+      setSearched(null);
+      form.resetFields();
+      formCreate.resetFields();
     }
   }, [props.open]);
 
@@ -123,63 +136,71 @@ export default function Component(props: Props) {
             </div>
           )}
         </Form>
-        <Form form={formCreate} layout="vertical" onFinish={cmdSendRequest}>
-          {searched?.company && (
-            <Form.Item label="거래처명 (사업자등록증기준)">
-              <Input value={searched.company.businessName} disabled />
+        {searched && (
+          <Form form={formCreate} layout="vertical" onFinish={cmdSendRequest}>
+            {searched?.company && (
+              <Form.Item label="거래처명 (사업자등록증기준)">
+                <Input value={searched.company.businessName} disabled />
+              </Form.Item>
+            )}
+            <Form.Item
+              name="partnerNickname"
+              label="거래처명"
+              rules={[{ required: true, message: "거래처명을 입력해주세요." }]}
+            >
+              <Input />
             </Form.Item>
-          )}
-          <Form.Item
-            name="partnerNickname"
-            label="거래처명"
-            rules={[{ required: true, message: "거래처명을 입력해주세요." }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="거래 관계"
-            rules={[{ required: true, message: "거래 관계를 선택해주세요." }]}
-          >
-            <Radio.Group
-              optionType="button"
-              options={[
-                { label: "매입", value: "PURCHASE" },
-                { label: "매출", value: "SALES" },
-                { label: "매입&매출", value: "BOTH" },
-              ]}
-              buttonStyle="solid"
-            />
-          </Form.Item>
-          <Form.Item
-            name="invoiceCode"
-            label="송장코드"
-            rules={[{ required: true, message: "송장코드를 입력해주세요." }]}
-          >
-            <Input disabled={!!searched?.company && !isVirtual} />
-          </Form.Item>
-          <Form.Item name="address" label="주소">
-            <FormControl.Address disabled={!!searched?.company && !isVirtual} />
-          </Form.Item>
-          <Form.Item name="phoneNo" label="전화번호">
-            <Input disabled={!!searched?.company && !isVirtual} />
-          </Form.Item>
-          <Form.Item name="faxNo" label="팩스">
-            <Input disabled={!!searched?.company && !isVirtual} />
-          </Form.Item>
-          <Form.Item name="email" label="이메일">
-            <Input disabled={!!searched?.company && !isVirtual} />
-          </Form.Item>
-          <Form.Item name="memo" label="비고">
-            <Input.TextArea />
-          </Form.Item>
-          <div className="flex justify-end">
-            <Button.Preset.Submit
-              label={isVirtual ? "거래처 등록" : "거래처 등록 요청"}
-            />
-          </div>
-          <div className="h-16" />
-        </Form>
+            <Form.Item
+              name="type"
+              label="거래 관계"
+              rules={[{ required: true, message: "거래 관계를 선택해주세요." }]}
+            >
+              <Radio.Group
+                optionType="button"
+                options={[
+                  { label: "매입", value: "PURCHASE" },
+                  { label: "매출", value: "SALES" },
+                  { label: "매입&매출", value: "BOTH" },
+                ]}
+                buttonStyle="solid"
+              />
+            </Form.Item>
+            {!isVirtual && (
+              <Form.Item
+                name="invoiceCode"
+                label="송장코드"
+                rules={[
+                  { required: true, message: "송장코드를 입력해주세요." },
+                ]}
+              >
+                <Input disabled={!!searched?.company && !isVirtual} />
+              </Form.Item>
+            )}
+            <Form.Item name="address" label="주소">
+              <FormControl.Address
+                disabled={!!searched?.company && !isVirtual}
+              />
+            </Form.Item>
+            <Form.Item name="phoneNo" label="전화번호">
+              <Input disabled={!!searched?.company && !isVirtual} />
+            </Form.Item>
+            <Form.Item name="faxNo" label="팩스">
+              <Input disabled={!!searched?.company && !isVirtual} />
+            </Form.Item>
+            <Form.Item name="email" label="이메일">
+              <Input disabled={!!searched?.company && !isVirtual} />
+            </Form.Item>
+            <Form.Item name="memo" label="비고">
+              <Input.TextArea />
+            </Form.Item>
+            <div className="flex justify-end">
+              <Button.Preset.Submit
+                label={isVirtual ? "거래처 등록" : "거래처 등록 요청"}
+              />
+            </div>
+            <div className="h-16" />
+          </Form>
+        )}
       </div>
     </Popup.Template.Property>
   );

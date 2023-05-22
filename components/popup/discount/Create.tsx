@@ -2,7 +2,7 @@ import { DiscountRateCreateRequest } from "@/@shared/api/inhouse/discount-rate.r
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FormCreate } from "./common";
 
 type Open = "SALES" | "PURCHASE" | false;
@@ -15,6 +15,19 @@ export interface Props {
 
 export default function Component(props: Props) {
   const [form] = useForm<DataType>();
+
+  const reset = useCallback(() => {
+    form.setFieldsValue({
+      basicDiscountRate: {
+        discountRate: 0,
+        discountRateUnit: "PERCENT",
+      },
+      specialDiscountRate: {
+        discountRate: 0,
+        discountRateUnit: "PERCENT",
+      },
+    });
+  }, []);
 
   const api = ApiHook.Inhouse.Discount.useCreate();
   const cmd = useCallback(
@@ -34,6 +47,14 @@ export default function Component(props: Props) {
     },
     [api, form, props]
   );
+
+  useEffect(() => {
+    if (!props.open) {
+      return;
+    }
+
+    reset();
+  }, [props.open]);
 
   return (
     <Popup.Template.Property

@@ -1,8 +1,11 @@
 import { Api, Model } from "@/@shared";
-import { ApiHook, PriceUtil } from "@/common";
-import { Select } from "antd";
-import { useCallback, useMemo } from "react";
+import { ApiHook, PriceUtil, Util } from "@/common";
+import { Input, Select } from "antd";
+import { useCallback, useMemo, useState } from "react";
 import { Number } from ".";
+import { TbSearch } from "react-icons/tb";
+import _ from "lodash";
+import { Popup } from "..";
 
 const OFFICIAL_PRICE_TYPE_OPTIONS = [
   {
@@ -10,7 +13,7 @@ const OFFICIAL_PRICE_TYPE_OPTIONS = [
     value: "NONE" as Model.Enum.OfficialPriceType,
   },
   {
-    label: "직접 입력",
+    label: "고시가 입력",
     value: "MANUAL_NONE" as Model.Enum.OfficialPriceType,
   },
 ];
@@ -30,20 +33,25 @@ const PRICE_UNIT_OPTIONS = [
 ];
 const DISCOUNT_TYPE_OPTIONS = [
   {
-    label: "할인 없음",
+    label: "단가 지정",
     value: "NONE" as Model.Enum.DiscountType,
   },
   {
-    label: "직접 입력",
+    label: "할인율 지정",
     value: "MANUAL_NONE" as Model.Enum.DiscountType,
   },
   {
-    label: "기본 할인율",
-    value: "DEFAULT" as Model.Enum.DiscountType,
-  },
-  {
-    label: "특가 할인율",
-    value: "SPECIAL" as Model.Enum.DiscountType,
+    label: (
+      <div className="flex gap-x-2">
+        <div className="flex-initial flex flex-col justify-center">
+          <TbSearch />
+        </div>
+        <div className="flex-initial flex flex-col justify-center">
+          프리셋 적용
+        </div>
+      </div>
+    ),
+    value: "CUSTOM",
   },
 ];
 
@@ -57,10 +65,10 @@ interface OfficialPriceSpec {
 
 interface DiscountSpec {
   productId: number;
-  paperColorGroupId?: number | null;
-  paperColorId?: number | null;
-  paperPatternId?: number | null;
-  paperCertId?: number | null;
+  paperColorGroupId?: number;
+  paperColorId?: number;
+  paperPatternId?: number;
+  paperCertId?: number;
   companyRegistrationNumber: string;
   discountRateType: "PURCHASE" | "SALES";
 }
@@ -75,6 +83,8 @@ interface Props {
 }
 
 export default function Component(props: Props) {
+  const [openFinder, setOpenFinder] = useState<boolean>(false);
+
   const unitOptions = useMemo(() => {
     switch (props.spec.packaging.type) {
       case "ROLL":
@@ -138,8 +148,25 @@ export default function Component(props: Props) {
       value: number,
       unit: Model.Enum.PriceUnit
     ) => {
+      if (
+        props.value?.discountType === "DEFAULT" ||
+        props.value?.discountType === "SPECIAL"
+      ) {
+        props.onChange?.({
+          officialPriceType: type,
+          officialPrice: value,
+          officialPriceUnit: unit,
+          discountType: "NONE",
+          discountPrice: 0,
+          unitPrice: 0,
+          unitPriceUnit: unit,
+        });
+        return;
+      }
+
       const typeChanged = props.value?.officialPriceType !== type;
-      const isDiscount = !typeChanged && type == "MANUAL_NONE";
+      const isDiscount =
+        !typeChanged && props.value?.discountType === "MANUAL_NONE";
 
       const newDiscountValue = isDiscount
         ? props.value?.discountPrice ?? 0
@@ -164,7 +191,7 @@ export default function Component(props: Props) {
         officialPrice: value,
         officialPriceUnit: unit,
         discountType: typeChanged
-          ? ("NONE" as any)
+          ? "NONE"
           : props.value?.discountType ?? "DEFAULT",
         discountPrice: newDiscountValue,
         unitPrice: newUnitPrice,
@@ -173,11 +200,11 @@ export default function Component(props: Props) {
 
       props.onChange?.(newValue);
     },
-    [props]
+    [props, calcDiscount, calcUnitPrice]
   );
   const changeDiscount = useCallback(
-    (type: Model.Enum.DiscountType, value: number) => {
-      const isDiscount = type === ("MANUAL" as any);
+    (type: Model.Enum.DiscountType, value: number, skip?: boolean) => {
+      const isDiscount = type === "MANUAL_NONE";
 
       const newUnitPrice = isDiscount
         ? calcUnitPrice({
@@ -193,17 +220,18 @@ export default function Component(props: Props) {
         officialPrice: props.value?.officialPrice ?? 0,
         officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
         discountType: type,
-        discountPrice: value,
+        discountPrice: skip ? props.value?.discountPrice ?? 0 : value,
         unitPrice: newUnitPrice,
         unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
       };
+
       props.onChange?.(newValue);
     },
-    [props]
+    [props, calcUnitPrice]
   );
   const changeUnitPrice = useCallback(
-    (value: number, unit: Model.Enum.PriceUnit) => {
-      const isDiscount = props.value?.discountType === ("MANUAL" as any);
+    (value: number, unit: Model.Enum.PriceUnit, skip?: boolean) => {
+      const isDiscount = props.value?.discountType === "MANUAL_NONE";
 
       const newDiscountValue = isDiscount
         ? props.value?.discountPrice ?? 0
@@ -228,13 +256,66 @@ export default function Component(props: Props) {
         officialPrice: props.value?.officialPrice ?? 0,
         officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
         discountType: props.value?.discountType ?? "DEFAULT",
-        discountPrice: newDiscountValue,
+        discountPrice: skip
+          ? props.value?.discountPrice ?? 0
+          : newDiscountValue,
         unitPrice: newUnitPrice,
         unitPriceUnit: unit,
       };
       props.onChange?.(newValue);
     },
-    [props]
+    [props, calcDiscount, calcUnitPrice]
+  );
+
+  const changeByMapping = useCallback(
+    (
+      value: number,
+      unit: Model.Enum.DiscountRateUnit,
+      type: Model.Enum.DiscountRateMapType
+    ) => {
+      const discountType = type === "BASIC" ? "DEFAULT" : "SPECIAL";
+
+      if (unit === "PERCENT") {
+        const newUnitPriceValue = calcUnitPrice({
+          officialPrice: props.value?.officialPrice ?? 0,
+          officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+          discountPrice: value,
+          unitPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+        });
+
+        props.onChange?.({
+          officialPriceType: props.value?.officialPriceType ?? "NONE",
+          officialPrice: props.value?.officialPrice ?? 0,
+          officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+
+          discountPrice: value,
+          discountType,
+
+          unitPrice: newUnitPriceValue,
+          unitPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+        });
+      } else {
+        const newDiscountValue = calcDiscount({
+          officialPrice: props.value?.officialPrice ?? 0,
+          officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+          unitPrice: value,
+          unitPriceUnit: unit,
+        });
+
+        props.onChange?.({
+          officialPriceType: props.value?.officialPriceType ?? "NONE",
+          officialPrice: props.value?.officialPrice ?? 0,
+          officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
+
+          discountPrice: newDiscountValue,
+          discountType,
+
+          unitPrice: value,
+          unitPriceUnit: unit,
+        });
+      }
+    },
+    [props, calcUnitPrice, calcDiscount]
   );
 
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
@@ -252,26 +333,6 @@ export default function Component(props: Props) {
       paperColorId: props.officialSpec?.paperColorId ?? undefined,
       paperPatternId: props.officialSpec?.paperPatternId ?? undefined,
       paperCertId: props.officialSpec?.paperCertId ?? undefined,
-    },
-  });
-
-  const apiDiscountMapping = ApiHook.Inhouse.Discount.useGetMapping({
-    query: {
-      companyRegistrationNumber:
-        props.discountSpec?.companyRegistrationNumber ?? "",
-      discountRateType: props.discountSpec?.discountRateType,
-      paperDomainId: product?.paperDomain.id,
-      paperGroupId: product?.paperGroup.id,
-      paperTypeId: product?.paperType.id,
-      manufacturerId: product?.manufacturer.id,
-      packagingType: props.spec.packaging.type,
-      grammage: props.spec.grammage,
-      sizeX: props.spec.sizeX,
-      sizeY: props.spec.sizeY,
-      paperColorGroupId: props.discountSpec?.paperColorGroupId ?? undefined,
-      paperColorId: props.discountSpec?.paperColorId ?? undefined,
-      paperPatternId: props.discountSpec?.paperPatternId ?? undefined,
-      paperCertId: props.discountSpec?.paperCertId ?? undefined,
     },
   });
 
@@ -300,8 +361,8 @@ export default function Component(props: Props) {
 
   const discountTypeOptions = useMemo(() => {
     const options = [...DISCOUNT_TYPE_OPTIONS];
-    return options;
-  }, []);
+    return options.filter((p) => p.value !== "CUSTOM" || props.discountSpec);
+  }, [props.discountSpec]);
 
   const findOfficialPrice = useCallback(
     (type: Model.Enum.OfficialPriceType) => {
@@ -330,6 +391,10 @@ export default function Component(props: Props) {
     ]
   );
 
+  const discountProduct = metadata.data?.products.find(
+    (p) => p.id === props.discountSpec?.productId
+  );
+
   return (
     <div className="flex flex-col gap-y-2">
       <div className="flex gap-x-2">
@@ -343,7 +408,7 @@ export default function Component(props: Props) {
             )
           }
           options={officialPriceTypeOptions}
-          rootClassName="flex-1"
+          rootClassName="flex-[1_0_0px]"
           disabled={props.disabled}
         />
         <Number
@@ -359,7 +424,7 @@ export default function Component(props: Props) {
           max={9999999999}
           precision={0}
           unit="원"
-          rootClassName="flex-1"
+          rootClassName="flex-[1_0_0px]"
           disabled={
             props.disabled || props.value?.officialPriceType !== "MANUAL_NONE"
           }
@@ -374,7 +439,7 @@ export default function Component(props: Props) {
             )
           }
           options={unitOptions}
-          rootClassName="flex-1"
+          rootClassName="flex-[1_0_0px]"
           disabled={
             props.disabled || props.value?.officialPriceType !== "MANUAL_NONE"
           }
@@ -382,12 +447,23 @@ export default function Component(props: Props) {
       </div>
       <div className="flex gap-x-2">
         <Select
-          value={props.value?.discountType}
-          onChange={(value) =>
-            changeDiscount(value, props.value?.discountPrice ?? 0)
+          value={
+            props.value &&
+            (Util.inc<Model.Enum.DiscountType | "CUSTOM">(
+              props.value.discountType,
+              "NONE",
+              "MANUAL_NONE"
+            )
+              ? props.value?.discountType
+              : "CUSTOM")
+          }
+          onSelect={(value) =>
+            value === "NONE" || value === "MANUAL_NONE"
+              ? changeDiscount(value, props.value?.discountPrice ?? 0)
+              : setOpenFinder(true)
           }
           options={discountTypeOptions}
-          rootClassName="flex-1"
+          rootClassName="flex-[1_0_0px] w-0"
           disabled={
             props.disabled ||
             (props.value?.officialPriceType !== "MANUAL_NONE" &&
@@ -396,21 +472,27 @@ export default function Component(props: Props) {
           }
         />
         <Number
-          value={props.value?.discountPrice}
+          value={Util.nanToZero(props.value?.discountPrice)}
           onChange={(p) =>
             changeDiscount(props.value?.discountType ?? "DEFAULT", p ?? 0)
           }
           precision={3}
-          unit="%"
-          rootClassName="flex-[2_0_8px]"
+          unit={`% ${
+            props.value?.discountType === "DEFAULT"
+              ? "기본"
+              : props.value?.discountType === "SPECIAL"
+              ? "특가"
+              : ""
+          }`.trim()}
+          rootClassName="flex-[2_0_8px] w-0"
           disabled={
-            props.disabled || props.value?.discountType !== ("MANUAL" as any)
+            props.disabled || props.value?.discountType !== "MANUAL_NONE"
           }
         />
       </div>
       <div className="flex gap-x-2">
         <Number
-          value={props.value?.unitPrice}
+          value={Util.nanToZero(props.value?.unitPrice)}
           onChange={(p) =>
             changeUnitPrice(p ?? 0, props.value?.unitPriceUnit ?? "WON_PER_TON")
           }
@@ -422,7 +504,7 @@ export default function Component(props: Props) {
           disabled={
             props.disabled ||
             (props.value?.officialPriceType !== "NONE" &&
-              props.value?.discountType !== ("NONE" as any))
+              props.value?.discountType !== "NONE")
           }
         />
         <Select
@@ -431,10 +513,47 @@ export default function Component(props: Props) {
             changeUnitPrice(props.value?.unitPrice ?? 0, value)
           }
           options={unitOptions}
-          rootClassName="flex-1"
-          disabled={props.disabled}
+          rootClassName="flex-[1_0_0px]"
+          disabled={props.disabled || props.value?.discountType !== "NONE"}
         />
       </div>
+      {props.discountSpec && (
+        <Popup.DiscountFinder.default
+          open={
+            openFinder && props.discountSpec
+              ? {
+                  companyRegistrationNumber:
+                    props.discountSpec.companyRegistrationNumber,
+                  discountRateType: props.discountSpec.discountRateType,
+                  paperDomainId: discountProduct?.paperDomain.id,
+                  paperGroupId: discountProduct?.paperGroup.id,
+                  paperTypeId: discountProduct?.paperType.id,
+                  manufacturerId: discountProduct?.manufacturer.id,
+                  grammage: props.spec.grammage,
+                  sizeX: props.spec.sizeX,
+                  sizeY: props.spec.sizeY,
+                  packagingType: props.spec.packaging.type,
+                  paperColorGroupId:
+                    props.officialSpec?.paperColorGroupId ?? undefined,
+                  paperColorId: props.officialSpec?.paperColorId ?? undefined,
+                  paperPatternId:
+                    props.officialSpec?.paperPatternId ?? undefined,
+                  paperCertId: props.officialSpec?.paperCertId ?? undefined,
+                }
+              : false
+          }
+          onClose={setOpenFinder}
+          onSelect={(value) => {
+            changeByMapping(
+              value.discountRate,
+              value.discountRateUnit,
+              value.discountRateMapType
+            );
+            setOpenFinder(false);
+          }}
+          type={props.discountSpec.discountRateType}
+        />
+      )}
     </div>
   );
 }
