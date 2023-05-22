@@ -6,6 +6,7 @@ import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
 import { useCallback } from "react";
 import { FormCreate } from "./common";
+import { message } from "antd";
 
 type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest;
 
@@ -17,6 +18,7 @@ interface Props {
 
 export default function Component(props: Props) {
   const [form] = useForm<Request>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const apiByCash = ApiHook.Partner.ByCash.useByCashCreate();
   const apiByEtc = ApiHook.Partner.ByEtc.useByEtcCreate();
@@ -32,11 +34,20 @@ export default function Component(props: Props) {
       values.companyId = parseInt((values as any).partnerNickName.split('/')[0]);
       values.companyRegistrationNumber = (values as any).partnerNickName.split('/')[1];
 
+
+
       switch (method) {
         case 'ACCOUNT_TRANSFER':
           await apiByBankAccount.mutateAsync({ data: values as Api.ByBankAccountCreateRequest });
           break;
         case 'CARD_PAYMENT':
+          if (values.amount < (values as Api.ByCardCreateRequest).chargeAmount) {
+            return messageApi.open({
+              type: 'error',
+              content: '수수료가 지급금액보다 큽니다.'
+            })
+          }
+
           await apiByCard.mutateAsync({ data: values as Api.ByCardCreateRequest });
           break;
         case 'PROMISSORY_NOTE':
@@ -56,11 +67,12 @@ export default function Component(props: Props) {
       form.resetFields();
       props.onClose(false);
     },
-    [apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, form, props]
+    [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, form, props]
   );
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} {...props}>
+      {contextHolder}
       <div className="flex-1 p-4">
         <FormCreate
           accountedType={props.accountedType}

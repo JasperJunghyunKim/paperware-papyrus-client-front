@@ -1,11 +1,12 @@
-import { ApiHook } from "@/common";
-import { Popup } from "@/components";
-import { useForm } from "antd/lib/form/Form";
-import { useCallback, useEffect, useState } from "react";
-import FormUpdate from "./common/FormUpdate";
 import { Api } from "@/@shared";
 import { Enum } from "@/@shared/models";
 import { AccountedType } from "@/@shared/models/enum";
+import { ApiHook } from "@/common";
+import { Popup } from "@/components";
+import { message } from "antd";
+import { useForm } from "antd/lib/form/Form";
+import { useCallback, useEffect, useState } from "react";
+import FormUpdate from "./common/FormUpdate";
 
 type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest | { partnerNickName?: string, accountedType?: string };
 
@@ -19,6 +20,7 @@ export interface Props {
 export default function Component(props: Props) {
   const [form] = useForm<Request>();
   const [edit, setEdit] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const resByCash = ApiHook.Partner.ByCash.useGetByCashItem({ id: props.open, method: props.method, accountedType: props.accountedType });
   const resByEtc = ApiHook.Partner.ByEtc.useGetByEtcItem({ id: props.open, method: props.method, accountedType: props.accountedType });
@@ -48,6 +50,12 @@ export default function Component(props: Props) {
           });
           break;
         case 'CARD_PAYMENT':
+          if ((values as Api.ByCardUpdateRequest).amount < (values as Api.ByCardUpdateRequest).chargeAmount) {
+            return messageApi.open({
+              type: 'error',
+              content: '수수료가 지급금액보다 큽니다.'
+            })
+          }
           await apiByCard.mutateAsync({
             data: values as Api.ByCardUpdateRequest,
             id: resByCard.data?.accountedId ?? 0
@@ -79,7 +87,7 @@ export default function Component(props: Props) {
       setEdit(false);
       props.onClose(false);
     },
-    [props, apiByCash, apiByEtc, resByCash, resByEtc, apiByBankAccount, resByBankAccount, apiByCard, resByCard, apiByOffset, resByOffset]
+    [props, apiByCash, apiByEtc, resByCash, resByEtc, apiByBankAccount, resByBankAccount, apiByCard, resByCard, apiByOffset, resByOffset, messageApi]
   );
 
   useEffect(() => {
@@ -149,6 +157,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 상세`} {...props} open={!!props.open}>
+      {contextHolder}
       <div className="flex-1 p-4">
         <FormUpdate
           accountedType={props.accountedType}
