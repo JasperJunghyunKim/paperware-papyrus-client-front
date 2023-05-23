@@ -6,6 +6,7 @@ import { useState } from "react";
 export interface BaseProps {
   label: string;
   hidden?: boolean;
+  disabled?: boolean;
 }
 
 export interface BasePropsWithOnClick extends BaseProps {
@@ -19,6 +20,7 @@ export function Submit(props: BaseProps) {
       label={props.label}
       type="primary"
       hidden={props.hidden}
+      disabled={props.disabled}
       submit
     />
   );

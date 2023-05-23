@@ -33,31 +33,10 @@ export function columnStockGroup<T>(
   return [
     ...(options?.excludePackaging
       ? []
-      : [
-          {
-            title: "포장",
-            dataIndex: [...path, "packaging", "type"],
-            render: (value: Model.Enum.PackagingType, record: T) => (
-              <div className="font-fixed flex gap-x-1">
-                <div className="flex-initial flex flex-col justify-center text-lg">
-                  <Icon.PackagingType
-                    packagingType={getStock(record).packaging?.type}
-                  />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {value}
-                </div>
-              </div>
-            ),
-          },
-        ]),
+      : [...columnPackagingType<T>([...path, "packaging"])]),
     {
       title: "제품 유형",
       dataIndex: [...path, "product", "paperDomain", "name"],
-    },
-    {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
     },
     {
       title: "지군",
@@ -68,12 +47,27 @@ export function columnStockGroup<T>(
       dataIndex: [...path, "product", "paperType", "name"],
     },
     {
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
+    },
+    {
       title: "평량",
       dataIndex: [...path, "grammage"],
       render: (value: number) => (
         <div className="text-right font-fixed">{`${Util.comma(value)} ${
           Util.UNIT_GPM
         }`}</div>
+      ),
+    },
+    {
+      title: "규격",
+      render: (_value: any, record: T) => (
+        <div className="font-fixed">
+          {
+            Util.findPaperSize(getStock(record).sizeX, getStock(record).sizeY)
+              ?.name
+          }
+        </div>
       ),
     },
     {
@@ -127,10 +121,6 @@ export function columnStock<T>(
       dataIndex: [...path, "product", "paperDomain", "name"],
     },
     {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
-    },
-    {
       title: "지군",
       dataIndex: [...path, "product", "paperGroup", "name"],
     },
@@ -139,21 +129,10 @@ export function columnStock<T>(
       dataIndex: [...path, "product", "paperType", "name"],
     },
     {
-      title: "포장",
-      dataIndex: [...path, "packaging", "type"],
-      render: (value: Model.Enum.PackagingType, record: T) => (
-        <div className="font-fixed flex gap-x-1">
-          <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType
-              packagingType={getStock(record).packaging.type}
-            />
-          </div>
-          <div className="flex-initial flex flex-col justify-center">
-            {value}
-          </div>
-        </div>
-      ),
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
     },
+    ...columnPackagingType<T>([...path, "packaging"]),
     {
       title: "평량",
       dataIndex: [...path, "grammage"],
@@ -161,6 +140,17 @@ export function columnStock<T>(
         <div className="text-right font-fixed">{`${Util.comma(value)} ${
           Util.UNIT_GPM
         }`}</div>
+      ),
+    },
+    {
+      title: "규격",
+      render: (_value: any, record: T) => (
+        <div className="text-right font-fixed">
+          {
+            Util.findPaperSize(getStock(record).sizeX, getStock(record).sizeY)
+              ?.name
+          }
+        </div>
       ),
     },
     {
@@ -256,14 +246,14 @@ export function columnQuantity<T>(
           ? `${Util.comma(
               quantity.packed.value,
               PaperUtil.recommendedPrecision(quantity.packed.unit)
-            )} ${quantity.packed.unit}`
+            )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
           : null;
       case "unpacked":
         return quantity.unpacked
           ? `${Util.comma(
               quantity.unpacked.value,
               PaperUtil.recommendedPrecision(quantity.unpacked.unit)
-            )} ${quantity.unpacked.unit}`
+            )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
           : null;
       case "weight":
         return quantity.grams
@@ -363,6 +353,31 @@ export function columnDiscountRate<T>(
               value.discountRateUnit === "PERCENT" ? 3 : 0
             )}{" "}
             {unit(value)}
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function columnPackagingType<T>(path: string[]): ColumnType<T>[] {
+  return [
+    {
+      title: "포장",
+      dataIndex: [...path],
+      render: (value: Model.Packaging, record: T) => (
+        <div className="font-fixed flex gap-x-1">
+          <div className="flex-initial flex flex-col justify-center text-lg">
+            <Icon.PackagingType packagingType={value.type} />
+          </div>
+          <div className="flex-initial flex flex-col justify-center whitespace-pre">
+            {value.type.padEnd(4)}
+          </div>
+          {value.type !== "SKID" && (
+            <div className="flex-initial text-gray-400 mx-1">─</div>
+          )}
+          <div className="flex-initial flex flex-col justify-center text-gray-500">
+            {Util.formatPackaging(value, true)}
           </div>
         </div>
       ),

@@ -55,6 +55,9 @@ export default function App({ Component, pageProps }: AppProps) {
       }}
       locale={koKR}
     >
+      <head>
+        <title>PAPERWARE ─ 페이퍼웨어</title>
+      </head>
       <QueryClientProvider client={queryClient}>
         <RecoilRoot>{init && <Component {...pageProps} />}</RecoilRoot>
       </QueryClientProvider>

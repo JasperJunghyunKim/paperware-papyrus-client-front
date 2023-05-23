@@ -18,13 +18,6 @@ export default function Component(props: Props) {
   const [formCreate] = useForm<Api.RegisterPartnerRequest>();
   const isVirtual = useWatch("isVirtual", form);
 
-  const [page, setPage] = usePage();
-  const list = ApiHook.Inhouse.Company.useGetList({
-    query: page,
-  });
-  const [selected, setSelected] = useState<Record.Company[]>([]);
-  const only = Util.only(selected);
-
   const [searched, setSearched] = useState<Model.CompanyPartner | null>(null);
 
   const apiSendRequest =
@@ -57,6 +50,14 @@ export default function Component(props: Props) {
       }
 
       const resp = await apiSearch.mutateAsync({ data: values });
+
+      if (resp.partner) {
+        Util.warn(
+          `'${resp.partner.partnerNickName} (사업자등록번호: ${resp.partner.companyRegistrationNumber})'는 이미 등록된 거래처입니다.`
+        );
+        setSearched(null);
+        return;
+      }
       setSearched(resp);
       form.setFieldValue("isVirtual", resp.company ? false : true);
     },
@@ -77,7 +78,6 @@ export default function Component(props: Props) {
 
   useEffect(() => {
     if (!props.open) {
-      setSelected([]);
       setSearched(null);
       form.resetFields();
       formCreate.resetFields();

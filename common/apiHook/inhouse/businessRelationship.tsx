@@ -73,8 +73,6 @@ export function useGetCompactList(params: {
   );
 }
 export function useSearchPartnerItem() {
-  const queryClient = useQueryClient();
-
   return useMutation(async (params: { data: Api.SearchPartnerRequest }) => {
     const resp = await axios.post<Api.SearchPartnerResponse>(
       `${API_HOST}/inhouse/business-relationship/search`,

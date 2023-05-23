@@ -38,9 +38,6 @@ export default function Component(props: Props) {
       <Form.Item name="name" label="창고 이름" rules={[{ required: true }]}>
         <Input />
       </Form.Item>
-      <Form.Item name="code" label="창고 코드">
-        <Input />
-      </Form.Item>
       <Form.Item
         name="isPublic"
         label="공개 여부"

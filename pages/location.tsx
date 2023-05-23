@@ -75,14 +75,9 @@ export default function Component() {
             dataIndex: "name",
           },
           {
-            title: "도착지 코드",
-            dataIndex: "code",
-            render: (value) => <div className="font-fixed">{value}</div>,
-          },
-          {
-            title: "자사 도착지 여부",
+            title: "도착지 구분",
             dataIndex: "isPublic",
-            render: (value) => (value ? "공개" : "비공개"),
+            render: (value) => (value ? "기타 도착지" : "자사 도착지"),
           },
           {
             title: "주소",

@@ -177,7 +177,7 @@ export default function Component(props: Props) {
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="재고 추가" />
+            <Button.Preset.Submit label="재고 추가" disabled={api.isLoading} />
           </Form.Item>
         </Form>
       </div>

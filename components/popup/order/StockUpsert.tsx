@@ -72,7 +72,7 @@ export default function Component(props: Props) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "재고를 승인하시겠습니까?"
         ))
       )
@@ -128,7 +128,7 @@ export default function Component(props: Props) {
           order.data.srcCompany.managedById !== null ? (
             <RightSideSkeleton
               icon={<TbAB />}
-              title={`매출 재고를 선택하고 가상 매출처 대상 매출 등록을 완료하세요.`}
+              title={`매출 재고를 선택하고 비연결 매출처 대상 매출 등록을 완료하세요.`}
               buttons={[
                 {
                   fn: cmdAccept(true),
@@ -196,7 +196,7 @@ export default function Component(props: Props) {
           order.data.dstCompany.managedById !== null ? (
             <RightSideSkeleton
               icon={<TbAB />}
-              title={`매입 재고를 선택하고 가상 매입처 대상 매입 등록을 완료하세요.`}
+              title={`매입 재고를 선택하고 비연결 매입처 대상 매입 등록을 완료하세요.`}
               buttons={[
                 {
                   fn: cmdAccept(true),
@@ -444,11 +444,25 @@ function DataForm(props: DataFormProps) {
           <FormControl.SelectCompanySales disabled={!editable} />
         </Form.Item>
       )}
-      {!props.isSales && dstCompanyId && (
-        <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-          <FormControl.SelectLocation disabled={!editable} />
-        </Form.Item>
-      )}
+      {!props.isSales &&
+        dstCompanyId &&
+        (editable ? (
+          <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
+            <FormControl.SelectLocation />
+          </Form.Item>
+        ) : (
+          <Form.Item label="도착지" required>
+            <Input
+              value={props.initialOrder?.orderStock.dstLocation.name}
+              disabled={!editable}
+            />
+            <div className="text-gray-400 text-sm mt-2">
+              {`주소: ${Util.formatAddress(
+                props.initialOrder?.orderStock.dstLocation.address
+              )}`}
+            </div>
+          </Form.Item>
+        ))}
       {props.isSales && srcCompanyId && (
         <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
           <FormControl.SelectLocationForSales
@@ -457,7 +471,11 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      <Form.Item name="wantedDate" label="도착 희망일" rules={REQUIRED_RULES}>
+      <Form.Item
+        name="wantedDate"
+        label={props.isSales ? "납품 요청일" : "도착 희망일"}
+        rules={REQUIRED_RULES}
+      >
         <FormControl.DatePicker disabled={!editable} />
       </Form.Item>
       {(srcCompanyId || dstCompanyId) && (
@@ -519,20 +537,10 @@ function DataForm(props: DataFormProps) {
                   <FormControl.SelectWarehouse disabled />
                 </Form.Item>
               ) : (
-                <Form.Item
-                  name="warehouseId"
-                  label="창고"
-                  rules={[{ required: true }]}
-                >
+                <Form.Item label="창고" rules={[{ required: true }]}>
                   <Input value={warehouse?.name} disabled />
                 </Form.Item>
               )}
-              <Form.Item label="창고 주소" rules={[{ required: true }]}>
-                <Input
-                  value={Util.formatAddress(warehouse?.address)}
-                  disabled
-                />
-              </Form.Item>
             </>
           )}
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
@@ -623,7 +631,10 @@ function DataForm(props: DataFormProps) {
         </>
       )}
       {packaging && (
-        <Form.Item name="quantity" label="매입 수량">
+        <Form.Item
+          name="quantity"
+          label={props.isSales ? "매출 수량" : "매입 수량"}
+        >
           <FormControl.Quantity
             spec={{
               grammage,
@@ -727,7 +738,7 @@ function RightSideOrder(props: RightSideOrderProps) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "재고를 승인하시겠습니까?"
         ))
       )
@@ -930,7 +941,7 @@ function RightSideSales(props: RightSideSalesProps) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매출처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매출처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "주문을 승인하시겠습니까?"
         ))
       )

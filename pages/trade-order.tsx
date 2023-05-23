@@ -30,12 +30,6 @@ export default function Component() {
     <Page title="매입 주문 목록">
       <StatBar.Container>
         <StatBar.Item icon={<TbHome2 />} label="관리 매입처" value={"-"} />
-        <StatBar.Item
-          icon={<TbHomeLink />}
-          label="가상 매입처"
-          value={"-"}
-          iconClassName="text-purple-800"
-        />
       </StatBar.Container>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create

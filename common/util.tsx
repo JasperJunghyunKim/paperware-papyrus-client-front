@@ -142,16 +142,20 @@ export function formatAddress(address: string | Address | null | undefined) {
   }`;
 }
 
-export function formatPackaging(packaging: Model.Packaging) {
+export function formatPackaging(packaging: Model.Packaging, short?: boolean) {
   switch (packaging.type) {
     case "SKID":
       return ``;
     case "REAM":
-      return `${packaging.packA}매 (/속)`;
+      return short ? `${packaging.packA}매/속` : `${packaging.packA}매 (/속)`;
     case "BOX":
-      return `${packaging.packA}매 × ${packaging.packB}포 (/BOX)`;
+      return short
+        ? `${packaging.packA}×${packaging.packB}속/BOX`
+        : `${packaging.packA}매 × ${packaging.packB}포 (/BOX)`;
     case "ROLL":
-      return `${packaging.packA} ${packaging.packB === 0 ? "inch" : "cm"}`;
+      return short
+        ? `${packaging.packA}${packaging.packB === 0 ? '"' : "cm"}`
+        : `${packaging.packA} ${packaging.packB === 0 ? "inch" : "cm"}`;
   }
 }
 
@@ -450,4 +454,15 @@ export function nanToZero(value: number | null | undefined) {
   }
 
   return value;
+}
+
+export function padRightCJK(value: string, length: number) {
+  const countCJKCharacters = (str: string): number => {
+    const cjkRegex = /[\u3131-\uD79D]/gi;
+    const matches = str.match(cjkRegex);
+    return matches ? matches.length : 0;
+  };
+
+  const len = length - countCJKCharacters(value);
+  return value.padEnd(len);
 }

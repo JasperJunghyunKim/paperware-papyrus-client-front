@@ -6,7 +6,12 @@ import { accountedAtom } from "./accounted.state";
 import { AccountedType } from "@/@shared/models/enum";
 import { isValidDateRange } from "@/@shared/helper/util";
 
-type NamePath = 'partnerId' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
+type NamePath =
+  | "partnerId"
+  | "accountedFromDate"
+  | "accountedToDate"
+  | "accountedSubject"
+  | "accountedMethod";
 
 interface Props {
   accountedType: AccountedType;
@@ -18,50 +23,55 @@ export default function Component(props: Props) {
 
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
-      case 'partnerId':
+      case "partnerId":
         setCondtiuon((prev) => ({
           ...prev,
-          partnerId: value as number
+          partnerId: value as number,
         }));
         break;
-      case 'accountedFromDate':
-        if (!isValidDateRange(new Date(value ?? ''), new Date(condtiuon.accountedToDate ?? ''))) {
+      case "accountedFromDate":
+        if (
+          !isValidDateRange(
+            new Date(value ?? ""),
+            new Date(condtiuon.accountedToDate ?? "")
+          )
+        ) {
           messageApi.open({
-            type: 'error',
-            content: '앞에 날짜가 뒤에 날짜보다 작습니다.'
-          })
+            type: "error",
+            content: "앞에 날짜가 뒤에 날짜보다 작습니다.",
+          });
           setCondtiuon((prev) => ({
             ...prev,
-            accountedFromDate: ''
+            accountedFromDate: "",
           }));
         } else {
           setCondtiuon((prev) => ({
             ...prev,
-            accountedFromDate: value === undefined ? '' : value as string
+            accountedFromDate: value === undefined ? "" : (value as string),
           }));
         }
 
         break;
-      case 'accountedToDate':
+      case "accountedToDate":
         setCondtiuon((prev) => ({
           ...prev,
-          accountedToDate: value === undefined ? '' : value as string
+          accountedToDate: value === undefined ? "" : (value as string),
         }));
         break;
-      case 'accountedSubject':
+      case "accountedSubject":
         setCondtiuon((prev) => ({
           ...prev,
-          accountedSubject: value as Model.Enum.Subject
+          accountedSubject: value as Model.Enum.Subject,
         }));
         break;
-      case 'accountedMethod':
+      case "accountedMethod":
         setCondtiuon((prev) => ({
           ...prev,
-          accountedMethod: value as Model.Enum.Method
+          accountedMethod: value as Model.Enum.Method,
         }));
         break;
     }
-  }
+  };
 
   return (
     <div
@@ -74,24 +84,51 @@ export default function Component(props: Props) {
         layout={"vertical"}
         className={"flex flex-row gap-4 w-full"}
         initialValues={{
-          ...condtiuon
-        }}>
-        <Form.Item name="partnerId" label="거래처" className={"w-1/5"} getValueFromEvent={(value) => onChange('partnerId', value)}>
+          ...condtiuon,
+        }}
+      >
+        <Form.Item
+          name="partnerId"
+          label="거래처"
+          className={"w-1/5"}
+          getValueFromEvent={(value) => onChange("partnerId", value)}
+        >
           <FormControl.SelectPartner isAll={true} />
         </Form.Item>
-        <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
-          <FormControl.DatePicker datePickerValue={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
+        <Form.Item
+          name="accountedFromDate"
+          label={`${props.accountedType === "PAID" ? "지급" : "수금"}일`}
+          className={"w-1/5"}
+        >
+          <FormControl.DatePicker
+            value={condtiuon.accountedFromDate}
+            onChange={(value) => onChange("accountedFromDate", value)}
+          />
         </Form.Item>
-        <div className={"mt-8"}>
-          ~
-        </div>
+        <div className={"mt-8"}>~</div>
         <Form.Item name="accountedToDate" label=" " className={"w-1/5 mt-30"}>
-          <FormControl.DatePicker datePickerValue={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
+          <FormControl.DatePicker
+            value={condtiuon.accountedToDate}
+            onChange={(value) => onChange("accountedToDate", value)}
+          />
         </Form.Item>
-        <Form.Item name="accountedSubject" label="계정 과목" className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedSubject', value)}>
-          <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} />
+        <Form.Item
+          name="accountedSubject"
+          label="계정 과목"
+          className={"w-1/5"}
+          getValueFromEvent={(value) => onChange("accountedSubject", value)}
+        >
+          <FormControl.SelectSubject
+            isAll={true}
+            accountedType={props.accountedType}
+          />
         </Form.Item>
-        <Form.Item name="accountedMethod" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 수단`} className={"w-1/5"} getValueFromEvent={(value) => onChange('accountedMethod', value)}>
+        <Form.Item
+          name="accountedMethod"
+          label={`${props.accountedType === "PAID" ? "지급" : "수금"} 수단`}
+          className={"w-1/5"}
+          getValueFromEvent={(value) => onChange("accountedMethod", value)}
+        >
           <FormControl.SelectMethod isAll={true} />
         </Form.Item>
       </Form>
