@@ -29,7 +29,8 @@ import {
   TbVector,
   TbVectorTriangle,
   TbCards,
-  TbBuildingBank
+  TbBuildingBank,
+  TbReportMoney
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -133,6 +134,11 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "계좌 관리",
         icon: <TbBuildingBank />,
         path: "/bank-account",
+      },
+      {
+        label: "유가증권 관리",
+        icon: <TbReportMoney />,
+        path: "/security",
       },
     ],
     [businessRelationshipRequestCount.data?.value]
