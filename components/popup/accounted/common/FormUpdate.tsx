@@ -83,7 +83,7 @@ export default function Component(props: Props) {
         <Input disabled />
       </Form.Item>
       <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]}>
-        <FormControl.DatePicker datePickerValue={accountedDate} />
+        <FormControl.DatePicker value={accountedDate} />
       </Form.Item>
 
       <Form.Item

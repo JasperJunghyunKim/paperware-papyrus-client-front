@@ -70,7 +70,7 @@ export default function Component(props: Props) {
         label={`${labelName}일`}
         rules={[{ required: true }]}
       >
-        <FormControl.DatePicker datePickerValue={dayjs().toISOString()} />
+        <FormControl.DatePicker />
       </Form.Item>
 
       <Form.Item

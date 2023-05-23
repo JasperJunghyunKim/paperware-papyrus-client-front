@@ -89,13 +89,13 @@ export default function Component(props: Props) {
           <FormControl.SelectPartner isAll={true} value={condtiuon.companyRegistrationNumber} onChange={(value) => onChange('companyRegistrationNumber', value)} />
         </Form.Item>
         <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
-          <FormControl.DatePicker datePickerValue={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
+          <FormControl.DatePicker value={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
         </Form.Item>
         <div className={"mt-8"}>
           ~
         </div>
         <Form.Item name="accountedToDate" label=" " className={"w-1/5 mt-30"}>
-          <FormControl.DatePicker datePickerValue={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
+          <FormControl.DatePicker value={condtiuon.accountedToDate} onChange={(value) => onChange('accountedToDate', value)} />
         </Form.Item>
         <Form.Item name="accountedSubject" label="계정 과목" className={"w-1/5"}>
           <FormControl.SelectSubject isAll={true} accountedType={props.accountedType} onChange={(value) => onChange('accountedSubject', value)} />
