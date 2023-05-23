@@ -75,7 +75,7 @@ export default function Component(props: Props) {
                 ?.value ?? 0
             }
             onChange={(p) => change("매")(p)}
-            disabled={props.spec.packaging.type === "BOX"}
+            disabled={props.disabled || props.spec.packaging.type === "BOX"}
           />
           <InputNumber
             addonAfter={props.spec.packaging.type === "BOX" ? "BOX" : "R"}
@@ -87,6 +87,7 @@ export default function Component(props: Props) {
             onChange={(p) =>
               change(props.spec.packaging.type === "BOX" ? "BOX" : "R")(p)
             }
+            disabled={props.disabled}
           />
         </>
       )}
@@ -99,7 +100,7 @@ export default function Component(props: Props) {
           3
         )}
         onChange={(p) => change("T")((ntz(p) ?? 0) * 1000000)}
-        disabled={props.spec.packaging.type !== "ROLL"}
+        disabled={props.disabled || props.spec.packaging.type !== "ROLL"}
         precision={3}
       />
     </div>

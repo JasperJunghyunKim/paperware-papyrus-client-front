@@ -865,7 +865,7 @@ function RightSideOrder(props: RightSideOrderProps) {
         </Toolbar.Container>
         <div className="flex-1 overflow-y-scroll px-4 pb-4">
           <div className="flex-1">
-            <Table.Default<Model.StockEvent>
+            <Table.Default<Model.StockGroupEvent>
               data={list.data ?? undefined}
               page={page}
               setPage={setPage}
@@ -881,8 +881,8 @@ function RightSideOrder(props: RightSideOrderProps) {
                     )}`}</div>
                   ),
                 },
-                ...Table.Preset.columnStock<Model.StockEvent>(
-                  (p) => p.stock,
+                ...Table.Preset.columnStockGroup<Model.StockGroupEvent>(
+                  (p) => p.stockGroup,
                   ["stock"]
                 ),
                 {

@@ -14,6 +14,7 @@ export default function Document() {
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Noto+Sans+KR:wght@400;700&display=swap"
           rel="stylesheet"
         />
+        <title>PAPERWARE ─ 페이퍼웨어</title>
       </Head>
       <body>
         <Main />
