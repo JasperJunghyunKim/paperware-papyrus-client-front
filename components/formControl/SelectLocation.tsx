@@ -53,7 +53,7 @@ function Item(props: ItemProps) {
   return (
     <div className="flex font-fixed gap-x-4">
       <div className="flex-initial whitespace-pre">{x.name.padEnd(8)}</div>
-      <div className="flex-1 text-gray-400">
+      <div className="flex-1 text-gray-400 text-right">
         {Util.formatAddress(x.address)}
       </div>
     </div>

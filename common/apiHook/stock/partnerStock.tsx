@@ -6,14 +6,17 @@ import { useQuery } from "react-query";
 export function useGetList(params: {
   query: Partial<Api.PartnerStockGroupListQuery>;
 }) {
-  return useQuery(["partner-stock", "group", "list"], async () => {
-    const { data } = await axios.get<Api.PartnerStockGroupListResponse>(
-      `${API_HOST}/partner/stock/group`,
-      {
-        params: params.query,
-      }
-    );
+  return useQuery(
+    ["partner-stock", params.query, "group", "list"],
+    async () => {
+      const { data } = await axios.get<Api.PartnerStockGroupListResponse>(
+        `${API_HOST}/partner/stock/group`,
+        {
+          params: params.query,
+        }
+      );
 
-    return data;
-  });
+      return data;
+    }
+  );
 }

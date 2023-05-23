@@ -47,7 +47,7 @@ export default function Component(props: Props) {
   const converted = convert(tasks.data ?? []);
   return (
     <div className="w-auto h-full flex">
-      <div className="flex-1 flex flex-col p-4 overflow-y-scroll">
+      <div className="flex-1 flex flex-col p-4 overflow-scroll">
         <div className="flex-initial flex flex-col gap-y-4">
           {converted.map((item) => (
             <Item

@@ -4,7 +4,7 @@ import { ApiHook, PaperUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form, Input, Steps } from "antd";
+import { Alert, Form, Input, Steps, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import _ from "lodash";
@@ -19,6 +19,7 @@ import {
   TbSquare,
 } from "react-icons/tb";
 import { CreateArrival } from ".";
+import { TaskMap } from "../plan/common";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -477,6 +478,14 @@ function DataForm(props: DataFormProps) {
         rules={REQUIRED_RULES}
       >
         <FormControl.DatePicker disabled={!editable} />
+      </Form.Item>
+      <Form.Item
+        name="isDirectShipping"
+        label="직송"
+        valuePropName="checked"
+        rules={REQUIRED_RULES}
+      >
+        <Switch disabled={!editable} />
       </Form.Item>
       {(srcCompanyId || dstCompanyId) && (
         <>
@@ -1012,6 +1021,10 @@ function RightSideSales(props: RightSideSalesProps) {
         },
       ];
 
+  const plan = ApiHook.Working.Plan.useGetItem({
+    id: props.order?.orderStock.plan?.id ?? null,
+  });
+
   return (
     <div className="flex-1 w-0 flex">
       <div className="flex-1 flex flex-col w-0">
@@ -1059,8 +1072,18 @@ function RightSideSales(props: RightSideSalesProps) {
             />
           )}
         </Toolbar.Container>
-        <div className="flex-1 overflow-y-scroll px-4 pb-4">
-          <div className="flex-1"></div>
+        <div className="basis-px bg-gray-200" />
+        <div className="flex-1 flex h-0">
+          <div className="flex-1 bg-slate-100">
+            {plan.data && (
+              <TaskMap
+                plan={plan.data}
+                packagingType={
+                  plan.data?.targetStockGroupEvent.stockGroup.packaging.type
+                }
+              />
+            )}
+          </div>
         </div>
       </div>
       {props.order && (

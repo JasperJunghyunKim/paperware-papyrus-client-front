@@ -2,6 +2,7 @@ import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, Icon, Popup, Table } from "@/components";
+import _ from "lodash";
 import { useEffect, useState } from "react";
 
 type CompanyId = number;
@@ -16,8 +17,8 @@ export default function Component(props: Props) {
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.PartnerStock.useGetList({
     query: {
-      companyId: typeof props.open === "number" ? props.open : undefined,
       ...groupPage,
+      companyId: _.isNumber(props.open) ? props.open : undefined,
     },
   });
   const [selectedGroup, setSelectedGroup] = useState<Model.PartnerStockGroup[]>(
@@ -32,7 +33,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title="자사 재고 선택"
+      title="매입처 재고 선택"
       {...props}
       open={!!props.open}
       width="calc(100vw - 200px)"
