@@ -41,8 +41,12 @@ export function useCreate() {
   );
 }
 
-export function useGetTaskList(params: { planId: number }) {
+export function useGetTaskList(params: { planId: number | null }) {
   return useQuery(["plan", "item", params.planId, "task"], async () => {
+    if (!params.planId) {
+      return null;
+    }
+
     const resp = await axios.get<Api.TaskListResponse>(
       `${API_HOST}/working/plan/${params.planId}/task`
     );

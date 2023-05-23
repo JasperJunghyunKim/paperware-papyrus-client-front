@@ -25,6 +25,10 @@ export default function Component(props: Props) {
     id: props.open ? props.open : null,
   });
 
+  const tasks = ApiHook.Working.Plan.useGetTaskList({
+    planId: props.open ? props.open : null,
+  });
+
   const [inputStocksPage, setInputStocksPage] = usePage();
   const inputStocks = ApiHook.Working.Plan.useGetInputList({
     planId: props.open ? props.open : null,
@@ -62,6 +66,14 @@ export default function Component(props: Props) {
       setStockId(null);
     }
   }, [props.open, stockId, openRegister]);
+
+  const isAllCompleted = useCallback(() => {
+    if (!tasks.data) {
+      return false;
+    }
+
+    return tasks.data.every((task) => task.status === "PROGRESSED");
+  }, [tasks.data]);
 
   return (
     <Popup.Template.Full
@@ -108,6 +120,12 @@ export default function Component(props: Props) {
                   <Toolbar.ButtonPreset.Continue
                     label="작업 완료"
                     onClick={async () => await cmdComplete()}
+                    disabled={!isAllCompleted()}
+                    tooltip={
+                      !isAllCompleted()
+                        ? "작업을 완료처리 하려면 모든 공정이 완료되어야 합니다."
+                        : undefined
+                    }
                   />
                 )}
               </Toolbar.Container>

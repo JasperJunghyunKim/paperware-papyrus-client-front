@@ -100,7 +100,7 @@ export default function Component(props: Props) {
               { required: true, message: "사업자등록번호를 입력해주세요." },
             ]}
           >
-            <Input disabled={!!searched} />
+            <Input disabled={!!searched} minLength={10} maxLength={10} />
           </Form.Item>
           {searched ? (
             <>

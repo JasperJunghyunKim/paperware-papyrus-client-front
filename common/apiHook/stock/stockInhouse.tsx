@@ -37,6 +37,15 @@ export function useGetList(params: { query?: Partial<Api.StockListQuery> }) {
       params.query?.paperCertId,
     ],
     async () => {
+      if (
+        !params.query?.productId ||
+        !params.query?.packagingId ||
+        !params.query?.grammage ||
+        !params.query?.sizeX
+      ) {
+        return null;
+      }
+
       const resp = await axios.get<Api.StockListResponse>(`${API_HOST}/stock`, {
         params: params.query,
       });

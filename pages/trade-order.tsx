@@ -59,21 +59,10 @@ export default function Component() {
             title: "사업자등록번호",
             dataIndex: ["dstCompany", "companyRegistrationNumber"],
           },
-          {
-            title: "가상 매입처 여부",
-            dataIndex: ["dstCompany", "managedById"],
-            render: (value) =>
-              value && (
-                <div className="flex flex-row gap-2 text-purple-800">
-                  <div className="flex flex-col justify-center">
-                    <TbHomeLink className="text-lg" />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    가상 매입처
-                  </div>
-                </div>
-              ),
-          },
+          ...Table.Preset.columnConnection<RecordType>([
+            "dstCompany",
+            "managedById",
+          ]),
           {
             title: "주문 번호",
             dataIndex: "orderNo",

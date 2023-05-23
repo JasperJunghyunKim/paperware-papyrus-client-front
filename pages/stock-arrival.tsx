@@ -1,10 +1,10 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { useCallback, useEffect, useState } from "react";
-import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
+import { useEffect, useState } from "react";
+import { TbMapPinFilled } from "react-icons/tb";
 
 export default function Component() {
   const [page, setPage] = usePage();
@@ -91,8 +91,8 @@ export default function Component() {
             title: "예정일",
           },
           ...Table.Preset.columnStockGroup<Model.StockEvent>(
-            (p) => p.stock,
-            ["stock"]
+            (p) => (p as any).stockGroup, // TODO
+            ["stockGroup"]
           ),
           { title: "배정 수량" },
           { title: "" },
@@ -101,7 +101,7 @@ export default function Component() {
           { title: "" },
           { title: "입고 중량" },
           ...Table.Preset.columnQuantity<Model.StockEvent>(
-            (record) => record.stock,
+            (p) => (p as any).stockGroup, // TODO
             ["change"],
             { prefix: "전체" }
           ),

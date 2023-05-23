@@ -883,7 +883,7 @@ function RightSideOrder(props: RightSideOrderProps) {
                 },
                 ...Table.Preset.columnStockGroup<Model.StockGroupEvent>(
                   (p) => p.stockGroup,
-                  ["stock"]
+                  ["stockGroup"]
                 ),
                 {
                   title: "입고 수량",

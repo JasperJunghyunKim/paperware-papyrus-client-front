@@ -64,7 +64,7 @@ export function columnStockGroup<T>(
       render: (_value: any, record: T) => (
         <div className="font-fixed">
           {
-            Util.findPaperSize(getStock(record).sizeX, getStock(record).sizeY)
+            Util.findPaperSize(getStock(record)?.sizeX, getStock(record)?.sizeY)
               ?.name
           }
         </div>
@@ -81,7 +81,7 @@ export function columnStockGroup<T>(
       title: "지장",
       dataIndex: [...path, "sizeY"],
       render: (value: number, record: T) =>
-        getStock(record).packaging?.type !== "ROLL" ? (
+        getStock(record)?.packaging?.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             value
           )} mm`}</div>
@@ -164,7 +164,7 @@ export function columnStock<T>(
       title: "지장",
       dataIndex: [...path, "sizeY"],
       render: (value: number, record: T) =>
-        getStock(record).packaging.type !== "ROLL" ? (
+        getStock(record)?.packaging.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             value
           )} mm`}</div>
@@ -218,52 +218,53 @@ export function columnQuantity<T>(
     negative?: boolean;
   }
 ): ColumnType<T>[] {
-  const spec = (record: T): PaperUtil.QuantitySpec => {
+  const spec = (record: T): PaperUtil.QuantitySpec | null => {
     const stock = getStock(record);
-    return {
-      packaging: stock.packaging,
-      grammage: stock.grammage,
-      sizeX: stock.sizeX,
-      sizeY: stock.sizeY,
-    };
+    return stock
+      ? {
+          packaging: stock.packaging,
+          grammage: stock.grammage,
+          sizeX: stock.sizeX,
+          sizeY: stock.sizeY,
+        }
+      : null;
   };
 
-  const getQuantity = (value: number, record: T): PaperUtil.Quantity => {
+  const getQuantity = (value: number, record: T): PaperUtil.Quantity | null => {
     const stock = spec(record);
-    return PaperUtil.convertQuantity(
-      stock,
-      (options?.negative ? -1 : 1) * value
-    );
+    return stock
+      ? PaperUtil.convertQuantity(stock, (options?.negative ? -1 : 1) * value)
+      : null;
   };
 
-  const format = (
-    quantity: Quantity,
-    type: "packed" | "unpacked" | "weight"
-  ) => {
-    switch (type) {
-      case "packed":
-        return quantity.packed
-          ? `${Util.comma(
-              quantity.packed.value,
-              PaperUtil.recommendedPrecision(quantity.packed.unit)
-            )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
-          : null;
-      case "unpacked":
-        return quantity.unpacked
-          ? `${Util.comma(
-              quantity.unpacked.value,
-              PaperUtil.recommendedPrecision(quantity.unpacked.unit)
-            )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
-          : null;
-      case "weight":
-        return quantity.grams
-          ? `${Util.comma(
-              quantity.grams * 0.000001,
-              PaperUtil.recommendedPrecision("T")
-            )} ${"T"}`
-          : null;
-    }
-  };
+  const format =
+    (type: "packed" | "unpacked" | "weight") => (quantity: Quantity | null) => {
+      if (quantity === null) return null;
+
+      switch (type) {
+        case "packed":
+          return quantity.packed
+            ? `${Util.comma(
+                quantity.packed.value,
+                PaperUtil.recommendedPrecision(quantity.packed.unit)
+              )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
+            : null;
+        case "unpacked":
+          return quantity.unpacked
+            ? `${Util.comma(
+                quantity.unpacked.value,
+                PaperUtil.recommendedPrecision(quantity.unpacked.unit)
+              )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
+            : null;
+        case "weight":
+          return quantity.grams
+            ? `${Util.comma(
+                quantity.grams * 0.000001,
+                PaperUtil.recommendedPrecision("T")
+              )} ${"T"}`
+            : null;
+      }
+    };
 
   return [
     {
@@ -271,7 +272,7 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "packed")}
+          {value && record ? format("packed")(getQuantity(value, record)) : ""}
         </div>
       ),
     },
@@ -280,7 +281,9 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "unpacked")}
+          {value && record
+            ? format("unpacked")(getQuantity(value, record))
+            : ""}
         </div>
       ),
     },
@@ -289,7 +292,7 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "weight")}
+          {value && record ? format("weight")(getQuantity(value, record)) : ""}
         </div>
       ),
     },
@@ -368,16 +371,16 @@ export function columnPackagingType<T>(path: string[]): ColumnType<T>[] {
       render: (value: Model.Packaging, record: T) => (
         <div className="font-fixed flex gap-x-1">
           <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType packagingType={value.type} />
+            <Icon.PackagingType packagingType={value?.type} />
           </div>
           <div className="flex-initial flex flex-col justify-center whitespace-pre">
-            {value.type.padEnd(4)}
+            {value?.type.padEnd(4)}
           </div>
-          {value.type !== "SKID" && (
+          {value?.type !== "SKID" && (
             <div className="flex-initial text-gray-400 mx-1">─</div>
           )}
           <div className="flex-initial flex flex-col justify-center text-gray-500">
-            {Util.formatPackaging(value, true)}
+            {value ? Util.formatPackaging(value, true) : ""}
           </div>
         </div>
       ),
