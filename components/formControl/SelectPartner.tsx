@@ -1,11 +1,11 @@
 import { Model } from "@/@shared";
 import { ApiHook } from "@/common";
 import { Select } from "antd";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 interface Props {
   isAll?: boolean;
-  value?: number;
+  value?: number | string;
   onChange?: (value: number) => void;
   disabled?: boolean;
 }
@@ -17,31 +17,48 @@ export default function Component(props: Props) {
     const itemList = staticData.data?.reduce((acc: any[], crr, idx) => {
       if (idx === 0 && props.isAll) {
         acc.push({
-          label: <Item item={null} />,
-          value: undefined,
+          label: (
+            <Item
+              item={{
+                companyRegistrationNumber: "",
+                companyId: 0,
+                memo: "",
+                partnerNickName: "전체",
+              }}
+            />
+          ),
+          value: "",
         });
       }
 
       acc.push({
         label: <Item item={crr} />,
-        value: crr.companyRegistrationNumber,
+        value: `${crr.companyId}/${crr.companyRegistrationNumber}`,
       });
-
       return acc;
     }, []);
 
     return itemList;
-  }, [staticData, props.isAll]);
+  }, [props.isAll, staticData]);
+
+  const value = useCallback(() => {
+    if (staticData.data?.length === 0) {
+      return undefined;
+    }
+
+    if (props.isAll) {
+      return "";
+    }
+  }, [staticData, props]);
 
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        defaultValue={props.isAll ? 0 : undefined}
-        value={props.value}
+        value={props.value === 0 ? value() : (props.value as any)}
         onChange={props.onChange}
-        options={options}
         placeholder="거래처"
         disabled={props.disabled}
+        options={options}
       />
     </div>
   );

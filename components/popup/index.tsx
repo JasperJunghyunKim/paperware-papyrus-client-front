@@ -11,3 +11,5 @@ export * as Accounted from "./accounted";
 export * as OfficialPrice from "./officialPrice";
 export * as Discount from "./discount";
 export * as DiscountFinder from "./discountFinder";
+export * as Card from "./card";
+export * as BankAccount from "./bank-account";

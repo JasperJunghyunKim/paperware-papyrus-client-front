@@ -1,66 +1,15 @@
 import { Model } from "@/@shared";
+import { accountedSubject } from "@/@shared/helper/enum.util";
 import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Condition, Popup, Table, Toolbar } from "@/components";
 import { accountedAtom } from "@/components/condition/accounted/accounted.state";
+import { METHOD_OPTIONS } from "@/components/formControl/SelectMethod";
+import { SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
 import { useRecoilValue } from "recoil";
-
-const METHOD_OPTIONS = [
-  {
-    label: "계좌 이체",
-    value: "ACCOUNT_TRANSFER" as Model.Enum.Method,
-  },
-  {
-    label: "유가증권",
-    value: "PROMISSORY_NOTE" as Model.Enum.Method,
-  },
-  {
-    label: "카드입금",
-    value: "CARD_PAYMENT" as Model.Enum.Method,
-  },
-  {
-    label: "현금",
-    value: "CASH" as Model.Enum.Method,
-  },
-  {
-    label: "상계",
-    value: "SET_OFF" as Model.Enum.Method,
-  },
-  {
-    label: "기타",
-    value: "ETC" as Model.Enum.Method,
-  },
-];
-
-const COLLECTED_OPTIONS = [
-  {
-    label: "외상 매입금",
-    value: "COLLECTED_ACCOUNTS_RECEIVABLE" as Model.Enum.Subject,
-  },
-  {
-    label: "미수금금",
-    value: "COLLECTED_UNPAID_EXPENSES" as Model.Enum.Subject,
-  },
-  {
-    label: "선수금금",
-    value: "COLLECTED_PREPAID_EXPENSES" as Model.Enum.Subject,
-  },
-  {
-    label: "잡손실",
-    value: "COLLECTED_MISCELLANEOUS_LOSSES" as Model.Enum.Subject,
-  },
-  {
-    label: "상품 매입",
-    value: "COLLECTED_PRODUCT_PURCHASES" as Model.Enum.Subject,
-  },
-  {
-    label: "기타",
-    value: "ETC" as Model.Enum.Subject,
-  },
-];
 
 export default function Component() {
   const condition = useRecoilValue(accountedAtom);
@@ -69,17 +18,25 @@ export default function Component() {
   const [method, setMethod] = useState<Enum.Method | null>(null);
   const [page, setPage] = usePage();
   const [selectedCollected, setSelectedCollected] = useState<Model.Accounted[]>([]);
-  const only = Util.only(selectedCollected);
+  const [only, setOnly] = useState<Model.Accounted>();
 
   const list = ApiHook.Partner.Accounted.useAccountedList({
     query: {
       ...page,
       ...condition,
       accountedType: "COLLECTED",
+    },
+    successCallback: (data) => {
+      if (data?.items.length === 0) {
+        setOnly(undefined);
+      }
     }
   });
   const apiByCashDelete = ApiHook.Partner.ByCash.useByCashDelete();
   const apiByEtcDelete = ApiHook.Partner.ByEtc.useByEtcDelete();
+  const apiByBankAccountDelete = ApiHook.Partner.ByBankAccount.useByBankAccountDelete();
+  const apiByCardDelete = ApiHook.Partner.ByCard.useByCardDelete();
+  const apiByOffsetDelete = ApiHook.Partner.ByOffset.useByOffsetDelete();
 
   const cmdDelete = useCallback(async () => {
     if (
@@ -93,16 +50,25 @@ export default function Component() {
 
     switch (method) {
       case 'ACCOUNT_TRANSFER':
-        // TODO
+        await apiByBankAccountDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'CARD_PAYMENT':
-        // TODO
+        await apiByCardDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'PROMISSORY_NOTE':
         // TODO
         break;
-      case 'SET_OFF':
-        // TODO
+      case 'OFFSET':
+        await apiByOffsetDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'CASH':
         await apiByCashDelete.mutateAsync({
@@ -118,7 +84,7 @@ export default function Component() {
         break;
     }
 
-  }, [apiByCashDelete, apiByEtcDelete, only]);
+  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, only]);
 
   return (
     <Page title="수금 내역 조회">
@@ -151,11 +117,12 @@ export default function Component() {
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) => {
-          return record.accountedId
-        }}
+        keySelector={(record) => record.accountedId}
         selected={selectedCollected}
-        onSelectedChange={setSelectedCollected}
+        onSelectedChange={(selected) => {
+          setSelectedCollected(selected);
+          setOnly(Util.only(selected));
+        }}
         selection="single"
         columns={[
           {
@@ -180,7 +147,7 @@ export default function Component() {
             title: "계정 과목",
             dataIndex: ["accountedSubject"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${COLLECTED_OPTIONS.filter((item) => item.value === value)[0].label}`}</div>
+              <div className="text-right font-fixed">{`${accountedSubject('COLLECTED', SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value)}`}</div>
             ),
           },
           {

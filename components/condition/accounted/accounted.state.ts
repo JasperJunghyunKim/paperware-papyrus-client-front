@@ -7,7 +7,8 @@ import { v4 } from "uuid";
 export const accountedAtom = atom<Omit<Api.AccountedQuery, 'skip' | 'take'>>({
   key: `accounted-condition-${v4()}`,
   default: {
-    partnerId: 0,
+    companyId: 0,
+    companyRegistrationNumber: '',
     accountedType: 'PAID',
     accountedSubject: 'All',
     accountedMethod: 'All',

@@ -7,7 +7,7 @@ import { AccountedType } from "@/@shared/models/enum";
 import { isValidDateRange } from "@/@shared/helper/util";
 
 type NamePath =
-  | "partnerId"
+  | "companyRegistrationNumber"
   | "accountedFromDate"
   | "accountedToDate"
   | "accountedSubject"
@@ -23,11 +23,20 @@ export default function Component(props: Props) {
 
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
-      case "partnerId":
-        setCondtiuon((prev) => ({
-          ...prev,
-          partnerId: value as number,
-        }));
+      case "companyRegistrationNumber":
+        if (value !== "") {
+          setCondtiuon((prev) => ({
+            ...prev,
+            companyId: parseInt((value as string)?.split("/")[0]),
+            companyRegistrationNumber: (value as string)?.split("/")[1],
+          }));
+        } else {
+          setCondtiuon((prev) => ({
+            ...prev,
+            companyId: 0,
+            companyRegistrationNumber: "",
+          }));
+        }
         break;
       case "accountedFromDate":
         if (
@@ -88,12 +97,15 @@ export default function Component(props: Props) {
         }}
       >
         <Form.Item
-          name="partnerId"
+          name="companyRegistrationNumber"
           label="거래처"
           className={"w-1/5"}
-          getValueFromEvent={(value) => onChange("partnerId", value)}
         >
-          <FormControl.SelectPartner isAll={true} />
+          <FormControl.SelectPartner
+            isAll={true}
+            value={condtiuon.companyRegistrationNumber}
+            onChange={(value) => onChange("companyRegistrationNumber", value)}
+          />
         </Form.Item>
         <Form.Item
           name="accountedFromDate"
@@ -116,20 +128,23 @@ export default function Component(props: Props) {
           name="accountedSubject"
           label="계정 과목"
           className={"w-1/5"}
-          getValueFromEvent={(value) => onChange("accountedSubject", value)}
         >
           <FormControl.SelectSubject
             isAll={true}
             accountedType={props.accountedType}
+            onChange={(value) => onChange("accountedSubject", value)}
           />
         </Form.Item>
         <Form.Item
           name="accountedMethod"
           label={`${props.accountedType === "PAID" ? "지급" : "수금"} 수단`}
           className={"w-1/5"}
-          getValueFromEvent={(value) => onChange("accountedMethod", value)}
         >
-          <FormControl.SelectMethod isAll={true} />
+          <FormControl.SelectMethod
+            accountedType={props.accountedType}
+            isAll={true}
+            onChange={(value) => onChange("accountedMethod", value)}
+          />
         </Form.Item>
       </Form>
     </div>

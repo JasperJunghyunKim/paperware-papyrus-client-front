@@ -6,6 +6,7 @@ import { useQuery } from "react-query";
 
 export function useAccountedList(params: {
   query: Partial<Api.AccountedQuery>;
+  successCallback?: (data?: Api.AccountedListResponse) => void;
 }) {
   return useQuery(
     [
@@ -13,7 +14,8 @@ export function useAccountedList(params: {
       "list",
       params.query.skip,
       params.query.take,
-      params.query.partnerId,
+      params.query.companyId,
+      params.query.companyRegistrationNumber,
       params.query.accountedType,
       params.query.accountedSubject,
       params.query.accountedMethod,
@@ -42,6 +44,11 @@ export function useAccountedList(params: {
         }
       );
       return resp.data;
+    },
+    {
+      onSuccess: (data) => {
+        params.successCallback?.(data);
+      },
     }
   );
 }
