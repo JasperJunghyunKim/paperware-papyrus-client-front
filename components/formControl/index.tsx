@@ -26,6 +26,8 @@ import SelectApiCard from "./SelectApiCard";
 import SelectBankAccount from "./SelectBankAccount";
 import SelectSecurityType from "./SelectSecurityType";
 import SelectSecurityStatus from "./SelectSecurityStatus";
+import SelectSecurity from "./SelectSecurity";
+import SelectEndorsementType from "./SelectEndorsementType";
 
 export {
   Address,
@@ -54,5 +56,7 @@ export {
   SelectApiBank,
   SelectApiCard,
   SelectSecurityType,
-  SelectSecurityStatus
+  SelectSecurityStatus,
+  SelectSecurity,
+  SelectEndorsementType,
 };

@@ -8,7 +8,7 @@ import { useCallback } from "react";
 import { FormCreate } from "./common";
 import { message } from "antd";
 
-type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest;
+type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest | Api.BySecurityCreateRequest;
 
 interface Props {
   accountedType: AccountedType;
@@ -25,6 +25,7 @@ export default function Component(props: Props) {
   const apiByBankAccount = ApiHook.Partner.ByBankAccount.useByBankAccountCreate();
   const apiByCard = ApiHook.Partner.ByCard.useByCardCreate();
   const apiByOffset = ApiHook.Partner.ByOffset.useByOffsetCreate();
+  const apiBySecurity = ApiHook.Partner.BySecurity.useBySecurityCreate();
 
   const cmd = useCallback(
     async (values: Request) => {
@@ -33,8 +34,6 @@ export default function Component(props: Props) {
 
       values.companyId = parseInt((values as any).partnerNickName.split('/')[0]);
       values.companyRegistrationNumber = (values as any).partnerNickName.split('/')[1];
-
-
 
       switch (method) {
         case 'ACCOUNT_TRANSFER':
@@ -51,7 +50,33 @@ export default function Component(props: Props) {
           await apiByCard.mutateAsync({ data: values as Api.ByCardCreateRequest });
           break;
         case 'PROMISSORY_NOTE':
-          // TODO
+          const req: any = values;
+          await apiBySecurity.mutateAsync({
+            data: {
+              ...req,
+              memo: req.memo,
+              amount: req.securityAmount,
+              endorsement: req.endorsement,
+              security: {
+                securityId: req.securityAmount,
+                securityType: req.securityType,
+                securitySerial: req.securitySerial,
+                securityAmount: req.securityAmount,
+                securityStatus: req.securityStatus,
+                drawedStatus: req.drawedStatus,
+                drawedDate: req.drawedDate,
+                drawedBank: req.drawedBank,
+                drawedBankBranch: req.drawedBankBranch,
+                drawedRegion: req.drawedRegion,
+                drawer: req.drawer,
+                maturedDate: req.maturedDate,
+                payingBank: req.payingBank,
+                payingBankBranch: req.payingBankBranch,
+                payer: req.payer,
+                memo: req.securityMemo,
+              }
+            }
+          });
           break;
         case 'OFFSET':
           await apiByOffset.mutateAsync({ data: values as Api.ByOffsetCreateRequest });
@@ -67,7 +92,7 @@ export default function Component(props: Props) {
       form.resetFields();
       props.onClose(false);
     },
-    [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, form, props]
+    [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, apiBySecurity, form, props]
   );
 
   return (

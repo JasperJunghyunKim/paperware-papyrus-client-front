@@ -6,7 +6,7 @@ import { useWatch } from "antd/lib/form/Form";
 import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 
-type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest;
+type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest | Api.BySecurityCreateRequest;
 
 interface Props {
   accountedType: AccountedType;
@@ -65,6 +65,15 @@ export default function Component(props: Props) {
       <Form.Item name="partnerNickName" label="거래처" rules={[{ required: true }]}>
         <FormControl.SelectPartner />
       </Form.Item>
+
+      <Form.Item
+        name="accountedMethod"
+        label={`${labelName} 수단`}
+        rules={[{ required: true }]}
+      >
+        <FormControl.SelectMethod accountedType={props.accountedType} />
+      </Form.Item>
+
       <Form.Item
         name="accountedDate"
         label={`${labelName}일`}
@@ -74,16 +83,40 @@ export default function Component(props: Props) {
       </Form.Item>
 
       <Form.Item
-        name="amount"
-        label={`${labelName} 금액`}
-        rules={[{ required: true }]}
+        noStyle
+        shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
-        <FormControl.Number
-          rootClassName="text-right"
-          min={0}
-          precision={0}
-          unit="원"
-        />
+        {({ getFieldValue }) =>
+          (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) && props.accountedType === 'COLLECTED' ? (
+            <Form.Item
+              name="securityAmount"
+              label={`${labelName} 금액`}
+              rules={[{ required: true }]}
+            >
+              <FormControl.Number
+                disabled
+                rootClassName="text-right"
+                min={0}
+                precision={0}
+                unit="원"
+              />
+            </Form.Item>
+          ) : (
+            <Form.Item
+              name="amount"
+              label={`${labelName} 금액`}
+              rules={[{ required: true }]}
+            >
+              <FormControl.Number
+                rootClassName="text-right"
+                min={0}
+                precision={0}
+                unit="원"
+              />
+            </Form.Item>
+          )
+        }
+
       </Form.Item>
 
       <Form.Item
@@ -92,14 +125,6 @@ export default function Component(props: Props) {
         rules={[{ required: true }]}
       >
         <FormControl.SelectSubject accountedType={props.accountedType} />
-      </Form.Item>
-
-      <Form.Item
-        name="accountedMethod"
-        label={`${labelName} 수단`}
-        rules={[{ required: true }]}
-      >
-        <FormControl.SelectMethod accountedType={props.accountedType} />
       </Form.Item>
 
       <Form.Item
@@ -179,7 +204,7 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method ? (
+          (getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method) ? (
             <Form.Item name="bankAccountId" label="계좌 목록" rules={[{ required: true }]}>
               <FormControl.SelectApiBank />
             </Form.Item>
@@ -187,7 +212,122 @@ export default function Component(props: Props) {
         }
       </Form.Item>
 
-      <Form.Item name="memo" label="비고">
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
+      >
+        {({ getFieldValue }) =>
+          (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) && props.accountedType === 'COLLECTED' ? (
+            <>
+              <Form.Item
+                name="securityType"
+                label={"유가증권 유형"}
+                rules={[{ required: true }]}
+              >
+                <FormControl.SelectSecurityType />
+              </Form.Item>
+              <Form.Item
+                name="securitySerial"
+                label={"유가증권 번호"}
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="securityAmount"
+                label="유가증권 금액"
+                rules={[{ required: true }]}
+              >
+                <FormControl.Number />
+              </Form.Item>
+              <Form.Item
+                name="drawedDate"
+                label={"발행일"}
+              >
+                <FormControl.DatePicker />
+              </Form.Item>
+              <Form.Item
+                name="drawedBank"
+                label={"발행은행"}
+              >
+                <FormControl.SelectBank />
+              </Form.Item>
+              <Form.Item
+                name="drawedBankBranch"
+                label={"발행 지점명"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="drawedRegion"
+                label={"발행지"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="drawer"
+                label={"발행인"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="maturedDate"
+                label={"만기일"}
+              >
+                <FormControl.DatePicker />
+              </Form.Item>
+              <Form.Item
+                name="payingBank"
+                label={"지급은행"}
+              >
+                <FormControl.SelectBank />
+              </Form.Item>
+              <Form.Item
+                name="payingBankBranch"
+                label={"지급 지점명"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="payer"
+                label={"지급인"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="securityMemo"
+                label={"유가증권 비고"}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="endorsementType"
+                label={"배서구분"}
+                rules={[{ required: true }]}
+              >
+                <FormControl.SelectEndorsementType />
+              </Form.Item>
+              <Form.Item
+                name="endorsement"
+                label={"배서자"}
+              >
+                <Input />
+              </Form.Item>
+            </>
+          ) : getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' && props.accountedType === 'PAID' && (
+            <>
+              <Form.Item
+                name="payingBank"
+                label={"유가증권 목록"}
+              >
+                <FormControl.SelectSecurity />
+              </Form.Item>
+            </>
+          )
+        }
+      </Form.Item>
+
+      <Form.Item name="memo" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 비고`}>
         <Input />
       </Form.Item>
       <Form.Item className="flex justify-end">

@@ -5,3 +5,4 @@ export * as ByBankAccount from './byBankAccount';
 export * as ByCard from './byCard';
 export * as ByOffset from './byOffset';
 export * as Partner from './partner';
+export * as BySecurity from './bySecurity';

@@ -83,6 +83,10 @@ export default function Component(props: Props) {
         <Input disabled />
       </Form.Item>
 
+      <Form.Item name="accountedMethod" label={`${labelName} 수단`} rules={[{ required: true }]}>
+        <FormControl.SelectMethod accountedType={props.accountedType} isDisabled={true} />
+      </Form.Item>
+
       <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]}>
         <FormControl.DatePicker value={accountedDate} />
       </Form.Item>
@@ -101,9 +105,6 @@ export default function Component(props: Props) {
 
       <Form.Item name="accountedSubject" label="계정 과목" rules={[{ required: true }]}>
         <FormControl.SelectSubject accountedType={props.accountedType} />
-      </Form.Item>
-      <Form.Item name="accountedMethod" label={`${labelName} 수단`} rules={[{ required: true }]}>
-        <FormControl.SelectMethod accountedType={props.accountedType} isDisabled={true} />
       </Form.Item>
 
       <Form.Item
