@@ -51,9 +51,9 @@ export function comma(
   return typeof num === "number" && !isNaN(num) && !isFinite(num)
     ? ""
     : num.toLocaleString("ko-KR", {
-        minimumFractionDigits: precision,
-        maximumFractionDigits: precision,
-      });
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    });
 }
 
 export function passString(value: string | null | undefined) {
@@ -70,11 +70,9 @@ export interface Address {
 }
 
 export function encodeAddress(address: Partial<Address>) {
-  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${
-    address.roadAddressEnglish ?? ""
-  }]] [[${address.jibunAddress ?? ""}::${
-    address.jibunAddressEnglish ?? ""
-  }]] [[${address.detail ?? ""}]]`;
+  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${address.roadAddressEnglish ?? ""
+    }]] [[${address.jibunAddress ?? ""}::${address.jibunAddressEnglish ?? ""
+    }]] [[${address.detail ?? ""}]]`;
 }
 
 export function decodeAddress(address: string | null | undefined): Address {
@@ -126,9 +124,8 @@ export function formatAddress(address: string | Address | null | undefined) {
     return "";
   }
 
-  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${
-    decoded.detail === "" ? "" : `(${decoded.detail})`
-  }`;
+  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${decoded.detail === "" ? "" : `(${decoded.detail})`
+    }`;
 }
 
 export function formatPackaging(packaging: Model.Packaging) {
@@ -433,4 +430,53 @@ export function convertQuantity(
     packedQuantity,
     weight,
   };
+}
+
+export function securityStatusToSTring(value: Model.Enum.SecurityStatus) {
+  switch (value) {
+    case "NONE":
+      return "기본";
+    case "ENDORSED":
+      return "배서 지급";
+    case "NORMAL_PAYMENT":
+      return "정상 결제";
+    case "DISCOUNT_PAYMENT":
+      return "할인 결제";
+    case "INSOLVENCY":
+      return "부도";
+    case "LOST":
+      return "분실";
+    case "SAFEKEEPING":
+      return "보관";
+  }
+}
+
+export function drawedStatusToSTring(value: Model.Enum.DrawedStatus) {
+  switch (value) {
+    case "SELF":
+      return "자사 발행";
+    case "ACCOUNTED":
+      return "수금";
+  }
+}
+
+export function securityTypeToSTring(value: Model.Enum.SecurityType) {
+  switch (value) {
+    case "PROMISSORY_NOTE":
+      return "약속 어음";
+    case "ELECTRONIC_NOTE":
+      return "전자 어음";
+    case "ELECTRONIC_BOND":
+      return "전자 채권";
+    case "PERSONAL_CHECK":
+      return "자기앞 수표";
+    case "DEMAND_DRAFT":
+      return "당좌 수표";
+    case "HOUSEHOLD_CHECK":
+      return "가계 수표";
+    case "STATIONERY_NOTE":
+      return "문방구 어음";
+    case "ETC":
+      return "기타";
+  }
 }

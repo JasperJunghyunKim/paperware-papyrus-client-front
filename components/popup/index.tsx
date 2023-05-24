@@ -11,3 +11,4 @@ export * as Shipping from "./shipping";
 export * as Accounted from "./accounted";
 export * as Card from "./card";
 export * as BankAccount from "./bank-account";
+export * as Security from "./security";

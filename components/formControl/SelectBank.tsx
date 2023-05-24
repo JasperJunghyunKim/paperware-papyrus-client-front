@@ -109,7 +109,7 @@ export const BANK_OPTIONS = [
 ];
 
 interface Props {
-  isDisabled?: boolean;
+  disabled?: boolean;
   value?: Model.Enum.Bank & string & number;
   onChange?: (value: number) => void;
 }
@@ -120,7 +120,7 @@ export default function Component(props: Props) {
       <Select
         value={props.value}
         onChange={props.onChange}
-        disabled={props.isDisabled}
+        disabled={props.disabled}
         options={BANK_OPTIONS}
         placeholder="은행 목록"
       />

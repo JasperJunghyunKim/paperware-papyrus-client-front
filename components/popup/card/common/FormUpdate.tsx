@@ -11,7 +11,29 @@ interface Props {
 
 export default function Component(props: Props) {
   return (
-    <Form form={props.form} onFinish={props.onFinish} layout="vertical">
+    <Form form={props.form}
+      onFinish={(values) => {
+        props.onFinish(values);
+      }}
+      layout="vertical"
+      disabled={!props.edit}
+      rootClassName="flex flex-col gap-y-4">
+      <div className="flex flex-row justify-end gap-x-2">
+        <Button.Preset.Edit
+          label="내용 수정"
+          onClick={() => props.onEditChange(true)}
+          hidden={props.edit}
+        />
+        <Button.Default
+          label="수정 취소"
+          onClick={() => props.onEditChange(false)}
+          hidden={!props.edit}
+        />
+        <Button.Preset.Submit label="내용 저장" hidden={!props.edit} />
+      </div>
+
+      <div className="h-px bg-gray-200" />
+
       <Form.Item
         name="cardName"
         label={"카드 이름"}
@@ -36,9 +58,6 @@ export default function Component(props: Props) {
         label={"소유자명"}
       >
         <Input disabled />
-      </Form.Item>
-      <Form.Item className="flex justify-end">
-        <Button.Preset.Submit label="카드 수정" />
       </Form.Item>
     </Form>
   );

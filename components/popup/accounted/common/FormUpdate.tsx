@@ -82,6 +82,7 @@ export default function Component(props: Props) {
       <Form.Item name="partnerNickName" label="거래처">
         <Input disabled />
       </Form.Item>
+
       <Form.Item name="accountedDate" label={`${labelName}일`} rules={[{ required: true }]}>
         <FormControl.DatePicker value={accountedDate} />
       </Form.Item>

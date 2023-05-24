@@ -10,23 +10,23 @@ export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
   const [page, setPage] = usePage();
-  const [selected, setSelected] = useState<Model.Card[]>([]);
+  const [selected, setSelected] = useState<Model.Security[]>([]);
 
   const only = Util.only(selected);
 
-  const list = ApiHook.Inhouse.Card.useGetCardList({ query: page });
-  const api = ApiHook.Inhouse.Card.useCardDelete();
+  const list = ApiHook.Inhouse.Security.useGetSecurityList({ query: page });
+  const api = ApiHook.Inhouse.Security.useSecurityDelete();
 
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
-      !(await Util.confirm(`해당 유가증권을 (${only.cardName})를 삭제하시겠습니까?`))
+      !(await Util.confirm(`해당 유가증권을 (${only.securitySerial})를 삭제하시겠습니까?`))
     ) {
       return;
     }
 
     await api.mutateAsync({
-      id: only.cardId,
+      id: only.securityId,
     });
 
   }, [api, only]);
@@ -42,7 +42,7 @@ export default function Component() {
         {only && (
           <Toolbar.ButtonPreset.Update
             label="유가증권 상세"
-            onClick={() => setOpenUpdate(only.cardId)}
+            onClick={() => setOpenUpdate(only.securityId)}
           />
         )}
         {only && (
@@ -52,48 +52,65 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
-      <Table.Default<Model.Card>
+      <Table.Default<Model.Security>
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) => record.cardId}
+        keySelector={(record) => record.securityId}
         selected={selected}
         onSelectedChange={setSelected}
         selection="single"
         columns={[
           {
             title: "생성구분",
-            dataIndex: ["cardName"],
+            dataIndex: ["drawedStatus"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.drawedStatusToSTring(value)}`}</div>
+            ),
           },
           {
             title: "유형",
-            dataIndex: ["cardCompany"],
-            render: (value) => CARD_OPTIONS.find((item) => item.value === value)?.label,
+            dataIndex: ["securityType"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.securityTypeToSTring(value)}`}</div>
+            ),
           },
           {
             title: "번호",
-            dataIndex: ["cardNumber"],
+            dataIndex: ["securitySerial"],
           },
           {
             title: "금액",
-            dataIndex: ["cardHolder"],
+            dataIndex: ["securityAmount"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.comma(value)}`}</div>
+            ),
           },
           {
             title: "발행일",
-            dataIndex: ["cardHolder"],
+            dataIndex: ["drawedDate"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(value)}`}</div>
+            ),
           },
           {
             title: "만기일",
-            dataIndex: ["cardHolder"],
+            dataIndex: ["maturedDate"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(value)}`}</div>
+            ),
           },
           {
             title: "상태",
-            dataIndex: ["cardHolder"],
+            dataIndex: ["securityStatus"],
+            render: (value) => (
+              <div className="text-right font-fixed">{`${Util.securityStatusToSTring(value)}`}</div>
+            ),
           },
         ]}
       />
-      <Popup.Card.Create open={openCreate} onClose={setOpenCreate} />
-      <Popup.Card.Update open={openUpdate} onClose={setOpenUpdate} />
+      <Popup.Security.Create open={openCreate} onClose={setOpenCreate} />
+      <Popup.Security.Update open={openUpdate} onClose={setOpenUpdate} />
     </Page>
   );
 }
