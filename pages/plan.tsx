@@ -43,14 +43,10 @@ export default function Component() {
         />
       </StatBar.Container>
       <Toolbar.Container>
-        <Toolbar.ButtonPreset.Create
-          label="작업 계획 추가"
-          onClick={() => setOpenCreate(true)}
-        />
         <div className="flex-1" />
         {only && (
           <Toolbar.ButtonPreset.Update
-            label="선택 작업 계획 상세"
+            label="상세 정보"
             onClick={() => setOpenUpdate(only.id)}
           />
         )}

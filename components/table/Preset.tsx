@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { PaperUtil, Util } from "@/common";
+import { ApiHook, PaperUtil, Util } from "@/common";
 import { Quantity } from "@/common/paperUtil";
 import { ColumnType } from "antd/lib/table/interface";
 import { Icon } from "..";
@@ -322,6 +322,30 @@ export function columnConnection<T>(path: string[]): ColumnType<T>[] {
           </div>
         </div>
       ),
+    },
+  ];
+}
+
+export function useColumnPartner<T>(
+  companyRegistrationNumberPath: string[],
+  options?: {
+    title?: string;
+  }
+): ColumnType<T>[] {
+  const partners = ApiHook.Partner.Partner.useGetList();
+
+  return [
+    {
+      title: options?.title ?? "거래처",
+      dataIndex: [...companyRegistrationNumberPath],
+      render: (value: string) => {
+        return (
+          <div>
+            {partners.data?.find((p) => p.companyRegistrationNumber == value)
+              ?.partnerNickName ?? ""}
+          </div>
+        );
+      },
     },
   ];
 }

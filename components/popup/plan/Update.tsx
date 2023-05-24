@@ -44,7 +44,7 @@ export default function Component(props: Props) {
     await apiStart.mutateAsync({
       id: data.data.id,
     });
-  }, [props.open]);
+  }, [props.open, data.data]);
 
   const apiComplete = ApiHook.Working.Plan.useComplete();
   const cmdComplete = useCallback(async () => {
@@ -55,7 +55,7 @@ export default function Component(props: Props) {
     await apiComplete.mutateAsync({
       id: data.data.id,
     });
-  }, [props.open]);
+  }, [props.open, data.data]);
 
   useEffect(() => {
     if (stockId && props.open && !openRegister) {

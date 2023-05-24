@@ -16,6 +16,10 @@ export default function Component() {
   const [openStockUpsert, setOpenStockUpsert] =
     useState<OrderUpsertOpen>(false);
 
+  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
+    ["dstCompany", "companyRegistrationNumber"],
+    { title: "매입처" }
+  );
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.OrderStock.useGetList({
     query: {
@@ -51,10 +55,7 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          {
-            title: "매입처 이름",
-            dataIndex: ["dstCompany", "businessName"],
-          },
+          ...partnerColumn,
           {
             title: "사업자등록번호",
             dataIndex: ["dstCompany", "companyRegistrationNumber"],

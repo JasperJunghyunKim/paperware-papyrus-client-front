@@ -47,7 +47,6 @@ export default function Component(props: Props) {
           ? converted?.packed?.value
           : converted?.unpacked?.value;
       props.onChange?.(newValue ?? 0);
-      console.log(converted);
     },
     [props.spec]
   );

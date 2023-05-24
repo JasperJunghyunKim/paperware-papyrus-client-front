@@ -358,19 +358,19 @@ export function planStatusToString(value: Model.Enum.PlanStatus) {
 export function orderStatusToSTring(value: Model.Enum.OrderStatus) {
   switch (value) {
     case "ORDER_PREPARING":
-      return "주문 작성중";
+      return "작성중";
     case "OFFER_PREPARING":
-      return "수주 작성중";
+      return "작성중";
     case "ORDER_REQUESTED":
-      return "주문 승인 대기중";
+      return "주문 접수";
     case "OFFER_REQUESTED":
-      return "수주 승인 대기중";
+      return "구매 제안 요청";
     case "ORDER_REJECTED":
-      return "주문 거절";
+      return "주문 반려";
     case "OFFER_REJECTED":
-      return "수주 거절";
+      return "구매 제안 반려";
     case "ACCEPTED":
-      return "주문 승인";
+      return "승인";
   }
 }
 

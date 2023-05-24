@@ -32,11 +32,18 @@ export function useGetItem(params: { id: number | null }) {
 }
 
 export function useCreate() {
+  const queryClient = useQueryClient();
+
   return useMutation(
     ["plan", "create"],
     async (params: { data: Api.PlanCreateRequest }) => {
       const resp = await axios.post(`${API_HOST}/working/plan`, params.data);
       return resp.data;
+    },
+    {
+      onSuccess: async (_data, _variables) => {
+        await queryClient.invalidateQueries(["plan", "list"]);
+      },
     }
   );
 }
@@ -68,6 +75,7 @@ export function useStart() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
       },
     }
   );
@@ -87,6 +95,7 @@ export function useComplete() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
       },
     }
   );
@@ -107,6 +116,7 @@ export function useRegisterInputStock() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
       },
     }
   );
