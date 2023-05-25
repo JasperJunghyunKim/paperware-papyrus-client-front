@@ -330,6 +330,7 @@ export function useColumnPartner<T>(
   companyRegistrationNumberPath: string[],
   options?: {
     title?: string;
+    fallback?: (record: T) => string;
   }
 ): ColumnType<T>[] {
   const partners = ApiHook.Partner.Partner.useGetList();
@@ -338,11 +339,13 @@ export function useColumnPartner<T>(
     {
       title: options?.title ?? "거래처",
       dataIndex: [...companyRegistrationNumberPath],
-      render: (value: string) => {
+      render: (value: string, record: T) => {
         return (
           <div>
             {partners.data?.find((p) => p.companyRegistrationNumber == value)
-              ?.partnerNickName ?? ""}
+              ?.partnerNickName ??
+              options?.fallback?.(record) ??
+              ""}
           </div>
         );
       },

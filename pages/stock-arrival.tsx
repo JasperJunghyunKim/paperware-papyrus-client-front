@@ -6,12 +6,14 @@ import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
 
+type RecordType = Model.ArrivalStockGroup;
+
 export default function Component() {
   const [page, setPage] = usePage();
   const list = ApiHook.Stock.StockArrival.useGetList({
     query: page,
   });
-  const [selected, setSelected] = useState<Model.StockEvent[]>([]);
+  const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
   const [openApply, setOpenApply] = useState<number | false>(false);
@@ -39,7 +41,7 @@ export default function Component() {
           onClick={() => only && setOpenApply(only.id)}
         />
       </Toolbar.Container>
-      <Table.Default<Model.StockEvent>
+      <Table.Default<RecordType>
         data={list.data}
         page={page}
         setPage={setPage}
@@ -49,16 +51,13 @@ export default function Component() {
         selection="single"
         columns={[
           {
-            title: "#",
-            dataIndex: "id",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
+            title: "작업 구분",
+            render: (value: RecordType) => (
+              <div>{value.orderStock ? "정상 매입" : ""}</div>
             ),
           },
           {
-            title: "주문 번호",
+            title: "작업 번호",
             dataIndex: ["stock", "initialOrder", "orderNo"],
             render: (value, record) => (
               <div className="flex">
@@ -70,39 +69,34 @@ export default function Component() {
           },
           {
             title: "거래처",
-            dataIndex: ["stock", "initialOrder", "dstCompany", "businessName"],
+            dataIndex: ["orderCompanyInfo", "businessName"],
           },
           {
             title: "도착 예정일",
-            dataIndex: ["stock", "initialOrder", "wantedDate"],
+            dataIndex: ["orderInfo", "wantedDate"],
             render: (value) => Util.formatIso8601ToLocalDate(value),
           },
           {
             title: "도착지",
-            dataIndex: [
-              "stock",
-              "initialOrder",
-              "orderStock",
-              "dstLocation",
-              "name",
-            ],
+            dataIndex: ["orderStock", "dstLocation", "name"],
           },
-          {
-            title: "예정일",
-          },
-          ...Table.Preset.columnStockGroup<Model.StockEvent>(
-            (p) => (p as any).stockGroup, // TODO
-            ["stockGroup"]
+          ...Table.Preset.columnStockGroup<RecordType>(
+            (p) => p, // TODO
+            []
           ),
-          { title: "배정 수량" },
-          { title: "" },
-          { title: "배정 중량" },
-          { title: "입고 수량" },
-          { title: "" },
-          { title: "입고 중량" },
-          ...Table.Preset.columnQuantity<Model.StockEvent>(
-            (p) => (p as any).stockGroup, // TODO
-            ["change"],
+          ...Table.Preset.columnQuantity<RecordType>(
+            (p) => p, // TODO
+            ["nonStoringQuantity"],
+            { prefix: "배정" }
+          ),
+          ...Table.Preset.columnQuantity<RecordType>(
+            (p) => p, // TODO
+            ["storingQuantity"],
+            { prefix: "입고" }
+          ),
+          ...Table.Preset.columnQuantity<RecordType>(
+            (p) => p, // TODO
+            ["totalQuantity"],
             { prefix: "전체" }
           ),
         ]}

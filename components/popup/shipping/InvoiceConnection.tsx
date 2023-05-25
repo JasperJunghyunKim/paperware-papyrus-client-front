@@ -48,7 +48,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title="자사 재고 선택"
+      title="미상차 운송장 목록"
       {...props}
       open={!!props.open}
       width="calc(100vw - 200px)"

@@ -7,8 +7,8 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 export function useGetList(params: {
   query: Partial<Api.StockArrivalListQuery>;
 }) {
-  return useQuery(["stock-rrival", "list"], async () => {
-    const { data } = await axios.get<Api.StockArrivalResponse>(
+  return useQuery(["stock-arrival", "list"], async () => {
+    const { data } = await axios.get<Api.OrderStockArrivalListResponse>(
       `${API_HOST}/stock-arrival`,
       {
         params: params.query,
@@ -36,7 +36,7 @@ export function useApply() {
     },
     {
       onSuccess: async () => {
-        await queryClient.invalidateQueries(["stock-rrival", "list"]);
+        await queryClient.invalidateQueries(["stock-arrival", "list"]);
         message.info("재고 입고가 완료되었습니다.");
       },
     }

@@ -18,7 +18,7 @@ export default function Component() {
 
   const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
     ["dstCompany", "companyRegistrationNumber"],
-    { title: "매입처" }
+    { title: "매입처", fallback: (record) => record.dstCompany.businessName }
   );
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.OrderStock.useGetList({

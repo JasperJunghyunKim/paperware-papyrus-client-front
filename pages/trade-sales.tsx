@@ -6,7 +6,7 @@ import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
 import { useState } from "react";
-import { TbHome2, TbHomeLink } from "react-icons/tb";
+import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
 
@@ -19,7 +19,7 @@ export default function Component() {
 
   const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
     ["srcCompany", "companyRegistrationNumber"],
-    { title: "매출처" }
+    { title: "매출처", fallback: (record) => record.srcCompany.businessName }
   );
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.OrderStock.useGetList({

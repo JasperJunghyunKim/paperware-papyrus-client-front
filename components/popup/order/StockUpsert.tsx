@@ -314,6 +314,7 @@ function DataForm(props: DataFormProps) {
   const [form] = useForm<
     Api.OrderStockCreateRequest | Api.OrderStockUpdateRequest
   >();
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
   );
@@ -331,11 +332,17 @@ function DataForm(props: DataFormProps) {
     },
   });
 
+  const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
+  const paperColorGroupId = useWatch(["paperColorGroupId"], form);
+  const paperColorId = useWatch(["paperColorId"], form);
+  const paperPatternId = useWatch(["paperPatternId"], form);
+  const paperCertId = useWatch(["paperCertId"], form);
+  const quantity = useWatch(["quantity"], form);
 
   const editable =
     props.initialOrder === null ||
@@ -345,6 +352,22 @@ function DataForm(props: DataFormProps) {
     !props.isSales &&
     companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
       ?.srcCompany.managedById !== null;
+
+  const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetGroupQuantity({
+    query: {
+      initialOrderId: null, // TODO
+      warehouseId: warehouse?.id ?? null,
+      productId: productId ?? null,
+      packagingId: packagingId ?? null,
+      grammage: grammage ?? null,
+      sizeX: sizeX ?? null,
+      sizeY: sizeY ?? null,
+      paperColorGroupId: paperColorGroupId ?? null,
+      paperColorId: paperColorId ?? null,
+      paperPatternId: paperPatternId ?? null,
+      paperCertId: paperCertId ?? null,
+    },
+  });
 
   useEffect(() => {
     if (props.initialOrder) {
@@ -367,6 +390,7 @@ function DataForm(props: DataFormProps) {
         quantity: props.initialOrder.orderStock.quantity,
         memo: props.initialOrder.memo,
       });
+      setOrderId(props.initialOrder.orderStock.orderId);
       setWarehouse(props.initialOrder.orderStock.warehouse);
     } else {
       form.resetFields();
@@ -385,6 +409,7 @@ function DataForm(props: DataFormProps) {
       return await apiCreate.mutateAsync({
         data: {
           ...values,
+          warehouseId: warehouse?.id ?? null,
           dstCompanyId: me.data.companyId,
         },
       });
@@ -392,11 +417,12 @@ function DataForm(props: DataFormProps) {
       return await apiCreate.mutateAsync({
         data: {
           ...values,
+          warehouseId: warehouse?.id ?? null,
           srcCompanyId: me.data.companyId,
         },
       });
     }
-  }, [form, apiCreate, me, props.isOffer]);
+  }, [form, apiCreate, me, props.isOffer, warehouse]);
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
   const cmdUpdate = useCallback(async () => {
@@ -479,14 +505,6 @@ function DataForm(props: DataFormProps) {
       >
         <FormControl.DatePicker disabled={!editable} />
       </Form.Item>
-      <Form.Item
-        name="isDirectShipping"
-        label="직송"
-        valuePropName="checked"
-        rules={REQUIRED_RULES}
-      >
-        <Switch disabled={!editable} />
-      </Form.Item>
       {(srcCompanyId || dstCompanyId) && (
         <>
           <FormControl.Util.Split
@@ -496,10 +514,11 @@ function DataForm(props: DataFormProps) {
             <div className="flex-initial flex mb-4">
               <Button.Preset.SelectStockGroupInhouse
                 onSelect={(stockGroup) => {
+                  setOrderId(stockGroup.orderStock?.orderId ?? null);
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
                     warehouseId: stockGroup.warehouse?.id,
-                    orderStockId: stockGroup.orderStock?.id,
+                    orderStockId: stockGroup.orderStock?.orderId,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -541,11 +560,14 @@ function DataForm(props: DataFormProps) {
           )}
           {!manual && (
             <>
-              {props.isSales ? (
-                <Form.Item name="warehouseId" label="창고">
-                  <FormControl.SelectWarehouse disabled />
-                </Form.Item>
-              ) : (
+              <Form.Item
+                name="warehouseId"
+                label="창고"
+                hidden={!props.isSales}
+              >
+                <FormControl.SelectWarehouse disabled />
+              </Form.Item>
+              {!props.isSales && (
                 <Form.Item label="창고" rules={[{ required: true }]}>
                   <Input value={warehouse?.name} disabled />
                 </Form.Item>
@@ -640,20 +662,48 @@ function DataForm(props: DataFormProps) {
         </>
       )}
       {packaging && (
-        <Form.Item
-          name="quantity"
-          label={props.isSales ? "매출 수량" : "매입 수량"}
-        >
-          <FormControl.Quantity
-            spec={{
-              grammage,
-              sizeX,
-              sizeY,
-              packaging,
-            }}
-            disabled={!editable}
-          />
-        </Form.Item>
+        <>
+          <Form.Item label={"실물 수량"}>
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              value={stockGroupQuantity.data?.totalQuantity ?? 0}
+              disabled
+            />
+          </Form.Item>
+          <Form.Item label={"가용 수량"}>
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              value={
+                (stockGroupQuantity.data?.availableQuantity ?? 0) - quantity
+              }
+              disabled
+            />
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label={props.isSales ? "매출 수량" : "매입 수량"}
+          >
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              disabled={!editable}
+            />
+          </Form.Item>
+        </>
       )}
       <FormControl.Util.Split label="기타" />
       <Form.Item name="memo" label="기타 요청사항">
@@ -874,7 +924,7 @@ function RightSideOrder(props: RightSideOrderProps) {
         </Toolbar.Container>
         <div className="flex-1 overflow-y-scroll px-4 pb-4">
           <div className="flex-1">
-            <Table.Default<Model.StockGroupEvent>
+            <Table.Default<Model.ArrivalStockGroup>
               data={list.data ?? undefined}
               page={page}
               setPage={setPage}
@@ -882,38 +932,54 @@ function RightSideOrder(props: RightSideOrderProps) {
               selection="none"
               columns={[
                 {
-                  title: "#",
-                  dataIndex: "id",
-                  render: (value) => (
-                    <div className="text-right font-fixed">{`${Util.comma(
-                      value
-                    )}`}</div>
+                  title: "작업 구분",
+                  render: (value: Model.ArrivalStockGroup) => (
+                    <div>{value.orderStock ? "정상 매입" : ""}</div>
                   ),
                 },
-                ...Table.Preset.columnStockGroup<Model.StockGroupEvent>(
-                  (p) => p.stockGroup,
-                  ["stockGroup"]
-                ),
                 {
-                  title: "입고 수량",
-                  dataIndex: "change",
+                  title: "작업 번호",
+                  dataIndex: ["stock", "initialOrder", "orderNo"],
                   render: (value) => (
-                    <div className="text-right font-fixed">{`${Util.comma(
-                      value
-                    )}`}</div>
-                  ),
-                  fixed: "right",
-                },
-                {
-                  title: "입고 여부",
-                  dataIndex: "status",
-                  render: (value: Model.Enum.StockEventStatus) => (
-                    <div className="font-bold">
-                      {value === "NORMAL" ? "입고 완료" : "입고 대기중"}
+                    <div className="flex">
+                      <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                        {value}
+                      </div>
                     </div>
                   ),
-                  fixed: "right",
                 },
+                {
+                  title: "거래처",
+                  dataIndex: ["orderCompanyInfo", "businessName"],
+                },
+                {
+                  title: "도착 예정일",
+                  dataIndex: ["orderInfo", "wantedDate"],
+                  render: (value) => Util.formatIso8601ToLocalDate(value),
+                },
+                {
+                  title: "도착지",
+                  dataIndex: ["orderStock", "dstLocation", "name"],
+                },
+                ...Table.Preset.columnStockGroup<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  []
+                ),
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["nonStoringQuantity"],
+                  { prefix: "배정" }
+                ),
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["storingQuantity"],
+                  { prefix: "입고" }
+                ),
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["totalQuantity"],
+                  { prefix: "전체" }
+                ),
               ]}
             />
           </div>
