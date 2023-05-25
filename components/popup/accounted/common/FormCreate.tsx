@@ -19,20 +19,33 @@ interface Props {
 
 export default function Component(props: Props) {
   const [labelName] = useState<string>(`${props.accountedType === 'PAID' ? '지급' : '수금'}`);
-  const toatlAmountInputRef = useRef(null);
+  const amountCardRef = useRef(null);
   const amount = useWatch('amount', props.form);
+  const isCharge = useWatch('isCharge', props.form);
   const chargeAmount = useWatch('chargeAmount', props.form);
   const [messageApi, contextHolder] = message.useMessage();
   const securityAtom = useRecoilValue(selectSecurityAtom);
 
   useEffect(() => {
     if (!isEmpty(securityAtom)) {
-      props.form.setFieldValue("securityAmount", securityAtom.securityAmount)
+      props.form.setFieldValue("securityType", securityAtom.securityType);
+      props.form.setFieldValue("securitySerial", securityAtom.securitySerial);
+      props.form.setFieldValue("securityAmount", securityAtom.securityAmount);
+      props.form.setFieldValue("drawedDate", securityAtom.drawedDate);
+      props.form.setFieldValue("drawedBank", securityAtom.drawedBank);
+      props.form.setFieldValue("drawedBankBranch", securityAtom.drawedBankBranch);
+      props.form.setFieldValue("drawedRegion", securityAtom.drawedRegion);
+      props.form.setFieldValue("drawer", securityAtom.drawer);
+      props.form.setFieldValue("maturedDate", securityAtom.maturedDate);
+      props.form.setFieldValue("payingBank", securityAtom.payingBank);
+      props.form.setFieldValue("payingBankBranch", securityAtom.payingBankBranch);
+      props.form.setFieldValue("payer", securityAtom.payer);
+      props.form.setFieldValue("securityMemo", securityAtom.memo);
     }
   }, [securityAtom, props])
 
   useEffect(() => {
-    if (toatlAmountInputRef !== null) {
+    if (isCharge && amountCardRef !== null) {
       if (props.accountedType === 'PAID') {
         if (amount < chargeAmount) {
           return messageApi.open({
@@ -55,9 +68,11 @@ export default function Component(props: Props) {
          */
         props.form.setFieldsValue({ totalAmount: amount + chargeAmount })
       }
-
+    } else {
+      props.form.setFieldsValue({ totalAmount: amount })
     }
-  }, [props, amount, chargeAmount, messageApi])
+
+  }, [props, amount, chargeAmount, messageApi, isCharge])
 
 
   useEffect(() => {
@@ -111,6 +126,21 @@ export default function Component(props: Props) {
                 unit="원"
               />
             </Form.Item>
+          ) : (getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method) ? (
+            <Form.Item
+              name="totalAmount"
+              label={`${labelName} 금액`}
+              rules={[{ required: true }]}
+            >
+              <FormControl.Number
+                ref={amountCardRef}
+                disabled
+                rootClassName="text-right"
+                min={0}
+                precision={0}
+                unit="원"
+              />
+            </Form.Item>
           ) : (
             <Form.Item
               name="amount"
@@ -142,11 +172,11 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method ? (
+          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
             <Form.Item name="cardId" label="카드 목록" rules={[{ required: true }]}>
               <FormControl.SelectApiCard />
             </Form.Item>
-          ) : null
+          )
         }
       </Form.Item>
 
@@ -157,42 +187,34 @@ export default function Component(props: Props) {
         }}
       >
         {({ getFieldValue }) =>
-          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method ? (
+          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
             <>
-              <Form.Item name="isCharge" label="수수료" valuePropName="checked">
-                <Checkbox>수수료 포함</Checkbox>
+              <Form.Item
+                name="amount"
+                label="금액"
+                shouldUpdate={(prevValues, currentValues) => {
+                  return prevValues.amount !== currentValues.amount || prevValues.chargeAmount !== currentValues.chargeAmount
+                }}>
+                <FormControl.Number
+                  rootClassName="text-right"
+                  unit="원"
+                />
               </Form.Item>
-              {
-                getFieldValue("isCharge") === true && (
-                  <Form.Item name="chargeAmount" label="수수료 금액" rules={[{ required: true }]}>
-                    <FormControl.Number
-                      rootClassName="text-right"
-                      min={0}
-                      precision={0}
-                      unit="원"
-                    />
-                  </Form.Item>
-                )
-              }
-              {
-                getFieldValue("isCharge") === true && (
-                  <Form.Item
-                    name="totalAmount"
-                    label="합산 금액"
-                    shouldUpdate={(prevValues, currentValues) => {
-                      return prevValues.amount !== currentValues.amount || prevValues.chargeAmount !== currentValues.chargeAmount
-                    }}>
-                    <FormControl.Number
-                      ref={toatlAmountInputRef}
-                      rootClassName="text-right"
-                      unit="원"
-                      disabled
-                    />
-                  </Form.Item>
-                )
-              }
+              <Form.Item name="chargeAmount" label="수수료 금액" rules={[{ required: true }]}>
+                <FormControl.Number
+                  rootClassName="text-right"
+                  min={0}
+                  precision={0}
+                  unit="원"
+                />
+              </Form.Item>
+              <Form.Item name="isCharge" label="수수료" valuePropName="checked">
+                <Checkbox>
+                  수수료 {props.accountedType === 'PAID' ? '지급' : '수금'} 포함
+                </Checkbox>
+              </Form.Item>
             </>
-          ) : null
+          )
         }
       </Form.Item>
 
@@ -201,11 +223,11 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method ? (
+          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
             <Form.Item name="approvalNumber" label="승인번호">
               <Input />
             </Form.Item>
-          ) : null
+          )
         }
       </Form.Item>
 
@@ -214,11 +236,11 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          (getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method) ? (
+          (getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method) && (
             <Form.Item name="bankAccountId" label="계좌 목록" rules={[{ required: true }]}>
               <FormControl.SelectApiBank />
             </Form.Item>
-          ) : null
+          )
         }
       </Form.Item>
 
@@ -229,87 +251,6 @@ export default function Component(props: Props) {
         {({ getFieldValue }) =>
           (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) && props.accountedType === 'COLLECTED' ? (
             <>
-              <Form.Item
-                name="securityType"
-                label={"유가증권 유형"}
-                rules={[{ required: true }]}
-              >
-                <FormControl.SelectSecurityType />
-              </Form.Item>
-              <Form.Item
-                name="securitySerial"
-                label={"유가증권 번호"}
-                rules={[{ required: true }]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="securityAmount"
-                label="유가증권 금액"
-                rules={[{ required: true }]}
-              >
-                <FormControl.Number />
-              </Form.Item>
-              <Form.Item
-                name="drawedDate"
-                label={"발행일"}
-              >
-                <FormControl.DatePicker />
-              </Form.Item>
-              <Form.Item
-                name="drawedBank"
-                label={"발행은행"}
-              >
-                <FormControl.SelectBank />
-              </Form.Item>
-              <Form.Item
-                name="drawedBankBranch"
-                label={"발행 지점명"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="drawedRegion"
-                label={"발행지"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="drawer"
-                label={"발행인"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="maturedDate"
-                label={"만기일"}
-              >
-                <FormControl.DatePicker />
-              </Form.Item>
-              <Form.Item
-                name="payingBank"
-                label={"지급은행"}
-              >
-                <FormControl.SelectBank />
-              </Form.Item>
-              <Form.Item
-                name="payingBankBranch"
-                label={"지급 지점명"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="payer"
-                label={"지급인"}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="securityMemo"
-                label={"유가증권 비고"}
-              >
-                <Input />
-              </Form.Item>
               <Form.Item
                 name="endorsementType"
                 label={"배서구분"}
@@ -329,12 +270,105 @@ export default function Component(props: Props) {
               <Form.Item
                 name="securityId"
                 label={"유가증권 목록"}
+                rules={[{ required: true }]}
               >
-                <FormControl.SelectSecurity />
+                <FormControl.SelectSecurity isFilter={true} />
               </Form.Item>
             </>
           )
         }
+      </Form.Item>
+
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
+      >
+        {({ getFieldValue }) =>
+          (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) && (
+            <>
+              <Form.Item
+                name="securityType"
+                label={"유가증권 유형"}
+                rules={[{ required: true }]}
+              >
+                <FormControl.SelectSecurityType disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="securitySerial"
+                label={"유가증권 번호"}
+                rules={[{ required: true }]}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="securityAmount"
+                label="유가증권 금액"
+                rules={[{ required: true }]}
+              >
+                <FormControl.Number disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="drawedDate"
+                label={"발행일"}
+              >
+                <FormControl.DatePicker disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="drawedBank"
+                label={"발행은행"}
+              >
+                <FormControl.SelectBank disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="drawedBankBranch"
+                label={"발행 지점명"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="drawedRegion"
+                label={"발행지"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="drawer"
+                label={"발행인"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="maturedDate"
+                label={"만기일"}
+              >
+                <FormControl.DatePicker disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="payingBank"
+                label={"지급은행"}
+              >
+                <FormControl.SelectBank disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="payingBankBranch"
+                label={"지급 지점명"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="payer"
+                label={"지급인"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+              <Form.Item
+                name="securityMemo"
+                label={"유가증권 비고"}
+              >
+                <Input disabled={props.accountedType === 'PAID'} />
+              </Form.Item>
+            </>
+          )}
       </Form.Item>
 
       <Form.Item name="memo" label={`${props.accountedType === 'PAID' ? '지급' : '수금'} 비고`}>

@@ -12,7 +12,7 @@ export const selectSecurityAtom = atom<Model.Security>({
 })
 
 interface Props {
-  isAll?: boolean;
+  isFilter?: boolean;
   value?: number;
   onChange?: (value: number) => void;
 }
@@ -37,11 +37,19 @@ export default function Component(props: Props) {
   }, [props, setSelectSecurity, staticData])
 
   const options = useMemo(() => {
-    return staticData.data?.items.filter(item => item.securityStatus === 'NONE').map((item) => ({
-      label: <Item item={item} />,
-      value: item.securityId,
-    }));
-  }, [staticData]);
+
+    if (props.isFilter) {
+      return staticData.data?.items.filter(item => item.securityStatus === 'NONE').map((item) => ({
+        label: <Item item={item} />,
+        value: item.securityId,
+      }));
+    } else {
+      return staticData.data?.items.filter(item => item.securityStatus === 'NONE' || item.securityId === props.value).map((item) => ({
+        label: <Item item={item} />,
+        value: item.securityId,
+      }));
+    }
+  }, [staticData, props]);
 
   const onChange = useCallback((value: number) => {
     const selectData = staticData.data?.items?.filter((item) => item.securityId === value)[0];
@@ -71,13 +79,10 @@ function Item(props: ItemProps) {
   const { item } = props;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div className="flex-initial text-gray-600">{Util.drawedStatusToSTring(item?.drawedStatus)}</div>
-      <div className="flex-initial whitespace-pre">
-        {Util.securityTypeToSTring(item?.securityType)}
+      <div>
+        유가증권 번호:
       </div>
       <div className="flex-1">{item?.securitySerial}</div>
-      <div className="flex-1">{Util.formatIso8601ToLocalDate(item?.drawedDate)}</div>
-      <div className="flex-1">{Util.formatIso8601ToLocalDate(item?.maturedDate)}</div>
     </div>
   );
 }

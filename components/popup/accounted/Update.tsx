@@ -52,14 +52,21 @@ export default function Component(props: Props) {
           });
           break;
         case 'CARD_PAYMENT':
+          const cardReq = values as Api.ByCardCreateRequest;
           if ((values as Api.ByCardUpdateRequest).amount < (values as Api.ByCardUpdateRequest).chargeAmount) {
             return messageApi.open({
               type: 'error',
               content: '수수료가 지급금액보다 큽니다.'
             })
           }
+
+          // 수수료가 체크 안될경우... 
+          if (!cardReq.isCharge) {
+            cardReq.totalAmount = 0;
+          }
+
           await apiByCard.mutateAsync({
-            data: values as Api.ByCardUpdateRequest,
+            data: cardReq,
             id: resByCard.data?.accountedId ?? 0
           });
           break;
@@ -80,8 +87,9 @@ export default function Component(props: Props) {
                 memo: req.memo,
                 amount: req.securityAmount,
                 endorsement: req.endorsement,
+                endorsementType: req.endorsementType,
                 security: {
-                  securityId: req.securityAmount,
+                  securityId: req.securityId,
                   securityType: req.securityType,
                   securitySerial: req.securitySerial,
                   securityAmount: req.securityAmount,
@@ -197,6 +205,8 @@ export default function Component(props: Props) {
             payingBankBranch: resBySecurity.data?.security.payingBankBranch,
             payer: resBySecurity.data?.security.payer,
             securityMemo: resBySecurity.data?.security.memo,
+            endorsementType: resBySecurity.data?.endorsementType,
+            endorsement: resBySecurity.data?.endorsement
           } as any);
         } else {
           form.setFieldsValue({
@@ -245,7 +255,7 @@ export default function Component(props: Props) {
   }, [props, form, edit, resByCash, resByEtc, resByBankAccount, resByCard, resByOffset, resBySecurity]);
 
   return (
-    <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 상세`} {...props} open={!!props.open}>
+    <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 상세`} width="800px" {...props} open={!!props.open} >
       {contextHolder}
       <div className="flex-1 p-4">
         <FormUpdate

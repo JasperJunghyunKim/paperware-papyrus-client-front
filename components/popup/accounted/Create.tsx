@@ -40,6 +40,7 @@ export default function Component(props: Props) {
           await apiByBankAccount.mutateAsync({ data: values as Api.ByBankAccountCreateRequest });
           break;
         case 'CARD_PAYMENT':
+          const cardReq = values as Api.ByCardCreateRequest;
           if (values.amount < (values as Api.ByCardCreateRequest).chargeAmount) {
             return messageApi.open({
               type: 'error',
@@ -47,7 +48,12 @@ export default function Component(props: Props) {
             })
           }
 
-          await apiByCard.mutateAsync({ data: values as Api.ByCardCreateRequest });
+          // 수수료가 체크 안될경우... 
+          if (!cardReq.isCharge) {
+            cardReq.totalAmount = 0;
+          }
+
+          await apiByCard.mutateAsync({ data: cardReq });
           break;
         case 'PROMISSORY_NOTE':
           const req: any = values;
@@ -118,7 +124,7 @@ export default function Component(props: Props) {
   }, [form, props])
 
   return (
-    <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} {...props}>
+    <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} width="800px" {...props} >
       {contextHolder}
       <div className="flex-1 p-4">
         <FormCreate
