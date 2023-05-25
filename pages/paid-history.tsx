@@ -8,6 +8,7 @@ import { accountedAtom } from "@/components/condition/accounted/accounted.state"
 import { METHOD_OPTIONS } from "@/components/formControl/SelectMethod";
 import { SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
 import { Page } from "@/components/layout";
+import { message } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 
@@ -19,6 +20,7 @@ export default function Component() {
   const [page, setPage] = usePage();
   const [selectedPaid, setSelectedPaid] = useState<Model.Accounted[]>([]);
   const [only, setOnly] = useState<Model.Accounted>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const list = ApiHook.Partner.Accounted.useAccountedList({
     query: {
@@ -38,11 +40,12 @@ export default function Component() {
   const apiByBankAccountDelete = ApiHook.Partner.ByBankAccount.useByBankAccountDelete();
   const apiByCardDelete = ApiHook.Partner.ByCard.useByCardDelete();
   const apiByOffsetDelete = ApiHook.Partner.ByOffset.useByOffsetDelete();
+  const apiBySecurityDelete = ApiHook.Partner.BySecurity.useBySecurityDelete();
 
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
-      !(await Util.confirm(`해당 거래를(${only.partnerNickName})를 삭제하시겠습니까?`))
+      !(await Util.confirm(`해당 거래를 삭제하시겠습니까?`))
     ) {
       return;
     }
@@ -63,7 +66,10 @@ export default function Component() {
         });
         break;
       case 'PROMISSORY_NOTE':
-        // TODO
+        await apiBySecurityDelete.mutateAsync({
+          id: only.accountedId,
+          accountedType: only.accountedType,
+        });
         break;
       case 'OFFSET':
         await apiByOffsetDelete.mutateAsync({
@@ -85,10 +91,11 @@ export default function Component() {
         break;
     }
 
-  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, only]);
+  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, only]);
 
   return (
     <Page title="지급 내역 조회">
+      {contextHolder}
       <Condition.Container>
         <Condition.Item accountedType="PAID" />
       </Condition.Container>

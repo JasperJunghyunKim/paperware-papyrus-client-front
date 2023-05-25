@@ -11,7 +11,7 @@ export function useGetBySecurityItem(params: { id: number | false, method: Enum.
 		if (params.id === false) {
 			return null;
 		}
-		if (params.method === null || params.method !== 'CARD_PAYMENT') {
+		if (params.method === null || params.method !== 'PROMISSORY_NOTE') {
 			return null
 		}
 

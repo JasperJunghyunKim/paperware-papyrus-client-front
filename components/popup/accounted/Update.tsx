@@ -8,7 +8,7 @@ import { useForm } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 import FormUpdate from "./common/FormUpdate";
 
-type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest | { partnerNickName?: string, accountedType?: string };
+type Request = Api.ByCashUpdateRequest | Api.ByEtcUpdateRequest | Api.ByBankAccountUpdateRequest | Api.ByCardUpdateRequest | Api.ByOffsetUpdateRequest | { partnerNickName?: string, accountedType?: string, securityId?: number } | Api.BySecurityUpdateRequest;
 
 export interface Props {
   method: Enum.Method | null;
@@ -27,12 +27,14 @@ export default function Component(props: Props) {
   const resByBankAccount = ApiHook.Partner.ByBankAccount.useGetByBankAccountItem({ id: props.open, method: props.method, accountedType: props.accountedType });
   const resByCard = ApiHook.Partner.ByCard.useGetByCardItem({ id: props.open, method: props.method, accountedType: props.accountedType });
   const resByOffset = ApiHook.Partner.ByOffset.useGetByOffsetItem({ id: props.open, method: props.method, accountedType: props.accountedType });
+  const resBySecurity = ApiHook.Partner.BySecurity.useGetBySecurityItem({ id: props.open, method: props.method, accountedType: props.accountedType });
 
   const apiByCash = ApiHook.Partner.ByCash.useByCashUpdate();
   const apiByEtc = ApiHook.Partner.ByEtc.useByEtcUpdate();
   const apiByBankAccount = ApiHook.Partner.ByBankAccount.useByBankAccountUpdate();
   const apiByCard = ApiHook.Partner.ByCard.useByCardUpdate();
   const apiByOffset = ApiHook.Partner.ByOffset.useByOffsetUpdate();
+  const apiBySecurity = ApiHook.Partner.BySecurity.useBySecurityUpdate();
 
   const cmd = useCallback(
     async (values: Request) => {
@@ -62,7 +64,54 @@ export default function Component(props: Props) {
           });
           break;
         case 'PROMISSORY_NOTE':
-          // TODO
+          const req: any = values;
+
+          if (props.accountedType === 'COLLECTED') {
+            if (resBySecurity.data?.security?.securityStatus !== 'NONE') {
+              return messageApi.open({
+                type: 'error',
+                content: '해당 유가증권은 사용중에 있습니다.'
+              })
+            }
+
+            await apiBySecurity.mutateAsync({
+              data: {
+                ...req,
+                memo: req.memo,
+                amount: req.securityAmount,
+                endorsement: req.endorsement,
+                security: {
+                  securityId: req.securityAmount,
+                  securityType: req.securityType,
+                  securitySerial: req.securitySerial,
+                  securityAmount: req.securityAmount,
+                  securityStatus: req.securityStatus,
+                  drawedStatus: req.drawedStatus,
+                  drawedDate: req.drawedDate,
+                  drawedBank: req.drawedBank,
+                  drawedBankBranch: req.drawedBankBranch,
+                  drawedRegion: req.drawedRegion,
+                  drawer: req.drawer,
+                  maturedDate: req.maturedDate,
+                  payingBank: req.payingBank,
+                  payingBankBranch: req.payingBankBranch,
+                  payer: req.payer,
+                  memo: req.securityMemo,
+                }
+              },
+              id: resBySecurity.data?.accountedId ?? 0
+            });
+          } else {
+            await apiBySecurity.mutateAsync({
+              data: {
+                ...req,
+                security: {
+                  securityId: req.securityId,
+                }
+              },
+              id: resBySecurity.data?.accountedId ?? 0
+            });
+          }
           break;
         case 'OFFSET':
           await apiByOffset.mutateAsync({
@@ -87,8 +136,13 @@ export default function Component(props: Props) {
       setEdit(false);
       props.onClose(false);
     },
-    [props, apiByCash, apiByEtc, resByCash, resByEtc, apiByBankAccount, resByBankAccount, apiByCard, resByCard, apiByOffset, resByOffset, messageApi]
+    [props, apiByCash, apiByEtc, resByCash, resByEtc, apiByBankAccount, resByBankAccount, apiByCard, resByCard, apiByOffset, resByOffset, apiBySecurity, resBySecurity, messageApi]
   );
+
+  useEffect(() => {
+    form.resetFields();
+    setEdit(false);
+  }, [form, props])
 
   useEffect(() => {
     switch (props.method) {
@@ -119,7 +173,43 @@ export default function Component(props: Props) {
         });
         break;
       case 'PROMISSORY_NOTE':
-        // TODO
+        if (props.accountedType === 'COLLECTED') {
+          // form object type 1level
+          form.setFieldsValue({
+            partnerNickName: resBySecurity.data?.partnerNickName,
+            accountedDate: resBySecurity.data?.accountedDate,
+            accountedMethod: resBySecurity.data?.accountedMethod,
+            accountedSubject: resBySecurity.data?.accountedSubject,
+            memo: resBySecurity.data?.memo,
+            amount: resBySecurity.data?.amount,
+            securityType: resBySecurity.data?.security.securityType,
+            securitySerial: resBySecurity.data?.security.securitySerial,
+            securityAmount: resBySecurity.data?.security.securityAmount,
+            securityStatus: resBySecurity.data?.security.securityStatus,
+            drawedStatus: resBySecurity.data?.security.drawedStatus,
+            drawedDate: resBySecurity.data?.security.drawedDate,
+            drawedBank: resBySecurity.data?.security.drawedBank,
+            drawedBankBranch: resBySecurity.data?.security.drawedBankBranch,
+            drawedRegion: resBySecurity.data?.security.drawedRegion,
+            drawer: resBySecurity.data?.security.drawer,
+            maturedDate: resBySecurity.data?.security.maturedDate,
+            payingBank: resBySecurity.data?.security.payingBank,
+            payingBankBranch: resBySecurity.data?.security.payingBankBranch,
+            payer: resBySecurity.data?.security.payer,
+            securityMemo: resBySecurity.data?.security.memo,
+          } as any);
+        } else {
+          form.setFieldsValue({
+            partnerNickName: resBySecurity.data?.partnerNickName,
+            accountedDate: resBySecurity.data?.accountedDate,
+            accountedMethod: resBySecurity.data?.accountedMethod,
+            accountedSubject: resBySecurity.data?.accountedSubject,
+            memo: resBySecurity.data?.memo,
+            amount: resBySecurity.data?.amount,
+            securityId: resBySecurity.data?.security.securityId,
+          });
+        }
+
         break;
       case 'OFFSET':
         form.setFieldsValue({
@@ -152,8 +242,7 @@ export default function Component(props: Props) {
         });
         break;
     }
-
-  }, [props, form, edit, resByCash, resByEtc, resByBankAccount, resByCard, resByOffset]);
+  }, [props, form, edit, resByCash, resByEtc, resByBankAccount, resByCard, resByOffset, resBySecurity]);
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 상세`} {...props} open={!!props.open}>

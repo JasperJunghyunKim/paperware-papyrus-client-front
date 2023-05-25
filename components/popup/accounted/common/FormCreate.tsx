@@ -1,10 +1,13 @@
 import { Api, Model } from "@/@shared";
 import { AccountedType } from "@/@shared/models/enum";
 import { Button, FormControl } from "@/components";
+import { selectSecurityAtom } from "@/components/formControl/SelectSecurity";
 import { Checkbox, Form, FormInstance, Input, message } from "antd";
 import { useWatch } from "antd/lib/form/Form";
 import dayjs from "dayjs";
+import { isEmpty } from "lodash";
 import { useEffect, useRef, useState } from "react";
+import { useRecoilValue } from "recoil";
 
 type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest | Api.BySecurityCreateRequest;
 
@@ -20,6 +23,13 @@ export default function Component(props: Props) {
   const amount = useWatch('amount', props.form);
   const chargeAmount = useWatch('chargeAmount', props.form);
   const [messageApi, contextHolder] = message.useMessage();
+  const securityAtom = useRecoilValue(selectSecurityAtom);
+
+  useEffect(() => {
+    if (!isEmpty(securityAtom)) {
+      props.form.setFieldValue("securityAmount", securityAtom.securityAmount)
+    }
+  }, [securityAtom, props])
 
   useEffect(() => {
     if (toatlAmountInputRef !== null) {
@@ -87,7 +97,7 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) && props.accountedType === 'COLLECTED' ? (
+          (getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' as Model.Enum.Method) ? (
             <Form.Item
               name="securityAmount"
               label={`${labelName} 금액`}
@@ -317,7 +327,7 @@ export default function Component(props: Props) {
           ) : getFieldValue('accountedMethod') === 'PROMISSORY_NOTE' && props.accountedType === 'PAID' && (
             <>
               <Form.Item
-                name="payingBank"
+                name="securityId"
                 label={"유가증권 목록"}
               >
                 <FormControl.SelectSecurity />

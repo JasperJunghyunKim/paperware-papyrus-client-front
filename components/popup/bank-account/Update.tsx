@@ -47,6 +47,10 @@ export default function Component(props: Props) {
 
   }, [form, res.data, edit]);
 
+  useEffect(() => {
+    form.resetFields();
+  }, [form, props])
+
   return (
     <Popup.Template.Property title={`계좌 상세`} {...props} open={!!props.open}>
       <div className="flex-1 p-4">

@@ -2,7 +2,7 @@ import { Api } from "@/@shared";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FormCreate } from "./common";
 
 export interface Props {
@@ -25,6 +25,10 @@ export default function Component(props: Props) {
     },
     [apiCard, form, props]
   );
+
+  useEffect(() => {
+    form.resetFields();
+  }, [form, props])
 
   return (
     <Popup.Template.Property title={`카드 등록`} {...props}>

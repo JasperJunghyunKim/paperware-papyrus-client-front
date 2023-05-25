@@ -45,8 +45,6 @@ interface Props {
 export default function Component(props: Props) {
   const options = useMemo(() => {
     const itemList = METHOD_OPTIONS.filter((item) => props.isAll ? true : item.value !== 'All').map((el) => {
-      // 수금에서 카드 입금
-      // 지급에서 카드 결제
       return {
         label: el.value === 'CARD_PAYMENT' ? props.accountedType === 'PAID' ? '카드 결제' : '카드 입금' : el.label,
         value: el.value,

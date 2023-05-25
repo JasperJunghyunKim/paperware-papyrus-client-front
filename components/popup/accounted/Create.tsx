@@ -4,7 +4,7 @@ import { AccountedType } from "@/@shared/models/enum";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FormCreate } from "./common";
 import { message } from "antd";
 
@@ -51,32 +51,50 @@ export default function Component(props: Props) {
           break;
         case 'PROMISSORY_NOTE':
           const req: any = values;
-          await apiBySecurity.mutateAsync({
-            data: {
-              ...req,
-              memo: req.memo,
-              amount: req.securityAmount,
-              endorsement: req.endorsement,
-              security: {
-                securityId: req.securityAmount,
-                securityType: req.securityType,
-                securitySerial: req.securitySerial,
-                securityAmount: req.securityAmount,
-                securityStatus: req.securityStatus,
-                drawedStatus: req.drawedStatus,
-                drawedDate: req.drawedDate,
-                drawedBank: req.drawedBank,
-                drawedBankBranch: req.drawedBankBranch,
-                drawedRegion: req.drawedRegion,
-                drawer: req.drawer,
-                maturedDate: req.maturedDate,
-                payingBank: req.payingBank,
-                payingBankBranch: req.payingBankBranch,
-                payer: req.payer,
-                memo: req.securityMemo,
+
+          if (props.accountedType === 'COLLECTED') {
+            await apiBySecurity.mutateAsync({
+              data: {
+                ...req,
+                memo: req.memo,
+                amount: req.securityAmount,
+                endorsementType: req.endorsementType,
+                endorsement: req.endorsement,
+                security: {
+                  securityId: req.securityAmount,
+                  securityType: req.securityType,
+                  securitySerial: req.securitySerial,
+                  securityAmount: req.securityAmount,
+                  securityStatus: req.securityStatus,
+                  drawedStatus: req.drawedStatus,
+                  drawedDate: req.drawedDate,
+                  drawedBank: req.drawedBank,
+                  drawedBankBranch: req.drawedBankBranch,
+                  drawedRegion: req.drawedRegion,
+                  drawer: req.drawer,
+                  maturedDate: req.maturedDate,
+                  payingBank: req.payingBank,
+                  payingBankBranch: req.payingBankBranch,
+                  payer: req.payer,
+                  memo: req.securityMemo,
+                }
               }
-            }
-          });
+            });
+          } else {
+            await apiBySecurity.mutateAsync({
+              data: {
+                ...req,
+                memo: req.memo,
+                amount: req.securityAmount,
+                endorsementType: req.endorsementType,
+                endorsement: req.endorsement,
+                security: {
+                  securityId: req.securityId,
+                }
+              }
+            });
+          }
+
           break;
         case 'OFFSET':
           await apiByOffset.mutateAsync({ data: values as Api.ByOffsetCreateRequest });
@@ -94,6 +112,10 @@ export default function Component(props: Props) {
     },
     [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, apiBySecurity, form, props]
   );
+
+  useEffect(() => {
+    form.resetFields();
+  }, [form, props])
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} {...props}>
