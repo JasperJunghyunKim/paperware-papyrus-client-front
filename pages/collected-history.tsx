@@ -26,6 +26,7 @@ export default function Component() {
     query: {
       ...page,
       ...condition,
+      companyRegistrationNumber: condition.companyRegistrationNumber === '전체' ? '' : condition.companyRegistrationNumber,
       accountedType: "COLLECTED",
     },
     successCallback: (data) => {

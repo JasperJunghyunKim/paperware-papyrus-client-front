@@ -41,7 +41,7 @@ export default function Component(props: Props) {
       acc.push({
         label: <Item item={crr} />,
         text: `${crr.partnerNickName}`,
-        value: crr.partnerNickName,
+        value: crr.companyRegistrationNumber,
       });
       return acc;
     }, []);
@@ -60,7 +60,7 @@ export default function Component(props: Props) {
   }, [staticData, props]);
 
   const onChange = useCallback((value: number | string) => {
-    const selectData = staticData.data?.filter((item) => item.partnerNickName === value)[0];
+    const selectData = staticData.data?.filter((item) => item.companyRegistrationNumber === value)[0];
     if (!isUndefined(selectData)) {
       setSelectPartner(selectData);
     }
@@ -74,7 +74,7 @@ export default function Component(props: Props) {
 
   useEffect(() => {
     if (!isUndefined(props.value)) {
-      const list = options?.filter((item) => item.partnerNickName === props.value)[0];
+      const list = options?.filter((item) => item.companyRegistrationNumber === props.value)[0];
       if (!isUndefined(list)) {
         setSelectPartner(list);
       }
