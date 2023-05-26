@@ -8,7 +8,7 @@ export const accountedAtom = atom<Omit<Api.AccountedQuery, 'skip' | 'take'>>({
   key: `accounted-condition-${v4()}`,
   default: {
     companyId: 0,
-    partnerId: 0,
+    partnerNickName: '전체',
     companyRegistrationNumber: '',
     accountedType: 'PAID',
     accountedSubject: 'All',

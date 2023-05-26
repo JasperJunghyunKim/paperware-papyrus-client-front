@@ -13,8 +13,8 @@ export const selectPartnerAtom = atom<Model.Partner>({
 
 interface Props {
   isAll?: boolean;
-  value?: number;
-  onChange?: (value: number) => void;
+  value?: number | string;
+  onChange?: (value: number | string) => void;
   disabled?: boolean;
 }
 
@@ -28,9 +28,11 @@ export default function Component(props: Props) {
       if (idx === 0 && props.isAll) {
         acc.push({
           label: <Item item={{
-            partnerId: 0,
             partnerNickName: "전체",
-          } as Model.Partner} />,
+            companyId: 0,
+            companyRegistrationNumber: '',
+            memo: '',
+          }} />,
           text: '전체',
           value: 0,
         })
@@ -39,7 +41,7 @@ export default function Component(props: Props) {
       acc.push({
         label: <Item item={crr} />,
         text: `${crr.partnerNickName}`,
-        value: crr.partnerId,
+        value: crr.partnerNickName,
       });
       return acc;
     }, []);
@@ -57,8 +59,8 @@ export default function Component(props: Props) {
     }
   }, [staticData, props]);
 
-  const onChange = useCallback((value: number) => {
-    const selectData = staticData.data?.filter((item) => item.partnerId === value)[0];
+  const onChange = useCallback((value: number | string) => {
+    const selectData = staticData.data?.filter((item) => item.partnerNickName === value)[0];
     if (!isUndefined(selectData)) {
       setSelectPartner(selectData);
     }
@@ -72,7 +74,7 @@ export default function Component(props: Props) {
 
   useEffect(() => {
     if (!isUndefined(props.value)) {
-      const list = options?.filter((item) => item.partnerId === props.value)[0];
+      const list = options?.filter((item) => item.partnerNickName === props.value)[0];
       if (!isUndefined(list)) {
         setSelectPartner(list);
       }
@@ -100,7 +102,6 @@ function Item(props: ItemProps) {
   const { item } = props;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div style={{ display: 'none' }}>{item.partnerId}</div>
       <div className="flex-1">{item.partnerNickName}</div>
     </div>
   );

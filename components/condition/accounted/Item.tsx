@@ -7,7 +7,7 @@ import { Form, message } from "antd";
 import { useRecoilState } from "recoil";
 import { accountedAtom } from "./accounted.state";
 
-type NamePath = 'partnerId' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
+type NamePath = 'partnerNickName' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
 
 interface Props {
   accountedType: AccountedType;
@@ -20,12 +20,12 @@ export default function Component(props: Props) {
 
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
-      case 'partnerId':
+      case 'partnerNickName':
         if (value !== 0) {
-          const result = partnerList.data?.filter((el) => el.partnerId === value)[0];
+          const result = partnerList.data?.filter((el) => el.partnerNickName === value)[0];
           setCondtiuon((prev) => ({
             ...prev,
-            partnerId: result?.partnerId ?? 0,
+            partnerNickName: result?.partnerNickName ?? '',
             companyId: result?.companyId ?? 0,
             companyRegistrationNumber: result?.companyRegistrationNumber ?? '',
           }));
@@ -95,8 +95,8 @@ export default function Component(props: Props) {
         initialValues={{
           ...condtiuon
         }}>
-        <Form.Item name="partnerId" label="거래처" className={"w-1/5"}>
-          <FormControl.SelectPartner isAll={true} value={condtiuon.partnerId} onChange={(value) => onChange('partnerId', value)} />
+        <Form.Item name="partnerNickName" label="거래처" className={"w-1/5"}>
+          <FormControl.SelectPartner isAll={true} value={condtiuon.partnerNickName} onChange={(value) => onChange('partnerNickName', value)} />
         </Form.Item>
         <Form.Item
           name="accountedFromDate"
