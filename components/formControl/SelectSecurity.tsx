@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook } from "@/common";
 import { Select } from "antd";
 import { isUndefined } from "lodash";
 import { useCallback, useEffect, useMemo } from "react";
@@ -7,7 +7,7 @@ import { atom, useResetRecoilState, useSetRecoilState } from "recoil";
 import { v4 } from "uuid";
 
 export const selectSecurityAtom = atom<Model.Security>({
-  key: `security-${v4()}`,
+  key: `select-security-${v4()}`,
   default: {} as Model.Security
 })
 
@@ -37,7 +37,6 @@ export default function Component(props: Props) {
   }, [props, setSelectSecurity, staticData])
 
   const options = useMemo(() => {
-
     if (props.isFilter) {
       return staticData.data?.items.filter(item => item.securityStatus === 'NONE').map((item) => ({
         label: <Item item={item} />,

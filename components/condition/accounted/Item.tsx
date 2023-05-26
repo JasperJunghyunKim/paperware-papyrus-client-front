@@ -1,12 +1,13 @@
 import { Model } from "@/@shared";
+import { isValidDateRange } from "@/@shared/helper/util";
+import { AccountedType } from "@/@shared/models/enum";
+import { ApiHook } from "@/common";
 import { FormControl } from "@/components";
 import { Form, message } from "antd";
 import { useRecoilState } from "recoil";
 import { accountedAtom } from "./accounted.state";
-import { AccountedType } from "@/@shared/models/enum";
-import { isValidDateRange } from "@/@shared/helper/util";
 
-type NamePath = 'companyRegistrationNumber' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
+type NamePath = 'partnerId' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
 
 interface Props {
   accountedType: AccountedType;
@@ -15,19 +16,23 @@ interface Props {
 export default function Component(props: Props) {
   const [condtiuon, setCondtiuon] = useRecoilState(accountedAtom);
   const [messageApi, contextHolder] = message.useMessage();
+  const partnerList = ApiHook.Partner.Partner.useGetList()
 
   const onChange = (name: NamePath, value: string | number | undefined) => {
     switch (name) {
-      case 'companyRegistrationNumber':
-        if (value !== '') {
+      case 'partnerId':
+        if (value !== 0) {
+          const result = partnerList.data?.filter((el) => el.partnerId === value)[0];
           setCondtiuon((prev) => ({
             ...prev,
-            companyId: parseInt((value as string)?.split('/')[0]),
-            companyRegistrationNumber: (value as string)?.split('/')[1],
+            partnerId: result?.partnerId ?? 0,
+            companyId: result?.companyId ?? 0,
+            companyRegistrationNumber: result?.companyRegistrationNumber ?? '',
           }));
         } else {
           setCondtiuon((prev) => ({
             ...prev,
+            partnerId: 0,
             companyId: 0,
             companyRegistrationNumber: '',
           }));
@@ -85,8 +90,8 @@ export default function Component(props: Props) {
         initialValues={{
           ...condtiuon
         }}>
-        <Form.Item name="companyRegistrationNumber" label="거래처" className={"w-1/5"}>
-          <FormControl.SelectPartner isAll={true} value={condtiuon.companyRegistrationNumber} onChange={(value) => onChange('companyRegistrationNumber', value)} />
+        <Form.Item name="partnerId" label="거래처" className={"w-1/5"}>
+          <FormControl.SelectPartner isAll={true} value={condtiuon.partnerId} onChange={(value) => onChange('partnerId', value)} />
         </Form.Item>
         <Form.Item name="accountedFromDate" label={`${props.accountedType === 'PAID' ? '지급' : '수금'}일`} className={"w-1/5"}>
           <FormControl.DatePicker value={condtiuon.accountedFromDate} onChange={(value) => onChange('accountedFromDate', value)} />
