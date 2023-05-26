@@ -19,7 +19,7 @@ interface Props {
   onSelect: (Record: Record) => void;
 }
 
-export default function (props: Props) {
+export default function Component(props: Props) {
   const groupList = ApiHook.Inhouse.Discount.useGetMapping({
     query: props.open ? props.open : undefined,
   });
