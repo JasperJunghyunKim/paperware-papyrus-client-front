@@ -267,20 +267,14 @@ export function gramsToTon(grams: number) {
   return grams / 1000000;
 }
 
-export function orderStatusToString(status: Record.OrderStatus) {
+export function shippingStatusToString(status: Model.Enum.ShippingStatus) {
   switch (status) {
     case "PREPARING":
-      return "주문 작성중";
-    case "CANCELLED":
-      return "주문 취소";
-    case "ESTIMATE":
-      return "견적 확인중";
-    case "REQUESTED":
-      return "주문 확인중";
-    case "ACCEPTED":
-      return "주문 승인";
-    case "REJECTED":
-      return "주문 거절";
+      return "배송 준비중";
+    case "PROGRESSING":
+      return "배송 중";
+    case "DONE":
+      return "배송 완료";
   }
 }
 

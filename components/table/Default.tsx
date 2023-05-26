@@ -3,6 +3,7 @@ import { ApiHook } from "@/common";
 import { Table } from "antd";
 import { ColumnType, ExpandableConfig } from "antd/lib/table/interface";
 import { TableComponents } from "rc-table/lib/interface";
+import { useEffect } from "react";
 import { useMemo } from "react";
 
 interface Props<T> {
