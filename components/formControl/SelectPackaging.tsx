@@ -10,6 +10,13 @@ interface Props {
   disabled?: boolean;
 }
 
+const packagingOptionForSort = {
+  REAM: 1,
+  SKID: 2,
+  ROLL: 3,
+  BOX: 4,
+};
+
 export default function Component(props: Props) {
   const staticData = ApiHook.Static.PaperMetadata.useGetAll();
 
@@ -18,8 +25,10 @@ export default function Component(props: Props) {
       label: <Item item={x} />,
       text: `${Util.formatPackaging(x)})`,
       value: x.id,
+      temp: `${packagingOptionForSort[x.type]} ${x.packA} ${x.packB}`,
+      type: x.type,
     }));
-    options?.sort((a, b) => a.text.localeCompare(b.text));
+    options?.sort((a, b) => a.temp.localeCompare(b.temp));
     return options;
   }, [staticData]);
 
@@ -33,7 +42,9 @@ export default function Component(props: Props) {
           if (!option) {
             return false;
           }
-          return option.text.toLowerCase().includes(input.toLowerCase());
+          return `${option.type} ${option.text}`
+            .toLowerCase()
+            .includes(input.toLowerCase());
         }}
         showSearch
         allowClear
