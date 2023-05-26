@@ -75,14 +75,9 @@ export default function Component(props: Props) {
                 parentTaskId={null}
               />
             )}
-            {props.packagingType !== "ROLL" &&
-              !converted.some((p) => p.value.type === "QUANTITY") && (
-                <AddNode
-                  type="QUANTITY"
-                  plan={props.plan}
-                  parentTaskId={null}
-                />
-              )}
+            {!converted.some((p) => p.value.type === "QUANTITY") && (
+              <AddNode type="QUANTITY" plan={props.plan} parentTaskId={null} />
+            )}
           </>
         )}
       </div>

@@ -85,20 +85,10 @@ export default function Component(props: Props) {
               disabled
             />
           </Form.Item>
-          <Form.Item
-            name="sizeX"
-            label="지폭"
-            rules={[{ required: true }]}
-            rootClassName="flex-1"
-          >
+          <Form.Item name="sizeX" label="지폭" rootClassName="flex-1">
             <Number min={0} max={9999} precision={0} unit="mm" disabled />
           </Form.Item>
-          <Form.Item
-            name="sizeY"
-            label="지장"
-            rules={[{ required: true }]}
-            rootClassName="flex-1"
-          >
+          <Form.Item name="sizeY" label="지장" rootClassName="flex-1">
             <Number min={0} max={9999} precision={0} unit="mm" disabled />
           </Form.Item>
         </div>

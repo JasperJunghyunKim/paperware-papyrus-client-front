@@ -663,32 +663,36 @@ function DataForm(props: DataFormProps) {
       )}
       {packaging && (
         <>
-          <Form.Item label={"실물 수량"}>
-            <FormControl.Quantity
-              spec={{
-                grammage,
-                sizeX,
-                sizeY,
-                packaging,
-              }}
-              value={stockGroupQuantity.data?.totalQuantity ?? 0}
-              disabled
-            />
-          </Form.Item>
-          <Form.Item label={"가용 수량"}>
-            <FormControl.Quantity
-              spec={{
-                grammage,
-                sizeX,
-                sizeY,
-                packaging,
-              }}
-              value={
-                (stockGroupQuantity.data?.availableQuantity ?? 0) - quantity
-              }
-              disabled
-            />
-          </Form.Item>
+          {(props.isSales || !manual) && (
+            <>
+              <Form.Item label={"실물 수량"}>
+                <FormControl.Quantity
+                  spec={{
+                    grammage,
+                    sizeX,
+                    sizeY,
+                    packaging,
+                  }}
+                  value={stockGroupQuantity.data?.totalQuantity ?? 0}
+                  disabled
+                />
+              </Form.Item>
+              <Form.Item label={"가용 수량"}>
+                <FormControl.Quantity
+                  spec={{
+                    grammage,
+                    sizeX,
+                    sizeY,
+                    packaging,
+                  }}
+                  value={
+                    (stockGroupQuantity.data?.availableQuantity ?? 0) - quantity
+                  }
+                  disabled
+                />
+              </Form.Item>
+            </>
+          )}
           <Form.Item
             name="quantity"
             label={props.isSales ? "매출 수량" : "매입 수량"}

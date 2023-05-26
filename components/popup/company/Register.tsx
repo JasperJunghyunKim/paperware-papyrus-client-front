@@ -96,6 +96,10 @@ export default function Component(props: Props) {
             label="사업자등록번호"
             rules={[
               { required: true, message: "사업자등록번호를 입력해주세요." },
+              {
+                pattern: /^[0-9]{10}$/,
+                message: "사업자등록번호는 10자리의 숫자여야 합니다.",
+              },
             ]}
           >
             <Input disabled={!!searched} minLength={10} maxLength={10} />
