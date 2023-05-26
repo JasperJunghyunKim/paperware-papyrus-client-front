@@ -1,6 +1,7 @@
 import { Util } from "@/common";
 import { InputNumber } from "antd";
 import classNames from "classnames";
+import _ from "lodash";
 import { forwardRef } from "react";
 
 interface Props {
@@ -25,7 +26,9 @@ export default forwardRef(function Component(props: Props, ref: any) {
       formatter={(x, state) =>
         (state.userTyping
           ? x
-          : Util.comma(x, props.precision ?? 0)
+          : _.isNumber(x)
+          ? Util.comma(x, props.precision ?? 0)
+          : ""
         )?.toString() ?? ""
       }
       precision={props.precision}
@@ -36,4 +39,4 @@ export default forwardRef(function Component(props: Props, ref: any) {
       disabled={props.disabled}
     />
   );
-})
+});
