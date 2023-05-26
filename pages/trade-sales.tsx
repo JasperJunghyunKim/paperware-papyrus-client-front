@@ -6,7 +6,7 @@ import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
 import { useState } from "react";
-import { TbHome2, TbHomeLink } from "react-icons/tb";
+import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
 
@@ -17,6 +17,10 @@ export default function Component() {
     useState<OrderUpsertOpen>(false);
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
+  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
+    ["srcCompany", "companyRegistrationNumber"],
+    { title: "매출처", fallback: (record) => record.srcCompany.businessName }
+  );
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.OrderStock.useGetList({
     query: {
@@ -31,12 +35,6 @@ export default function Component() {
     <Page title="매출 주문 목록">
       <StatBar.Container>
         <StatBar.Item icon={<TbHome2 />} label="관리 매출처" value={"-"} />
-        <StatBar.Item
-          icon={<TbHomeLink />}
-          label="가상 매출처"
-          value={"-"}
-          iconClassName="text-purple-800"
-        />
       </StatBar.Container>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
@@ -59,32 +57,15 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "매출처 이름",
-            dataIndex: ["srcCompany", "businessName"],
+            title: "매출 유형",
+            render: (_value, record) => (
+              <div>{record.orderStock ? "정상 매출" : ""}</div>
+            ),
           },
           {
-            title: "사업자등록번호",
-            dataIndex: ["srcCompany", "companyRegistrationNumber"],
-          },
-          {
-            title: "가상 매출처 여부",
-            dataIndex: ["srcCompany", "managedById"],
-            render: (value) =>
-              value && (
-                <div className="flex flex-row gap-2 text-purple-800">
-                  <div className="flex flex-col justify-center">
-                    <TbHomeLink className="text-lg" />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    가상 매출처
-                  </div>
-                </div>
-              ),
-          },
-          {
-            title: "주문 번호",
+            title: "매출 번호",
             dataIndex: "orderNo",
-            render: (value, record) => (
+            render: (value) => (
               <div className="flex">
                 <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
                   {value}
@@ -92,39 +73,23 @@ export default function Component() {
               </div>
             ),
           },
+          ...partnerColumn,
+          { title: "매출일" },
           {
-            title: "작업 번호",
-            dataIndex: ["orderStock", "plan", "planNo"],
-            render: (value, record) => (
-              <div className="flex">
-                <div
-                  className="font-fixed bg-green-100 px-1 text-green-800 rounded-md cursor-pointer"
-                  onClick={() =>
-                    record.orderStock.plan &&
-                    setOpenUpdate(record.orderStock.plan.id)
-                  }
-                >
-                  {value}
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: "도착 희망일",
-            dataIndex: "arrivalDate",
+            title: "납품 요청일",
+            dataIndex: "wantedDate",
             render: (value) => Util.formatIso8601ToLocalDate(value),
           },
           {
-            title: "도착지",
+            title: "납품 도착지",
             dataIndex: ["orderStock", "dstLocation", "name"],
           },
+          ...Table.Preset.columnStockGroup<Model.Order>(
+            (record) => record.orderStock,
+            ["orderStock"]
+          ),
           {
-            title: "도착지 주소",
-            dataIndex: ["orderStock", "dstLocation", "address"],
-            render: (value) => <div>{Util.formatAddress(value)}</div>,
-          },
-          {
-            title: "주문 상태",
+            title: "매출 상태",
             dataIndex: "status",
             render: (value: Model.Enum.OrderStatus) => (
               <div
@@ -156,14 +121,10 @@ export default function Component() {
               </div>
             ),
           },
-          ...Table.Preset.columnStockGroup<Model.Order>(
-            (record) => record.orderStock,
-            ["orderStock"]
-          ),
           ...Table.Preset.columnQuantity<Model.Order>(
             (record) => record.orderStock,
             ["orderStock", "quantity"],
-            { prefix: "주문" }
+            { prefix: "매출" }
           ),
         ]}
       />

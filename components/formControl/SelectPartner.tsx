@@ -15,6 +15,7 @@ interface Props {
   isAll?: boolean;
   value?: number;
   onChange?: (value: number) => void;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -54,7 +55,7 @@ export default function Component(props: Props) {
     if (props.isAll) {
       return 0;
     }
-  }, [staticData, props])
+  }, [staticData, props]);
 
   const onChange = useCallback((value: number) => {
     const selectData = staticData.data?.filter((item) => item.partnerId === value)[0];
@@ -84,6 +85,7 @@ export default function Component(props: Props) {
         value={props.value === 0 ? value() : props.value}
         onChange={onChange}
         placeholder="거래처"
+        disabled={props.disabled}
         options={options}
       />
     </div>

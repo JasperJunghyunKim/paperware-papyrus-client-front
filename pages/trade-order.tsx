@@ -16,6 +16,10 @@ export default function Component() {
   const [openStockUpsert, setOpenStockUpsert] =
     useState<OrderUpsertOpen>(false);
 
+  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
+    ["dstCompany", "companyRegistrationNumber"],
+    { title: "매입처", fallback: (record) => record.dstCompany.businessName }
+  );
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.OrderStock.useGetList({
     query: {
@@ -30,12 +34,6 @@ export default function Component() {
     <Page title="매입 주문 목록">
       <StatBar.Container>
         <StatBar.Item icon={<TbHome2 />} label="관리 매입처" value={"-"} />
-        <StatBar.Item
-          icon={<TbHomeLink />}
-          label="가상 매입처"
-          value={"-"}
-          iconClassName="text-purple-800"
-        />
       </StatBar.Container>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
@@ -57,29 +55,15 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          {
-            title: "매입처 이름",
-            dataIndex: ["dstCompany", "businessName"],
-          },
+          ...partnerColumn,
           {
             title: "사업자등록번호",
             dataIndex: ["dstCompany", "companyRegistrationNumber"],
           },
-          {
-            title: "가상 매입처 여부",
-            dataIndex: ["dstCompany", "managedById"],
-            render: (value) =>
-              value && (
-                <div className="flex flex-row gap-2 text-purple-800">
-                  <div className="flex flex-col justify-center">
-                    <TbHomeLink className="text-lg" />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    가상 매입처
-                  </div>
-                </div>
-              ),
-          },
+          ...Table.Preset.columnConnection<RecordType>([
+            "dstCompany",
+            "managedById",
+          ]),
           {
             title: "주문 번호",
             dataIndex: "orderNo",

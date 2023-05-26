@@ -4,6 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ko";
 import { Protocol } from ".";
 import { Model } from "@/@shared";
+import _ from "lodash";
 
 export type PromiseOrFn = (() => Promise<void>) | (() => any);
 export async function call(p?: PromiseOrFn) {
@@ -39,6 +40,16 @@ export async function confirm(message: string) {
       content: message,
       onOk: () => resolve(true),
       onCancel: () => resolve(false),
+    });
+  });
+}
+
+export async function warn(message: string) {
+  return new Promise<void>((resolve) => {
+    Modal.warn({
+      title: "확인",
+      content: message,
+      onOk: () => resolve(),
     });
   });
 }
@@ -128,16 +139,20 @@ export function formatAddress(address: string | Address | null | undefined) {
     }`;
 }
 
-export function formatPackaging(packaging: Model.Packaging) {
+export function formatPackaging(packaging: Model.Packaging, short?: boolean) {
   switch (packaging.type) {
     case "SKID":
       return ``;
     case "REAM":
-      return `${packaging.packA}매 (/속)`;
+      return short ? `${packaging.packA}매/속` : `${packaging.packA}매 (/속)`;
     case "BOX":
-      return `${packaging.packA}매 × ${packaging.packB}포 (/BOX)`;
+      return short
+        ? `${packaging.packA}×${packaging.packB}속/BOX`
+        : `${packaging.packA}매 × ${packaging.packB}포 (/BOX)`;
     case "ROLL":
-      return `${packaging.packA} ${packaging.packB === 0 ? "inch" : "cm"}`;
+      return short
+        ? `${packaging.packA}${packaging.packB === 0 ? '"' : "cm"}`
+        : `${packaging.packA} ${packaging.packB === 0 ? "inch" : "cm"}`;
   }
 }
 
@@ -149,7 +164,7 @@ export function stockUnit(packagingType: Model.Enum.PackagingType): string {
       return "BOX";
     case "SKID":
     case "REAM":
-      return "R";
+      return "매";
   }
 }
 
@@ -249,27 +264,19 @@ export function gramsToTon(grams: number) {
   return grams / 1000000;
 }
 
-export function orderStatusToString(status: Record.OrderStatus) {
+export function shippingStatusToString(status: Model.Enum.ShippingStatus) {
   switch (status) {
     case "PREPARING":
-      return "주문 작성중";
-    case "CANCELLED":
-      return "주문 취소";
-    case "ESTIMATE":
-      return "견적 확인중";
-    case "REQUESTED":
-      return "주문 확인중";
-    case "ACCEPTED":
-      return "주문 승인";
-    case "REJECTED":
-      return "주문 거절";
+      return "배송 준비중";
+    case "PROGRESSING":
+      return "배송 중";
+    case "DONE":
+      return "배송 완료";
   }
 }
 
 export function formatIso8601ToLocalDate(date: string | null) {
-  return date === null
-    ? ""
-    : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd)");
+  return !date ? "" : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd)");
 }
 
 export function falsyToUndefined<T>(
@@ -287,7 +294,7 @@ export const UNIT_GPM = "g/m²";
 export function iso8601ToDate(
   date: string | null | undefined
 ): Dayjs | undefined {
-  if (date === null || date === undefined) {
+  if (!date) {
     return undefined;
   }
 
@@ -342,19 +349,19 @@ export function planStatusToString(value: Model.Enum.PlanStatus) {
 export function orderStatusToSTring(value: Model.Enum.OrderStatus) {
   switch (value) {
     case "ORDER_PREPARING":
-      return "주문 작성중";
+      return "작성중";
     case "OFFER_PREPARING":
-      return "수주 작성중";
+      return "작성중";
     case "ORDER_REQUESTED":
-      return "주문 승인 대기중";
+      return "주문 접수";
     case "OFFER_REQUESTED":
-      return "수주 승인 대기중";
+      return "구매 제안 요청";
     case "ORDER_REJECTED":
-      return "주문 거절";
+      return "주문 반려";
     case "OFFER_REJECTED":
-      return "수주 거절";
+      return "구매 제안 반려";
     case "ACCEPTED":
-      return "주문 승인";
+      return "승인";
   }
 }
 
@@ -479,4 +486,22 @@ export function securityTypeToSTring(value: Model.Enum.SecurityType) {
     case "ETC":
       return "기타";
   }
+}
+export function nanToZero(value: number | null | undefined) {
+  if (!_.isFinite(value)) {
+    return 0;
+  }
+
+  return value;
+}
+
+export function padRightCJK(value: string, length: number) {
+  const countCJKCharacters = (str: string): number => {
+    const cjkRegex = /[\u3131-\uD79D]/gi;
+    const matches = str.match(cjkRegex);
+    return matches ? matches.length : 0;
+  };
+
+  const len = length - countCJKCharacters(value);
+  return value.padEnd(len);
 }

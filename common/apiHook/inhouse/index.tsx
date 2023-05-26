@@ -4,6 +4,8 @@ export * as Company from "./company";
 export * as Location from "./location";
 export * as VirtualCompany from "./virtualCompany";
 export * as Warehouse from "./warehouse";
+export * as OfficialPrice from "./officialPrice";
+export * as Discount from "./discount";
 export * as Card from "./card";
 export * as BankAccount from "./bankAccount";
 export * as Security from "./security";

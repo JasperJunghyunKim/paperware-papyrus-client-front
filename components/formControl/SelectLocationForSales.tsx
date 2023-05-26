@@ -21,11 +21,32 @@ export default function Component(props: Props) {
   });
 
   const options = useMemo(() => {
-    return list.data?.items.map((x) => ({
-      label: <Item item={x} />,
-      text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
-      value: x.id,
-    }));
+    const a = list.data?.items
+      .filter((x) => x.isPublic)
+      .map((x) => ({
+        label: <Item item={x} />,
+        text: `${x.name} ${Util.formatAddress(x.address)}`,
+        value: x.id,
+      }));
+
+    const b = list.data?.items
+      .filter((x) => !x.isPublic)
+      .map((x) => ({
+        label: <Item item={x} />,
+        text: `${x.name} ${Util.formatAddress(x.address)}`,
+        value: x.id,
+      }));
+
+    return [
+      {
+        label: "매출처 도착지",
+        options: b ?? [],
+      },
+      {
+        label: "기타 도착지",
+        options: a ?? [],
+      },
+    ];
   }, [list]);
 
   return (
@@ -34,11 +55,11 @@ export default function Component(props: Props) {
         value={props.value}
         onChange={props.onChange}
         options={options}
-        filterOption={(input, option) => {
+        filterOption={(input, option: any) => {
           if (!option) {
             return false;
           }
-          return option.text.toLowerCase().includes(input.toLowerCase());
+          return option.text?.toLowerCase().includes(input.toLowerCase());
         }}
         showSearch
         allowClear
@@ -58,11 +79,8 @@ function Item(props: ItemProps) {
   const x = props.item;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div className="flex-initial text-cyan-800 whitespace-pre">
-        {x.code?.padEnd(4)}
-      </div>
       <div className="flex-initial whitespace-pre">{x.name.padEnd(8)}</div>
-      <div className="flex-1 text-gray-400">
+      <div className="flex-1 text-gray-400 text-right">
         {Util.formatAddress(x.address)}
       </div>
     </div>

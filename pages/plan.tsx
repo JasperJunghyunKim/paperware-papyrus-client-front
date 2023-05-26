@@ -43,14 +43,10 @@ export default function Component() {
         />
       </StatBar.Container>
       <Toolbar.Container>
-        <Toolbar.ButtonPreset.Create
-          label="작업 계획 추가"
-          onClick={() => setOpenCreate(true)}
-        />
         <div className="flex-1" />
         {only && (
           <Toolbar.ButtonPreset.Update
-            label="선택 작업 계획 상세"
+            label="상세 정보"
             onClick={() => setOpenUpdate(only.id)}
           />
         )}
@@ -63,17 +59,6 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          {
-            title: "작업 계획 번호",
-            dataIndex: "planNo",
-            render: (value) => (
-              <div className="flex">
-                <div className="font-fixed bg-green-100 px-1 text-green-800 rounded-md">
-                  {value}
-                </div>
-              </div>
-            ),
-          },
           {
             title: "주문 번호",
             dataIndex: ["orderStock", "order", "orderNo"],
@@ -106,7 +91,48 @@ export default function Component() {
             ),
           },
           {
-            title: "원지 창고",
+            title: "작업 유형",
+            render: (_value: any, record: Model.Plan) => (
+              <div className="flex gap-x-2">
+                {record.orderStock ? "정상 매출" : "내부 재단"}
+              </div>
+            ),
+          },
+          {
+            title: "납품처",
+            dataIndex: ["orderStock", "order", "srcCompany", "businessName"],
+          },
+          {
+            title: "납품 요청일시",
+            dataIndex: ["orderStock", "order", "wantedDate"],
+            render: (value) => Util.formatIso8601ToLocalDate(value),
+          },
+          {
+            title: "납품 도착지",
+            dataIndex: [
+              "orderStock",
+              "order",
+              "orderStock",
+              "dstLocation",
+              "name",
+            ],
+          },
+          {
+            title: "납품 도착지 주소",
+            dataIndex: [
+              "orderStock",
+              "order",
+              "orderStock",
+              "dstLocation",
+              "address",
+            ],
+            render: (value) => Util.formatAddress(value),
+          },
+          {
+            title: "수급처",
+          },
+          {
+            title: "창고",
             dataIndex: [
               "targetStockGroupEvent",
               "stockGroup",
@@ -121,7 +147,7 @@ export default function Component() {
           ...Table.Preset.columnQuantity<Model.Plan>(
             (record) => record.targetStockGroupEvent.stockGroup,
             ["targetStockGroupEvent", "change"],
-            { prefix: "원지", negative: true }
+            { prefix: "사용 예정", negative: true }
           ),
         ]}
       />

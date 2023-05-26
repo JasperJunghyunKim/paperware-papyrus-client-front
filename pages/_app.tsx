@@ -17,7 +17,7 @@ const queryClient = new QueryClient({
       onError: (error: any) => {
         Modal.error({
           title: "오류",
-          content: error.message,
+          content: error.response.data.error.message,
         });
       },
     },
@@ -28,8 +28,9 @@ export default function App({ Component, pageProps }: AppProps) {
   const [init, setInit] = useState(false);
 
   useEffect(() => {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("at") ?? ""
-      }`;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${
+      localStorage.getItem("at") ?? ""
+    }`;
     setInit(true);
   }, []);
 
@@ -55,9 +56,7 @@ export default function App({ Component, pageProps }: AppProps) {
       locale={koKR}
     >
       <QueryClientProvider client={queryClient}>
-        <RecoilRoot>
-          {init && <Component {...pageProps} />}
-        </RecoilRoot>
+        <RecoilRoot>{init && <Component {...pageProps} />}</RecoilRoot>
       </QueryClientProvider>
     </ConfigProvider>
   );

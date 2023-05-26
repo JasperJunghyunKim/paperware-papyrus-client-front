@@ -1,4 +1,5 @@
 import { Api } from "@/@shared";
+import { StockGroupQuantityQuery } from "@/@shared/api";
 import { API_HOST } from "@/common/const";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -37,6 +38,15 @@ export function useGetList(params: { query?: Partial<Api.StockListQuery> }) {
       params.query?.paperCertId,
     ],
     async () => {
+      if (
+        !params.query?.productId ||
+        !params.query?.packagingId ||
+        !params.query?.grammage ||
+        !params.query?.sizeX
+      ) {
+        return null;
+      }
+
       const resp = await axios.get<Api.StockListResponse>(`${API_HOST}/stock`, {
         params: params.query,
       });
@@ -72,6 +82,37 @@ export function useCreate() {
         await queryClient.invalidateQueries(["stockInhouse", "groupList"]);
         await queryClient.invalidateQueries(["stockInhouse", "list"]);
       },
+    }
+  );
+}
+
+export function useGetGroupQuantity(params: {
+  query: StockGroupQuantityQuery;
+}) {
+  return useQuery(
+    [
+      "stockInhouse",
+      "groupQuantity",
+      params.query.warehouseId,
+      params.query.initialOrderId,
+      params.query.productId,
+      params.query.packagingId,
+      params.query.grammage,
+      params.query.sizeX,
+      params.query.sizeY,
+      params.query.paperColorGroupId,
+      params.query.paperColorId,
+      params.query.paperPatternId,
+      params.query.paperCertId,
+    ],
+    async () => {
+      const resp = await axios.get<Api.StockGroupQuantityResponse>(
+        `${API_HOST}/stock/group/quantity`,
+        {
+          params: params.query,
+        }
+      );
+      return resp.data;
     }
   );
 }

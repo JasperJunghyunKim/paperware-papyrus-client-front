@@ -1,49 +1,106 @@
 import { Model } from "@/@shared";
-import { Util } from "@/common";
+import { PaperUtil, Util } from "@/common";
+import { ValueType } from "@rc-component/mini-decimal";
 import { InputNumber } from "antd";
-import { useMemo } from "react";
+import _ from "lodash";
+import { useCallback, useMemo } from "react";
+
+interface Spec {
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+  packaging: Model.Packaging;
+}
 
 interface Props {
+  spec: Spec;
   value?: number | null;
   onChange?: (value: number | null) => void;
-  packaging: Model.Packaging;
   disabled?: boolean;
 }
 
 export default function Component(props: Props) {
   const unit = useMemo(() => {
     return {
-      unit: Util.stockUnit(props.packaging.type),
-      precision: props.packaging.type === "ROLL" ? 6 : 0,
+      unit: Util.stockUnit(props.spec.packaging.type),
+      precision: props.spec.packaging.type === "ROLL" ? 6 : 0,
     };
-  }, [props.packaging.type]);
+  }, [props.spec.packaging.type]);
+
+  const convert = useMemo(
+    () => _.curry(PaperUtil.convertQuantityWith)(props.spec),
+    [props.spec]
+  );
+
+  const ntz = useCallback(
+    (value: ValueType | null) => Util.nanToZero(_.toNumber(value)) ?? null,
+    []
+  );
+
+  const change = useCallback(
+    (unit: "매" | "R" | "BOX" | "T") => (value: number | null) => {
+      const converted = convert(unit)(_.toNumber(value) ?? 0);
+      const newValue =
+        props.spec.packaging.type === "ROLL"
+          ? converted?.grams
+          : props.spec.packaging.type === "BOX"
+          ? converted?.packed?.value
+          : converted?.unpacked?.value;
+      props.onChange?.(newValue ?? 0);
+    },
+    [props.spec]
+  );
 
   return (
     <div className="flex gap-x-2">
+      {props.spec.packaging.type === "ROLL" ? (
+        <InputNumber
+          addonAfter="m"
+          rootClassName="flex-1"
+          value={
+            PaperUtil.convertQuantity(props.spec, props.value ?? 0)?.packed
+              ?.value ?? 0
+          }
+          disabled
+          precision={1}
+        />
+      ) : (
+        <>
+          <InputNumber
+            addonAfter="매"
+            rootClassName="flex-1"
+            value={
+              PaperUtil.convertQuantity(props.spec, props.value ?? 0)?.unpacked
+                ?.value ?? 0
+            }
+            onChange={(p) => change("매")(p)}
+            disabled={props.disabled || props.spec.packaging.type === "BOX"}
+          />
+          <InputNumber
+            addonAfter={props.spec.packaging.type === "BOX" ? "BOX" : "R"}
+            rootClassName="flex-1"
+            value={
+              PaperUtil.convertQuantity(props.spec, props.value ?? 0)?.packed
+                ?.value ?? 0
+            }
+            onChange={(p) =>
+              change(props.spec.packaging.type === "BOX" ? "BOX" : "R")(p)
+            }
+            disabled={props.disabled}
+          />
+        </>
+      )}
       <InputNumber
-        value={
-          props.packaging.type === "ROLL"
-            ? Util.gramsToTon(props.value ?? 0)
-            : props.value
-        }
-        onChange={(x) =>
-          props.onChange?.(
-            props.packaging.type === "ROLL" ? Util.tonToGrams(x ?? 0) : x
-          )
-        }
-        formatter={(x, state) => {
-          return !x
-            ? ""
-            : (state.userTyping
-                ? x
-                : Util.comma(x, unit.precision)
-              )?.toString() ?? "";
-        }}
-        precision={unit.precision}
-        min={0}
-        rootClassName="w-full"
-        addonAfter={unit.unit}
-        disabled={props.disabled}
+        addonAfter="T"
+        rootClassName="flex-1"
+        value={_.round(
+          PaperUtil.convertQuantity(props.spec, props.value ?? 0)?.grams *
+            0.000001,
+          3
+        )}
+        onChange={(p) => change("T")((ntz(p) ?? 0) * 1000000)}
+        disabled={props.disabled || props.spec.packaging.type !== "ROLL"}
+        precision={3}
       />
     </div>
   );

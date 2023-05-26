@@ -50,10 +50,10 @@ export function convertQuantity(
       ? { value: quantity, unit: "BOX" }
       : { value: calcSheets() / 500, unit: "R" };
   const calcUnpacked = (): UnpackedQuantity | null =>
-    packtype() === "REAM"
+    packtype() === "REAM" || packtype() === "SKID"
       ? { value: quantity, unit: "매" }
-      : packtype() === "SKID"
-      ? { value: quantity, unit: "매" }
+      : packtype() === "BOX"
+      ? { value: quantity * calcPackUnit(), unit: "매" }
       : null;
 
   return {
@@ -75,7 +75,7 @@ export function convertQuantityWith(
   const calcQuantity = (): number | null =>
     packtype() === "BOX"
       ? unit === "매"
-        ? calcPackUnit() / value
+        ? value / calcPackUnit()
         : unit === "R"
         ? calcPackUnit() / (value * 500)
         : unit === "BOX"

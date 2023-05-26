@@ -71,11 +71,6 @@ export default function Component() {
             dataIndex: "name",
           },
           {
-            title: "창고 코드",
-            dataIndex: "code",
-            render: (value) => <div className="font-fixed">{value}</div>,
-          },
-          {
             title: "공개 여부",
             dataIndex: "isPublic",
             render: (value) => (value ? "공개" : "비공개"),

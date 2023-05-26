@@ -1,45 +1,42 @@
 import { Model } from "@/@shared";
-import { PaperUtil, Util } from "@/common";
+import { ApiHook, PaperUtil, Util } from "@/common";
 import { Quantity } from "@/common/paperUtil";
 import { ColumnType } from "antd/lib/table/interface";
 import { Icon } from "..";
 import { TbHome, TbHomeLink } from "react-icons/tb";
 import classNames from "classnames";
+import DiscountRate from "@/@shared/models/discount-rate";
+import { useCallback } from "react";
 
 export function columnStockGroup<T>(
-  getStock: (
-    record: T
-  ) =>
+  getStock: (record: T) =>
     | Model.StockGroupBase
     | Model.OrderStockBase
     | Model.PartnerStockGroup
-    | Model.StockGroup,
-  path: string[]
+    | Model.StockGroup
+    | {
+        product: Model.Product;
+        packaging?: Model.Packaging;
+        grammage: number;
+        sizeX: number;
+        sizeY: number;
+        paperColorGroup: Model.PaperColorGroup | null;
+        paperColor: Model.PaperColor | null;
+        paperPattern: Model.PaperPattern | null;
+        paperCert: Model.PaperCert | null;
+      },
+  path: string[],
+  options?: {
+    excludePackaging?: boolean;
+  }
 ): ColumnType<T>[] {
   return [
-    {
-      title: "포장",
-      dataIndex: [...path, "packaging", "type"],
-      render: (value: Model.Enum.PackagingType, record: T) => (
-        <div className="font-fixed flex gap-x-1">
-          <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType
-              packagingType={getStock(record).packaging.type}
-            />
-          </div>
-          <div className="flex-initial flex flex-col justify-center">
-            {value}
-          </div>
-        </div>
-      ),
-    },
+    ...(options?.excludePackaging
+      ? []
+      : [...columnPackagingType<T>([...path, "packaging"])]),
     {
       title: "제품 유형",
       dataIndex: [...path, "product", "paperDomain", "name"],
-    },
-    {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
     },
     {
       title: "지군",
@@ -50,12 +47,27 @@ export function columnStockGroup<T>(
       dataIndex: [...path, "product", "paperType", "name"],
     },
     {
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
+    },
+    {
       title: "평량",
       dataIndex: [...path, "grammage"],
       render: (value: number) => (
         <div className="text-right font-fixed">{`${Util.comma(value)} ${
           Util.UNIT_GPM
         }`}</div>
+      ),
+    },
+    {
+      title: "규격",
+      render: (_value: any, record: T) => (
+        <div className="font-fixed">
+          {
+            Util.findPaperSize(getStock(record)?.sizeX, getStock(record)?.sizeY)
+              ?.name
+          }
+        </div>
       ),
     },
     {
@@ -69,7 +81,7 @@ export function columnStockGroup<T>(
       title: "지장",
       dataIndex: [...path, "sizeY"],
       render: (value: number, record: T) =>
-        getStock(record).packaging.type !== "ROLL" ? (
+        getStock(record)?.packaging?.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             value
           )} mm`}</div>
@@ -109,10 +121,6 @@ export function columnStock<T>(
       dataIndex: [...path, "product", "paperDomain", "name"],
     },
     {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
-    },
-    {
       title: "지군",
       dataIndex: [...path, "product", "paperGroup", "name"],
     },
@@ -121,21 +129,10 @@ export function columnStock<T>(
       dataIndex: [...path, "product", "paperType", "name"],
     },
     {
-      title: "포장",
-      dataIndex: [...path, "packaging", "type"],
-      render: (value: Model.Enum.PackagingType, record: T) => (
-        <div className="font-fixed flex gap-x-1">
-          <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType
-              packagingType={getStock(record).packaging.type}
-            />
-          </div>
-          <div className="flex-initial flex flex-col justify-center">
-            {value}
-          </div>
-        </div>
-      ),
+      title: "제지사",
+      dataIndex: [...path, "product", "manufacturer", "name"],
     },
+    ...columnPackagingType<T>([...path, "packaging"]),
     {
       title: "평량",
       dataIndex: [...path, "grammage"],
@@ -143,6 +140,17 @@ export function columnStock<T>(
         <div className="text-right font-fixed">{`${Util.comma(value)} ${
           Util.UNIT_GPM
         }`}</div>
+      ),
+    },
+    {
+      title: "규격",
+      render: (_value: any, record: T) => (
+        <div className="text-right font-fixed">
+          {
+            Util.findPaperSize(getStock(record).sizeX, getStock(record).sizeY)
+              ?.name
+          }
+        </div>
       ),
     },
     {
@@ -156,7 +164,7 @@ export function columnStock<T>(
       title: "지장",
       dataIndex: [...path, "sizeY"],
       render: (value: number, record: T) =>
-        getStock(record).packaging.type !== "ROLL" ? (
+        getStock(record)?.packaging.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             value
           )} mm`}</div>
@@ -210,52 +218,53 @@ export function columnQuantity<T>(
     negative?: boolean;
   }
 ): ColumnType<T>[] {
-  const spec = (record: T): PaperUtil.QuantitySpec => {
+  const spec = (record: T): PaperUtil.QuantitySpec | null => {
     const stock = getStock(record);
-    return {
-      packaging: stock.packaging,
-      grammage: stock.grammage,
-      sizeX: stock.sizeX,
-      sizeY: stock.sizeY,
-    };
+    return stock
+      ? {
+          packaging: stock.packaging,
+          grammage: stock.grammage,
+          sizeX: stock.sizeX,
+          sizeY: stock.sizeY,
+        }
+      : null;
   };
 
-  const getQuantity = (value: number, record: T): PaperUtil.Quantity => {
+  const getQuantity = (value: number, record: T): PaperUtil.Quantity | null => {
     const stock = spec(record);
-    return PaperUtil.convertQuantity(
-      stock,
-      (options?.negative ? -1 : 1) * value
-    );
+    return stock
+      ? PaperUtil.convertQuantity(stock, (options?.negative ? -1 : 1) * value)
+      : null;
   };
 
-  const format = (
-    quantity: Quantity,
-    type: "packed" | "unpacked" | "weight"
-  ) => {
-    switch (type) {
-      case "packed":
-        return quantity.packed
-          ? `${Util.comma(
-              quantity.packed.value,
-              PaperUtil.recommendedPrecision(quantity.packed.unit)
-            )} ${quantity.packed.unit}`
-          : null;
-      case "unpacked":
-        return quantity.unpacked
-          ? `${Util.comma(
-              quantity.unpacked.value,
-              PaperUtil.recommendedPrecision(quantity.unpacked.unit)
-            )} ${quantity.unpacked.unit}`
-          : null;
-      case "weight":
-        return quantity.grams
-          ? `${Util.comma(
-              quantity.grams * 0.000001,
-              PaperUtil.recommendedPrecision("T")
-            )} ${"T"}`
-          : null;
-    }
-  };
+  const format =
+    (type: "packed" | "unpacked" | "weight") => (quantity: Quantity | null) => {
+      if (quantity === null) return null;
+
+      switch (type) {
+        case "packed":
+          return quantity.packed
+            ? `${Util.comma(
+                quantity.packed.value,
+                PaperUtil.recommendedPrecision(quantity.packed.unit)
+              )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
+            : null;
+        case "unpacked":
+          return quantity.unpacked
+            ? `${Util.comma(
+                quantity.unpacked.value,
+                PaperUtil.recommendedPrecision(quantity.unpacked.unit)
+              )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
+            : null;
+        case "weight":
+          return quantity.grams
+            ? `${Util.comma(
+                quantity.grams * 0.000001,
+                PaperUtil.recommendedPrecision("T")
+              )} ${"T"}`
+            : null;
+      }
+    };
 
   return [
     {
@@ -263,7 +272,7 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "packed")}
+          {value && record ? format("packed")(getQuantity(value, record)) : ""}
         </div>
       ),
     },
@@ -272,7 +281,9 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "unpacked")}
+          {value && record
+            ? format("unpacked")(getQuantity(value, record))
+            : ""}
         </div>
       ),
     },
@@ -281,7 +292,7 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {format(getQuantity(value, record), "weight")}
+          {value && record ? format("weight")(getQuantity(value, record)) : ""}
         </div>
       ),
     },
@@ -308,6 +319,95 @@ export function columnConnection<T>(path: string[]): ColumnType<T>[] {
           </div>
           <div className="flex flex-col justify-center">
             {value ? "비연결 거래처" : "연결 거래처"}
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function useColumnPartner<T>(
+  companyRegistrationNumberPath: string[],
+  options?: {
+    title?: string;
+    fallback?: (record: T) => string;
+  }
+): ColumnType<T>[] {
+  const partners = ApiHook.Partner.Partner.useGetList();
+
+  return [
+    {
+      title: options?.title ?? "거래처",
+      dataIndex: [...companyRegistrationNumberPath],
+      render: (value: string, record: T) => {
+        return (
+          <div>
+            {partners.data?.find((p) => p.companyRegistrationNumber == value)
+              ?.partnerNickName ??
+              options?.fallback?.(record) ??
+              ""}
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function columnDiscountRate<T>(
+  path: string[],
+  options?: {
+    prefix?: string;
+  }
+): ColumnType<T>[] {
+  const unit = (value: DiscountRate) => {
+    switch (value.discountRateUnit) {
+      case "PERCENT":
+        return "%";
+      case "WON_PER_BOX":
+        return "원/BOX";
+      case "WON_PER_REAM":
+        return "원/R";
+      case "WON_PER_TON":
+        return "원/T";
+    }
+  };
+  return [
+    {
+      title: `${options?.prefix ?? ""} 할인율`.trim(),
+      dataIndex: path,
+      render: (value: DiscountRate) => (
+        <div className={"flex flex-row gap-2 justify-end"}>
+          <div className="flex text-right font-fixed">
+            {Util.comma(
+              value.discountRate,
+              value.discountRateUnit === "PERCENT" ? 3 : 0
+            )}{" "}
+            {unit(value)}
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function columnPackagingType<T>(path: string[]): ColumnType<T>[] {
+  return [
+    {
+      title: "포장",
+      dataIndex: [...path],
+      render: (value: Model.Packaging, record: T) => (
+        <div className="font-fixed flex gap-x-1">
+          <div className="flex-initial flex flex-col justify-center text-lg">
+            <Icon.PackagingType packagingType={value?.type} />
+          </div>
+          <div className="flex-initial flex flex-col justify-center whitespace-pre">
+            {value?.type.padEnd(4)}
+          </div>
+          {value?.type !== "SKID" && (
+            <div className="flex-initial text-gray-400 mx-1">─</div>
+          )}
+          <div className="flex-initial flex flex-col justify-center text-gray-500">
+            {value ? Util.formatPackaging(value, true) : ""}
           </div>
         </div>
       ),

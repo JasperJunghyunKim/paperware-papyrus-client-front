@@ -1,22 +1,25 @@
 import { Api, Model } from "@/@shared";
-import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
-import { Form, Input, Steps } from "antd";
-import { useForm, useWatch } from "antd/lib/form/Form";
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import { Number } from "@/components/formControl";
-import { ApiHook, Util } from "@/common";
 import { OrderStatus } from "@/@shared/models/enum";
+import { ApiHook, PaperUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { CreateArrival } from ".";
+import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
+import { Number } from "@/components/formControl";
+import { Alert, Form, Input, Steps, Switch } from "antd";
+import { useForm, useWatch } from "antd/lib/form/Form";
+import classNames from "classnames";
+import _ from "lodash";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   TbAB,
   TbBrandMixpanel,
   TbHandStop,
   TbInfoCircle,
+  TbRubberStamp,
   TbSend,
   TbSquare,
 } from "react-icons/tb";
-import _ from "lodash";
+import { CreateArrival } from ".";
+import { TaskMap } from "../plan/common";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -38,7 +41,9 @@ export interface Props {
 export default function Component(props: Props) {
   const me = ApiHook.Auth.useGetMe();
   const [initialOrderId, setInitialOrderId] = useState<OrderId | null>(null);
-  const order = ApiHook.Trade.OrderStock.useGetItem({ id: initialOrderId });
+  const order = ApiHook.Trade.OrderStock.useGetItem({
+    id: initialOrderId,
+  });
 
   const isOffer = props.open === "CREATE_OFFER";
   const isSales = isOffer || me.data?.companyId === order.data?.dstCompany.id;
@@ -48,6 +53,7 @@ export default function Component(props: Props) {
       setInitialOrderId(props.open);
     } else {
       setInitialOrderId(null);
+      order.remove();
     }
   }, [props.open]);
 
@@ -67,7 +73,7 @@ export default function Component(props: Props) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "재고를 승인하시겠습니까?"
         ))
       )
@@ -123,7 +129,7 @@ export default function Component(props: Props) {
           order.data.srcCompany.managedById !== null ? (
             <RightSideSkeleton
               icon={<TbAB />}
-              title={`매출 재고를 선택하고 가상 매출처 대상 매출 등록을 완료하세요.`}
+              title={`매출 재고를 선택하고 비연결 매출처 대상 매출 등록을 완료하세요.`}
               buttons={[
                 {
                   fn: cmdAccept(true),
@@ -191,7 +197,7 @@ export default function Component(props: Props) {
           order.data.dstCompany.managedById !== null ? (
             <RightSideSkeleton
               icon={<TbAB />}
-              title={`매입 재고를 선택하고 가상 매입처 대상 매입 등록을 완료하세요.`}
+              title={`매입 재고를 선택하고 비연결 매입처 대상 매입 등록을 완료하세요.`}
               buttons={[
                 {
                   fn: cmdAccept(true),
@@ -270,7 +276,7 @@ export default function Component(props: Props) {
       height="calc(100vh - 80px)"
     >
       <div className="w-full h-full flex">
-        <div className="basis-[480px] flex-shrink-0 p-4 overflow-y-scroll">
+        <div className="basis-[460px] flex-shrink-0 p-4 overflow-y-scroll">
           <DataForm
             isOffer={isOffer}
             isSales={isSales}
@@ -308,6 +314,7 @@ function DataForm(props: DataFormProps) {
   const [form] = useForm<
     Api.OrderStockCreateRequest | Api.OrderStockUpdateRequest
   >();
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
   );
@@ -325,10 +332,17 @@ function DataForm(props: DataFormProps) {
     },
   });
 
+  const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
+  const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
+  const paperColorGroupId = useWatch(["paperColorGroupId"], form);
+  const paperColorId = useWatch(["paperColorId"], form);
+  const paperPatternId = useWatch(["paperPatternId"], form);
+  const paperCertId = useWatch(["paperCertId"], form);
+  const quantity = useWatch(["quantity"], form);
 
   const editable =
     props.initialOrder === null ||
@@ -338,6 +352,22 @@ function DataForm(props: DataFormProps) {
     !props.isSales &&
     companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
       ?.srcCompany.managedById !== null;
+
+  const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetGroupQuantity({
+    query: {
+      initialOrderId: null, // TODO
+      warehouseId: warehouse?.id ?? null,
+      productId: productId ?? null,
+      packagingId: packagingId ?? null,
+      grammage: grammage ?? null,
+      sizeX: sizeX ?? null,
+      sizeY: sizeY ?? null,
+      paperColorGroupId: paperColorGroupId ?? null,
+      paperColorId: paperColorId ?? null,
+      paperPatternId: paperPatternId ?? null,
+      paperCertId: paperCertId ?? null,
+    },
+  });
 
   useEffect(() => {
     if (props.initialOrder) {
@@ -360,6 +390,7 @@ function DataForm(props: DataFormProps) {
         quantity: props.initialOrder.orderStock.quantity,
         memo: props.initialOrder.memo,
       });
+      setOrderId(props.initialOrder.orderStock.orderId);
       setWarehouse(props.initialOrder.orderStock.warehouse);
     } else {
       form.resetFields();
@@ -378,6 +409,7 @@ function DataForm(props: DataFormProps) {
       return await apiCreate.mutateAsync({
         data: {
           ...values,
+          warehouseId: warehouse?.id ?? null,
           dstCompanyId: me.data.companyId,
         },
       });
@@ -385,11 +417,12 @@ function DataForm(props: DataFormProps) {
       return await apiCreate.mutateAsync({
         data: {
           ...values,
+          warehouseId: warehouse?.id ?? null,
           srcCompanyId: me.data.companyId,
         },
       });
     }
-  }, [form, apiCreate, me, props.isOffer]);
+  }, [form, apiCreate, me, props.isOffer, warehouse]);
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
   const cmdUpdate = useCallback(async () => {
@@ -438,11 +471,25 @@ function DataForm(props: DataFormProps) {
           <FormControl.SelectCompanySales disabled={!editable} />
         </Form.Item>
       )}
-      {!props.isSales && dstCompanyId && (
-        <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-          <FormControl.SelectLocation disabled={!editable} />
-        </Form.Item>
-      )}
+      {!props.isSales &&
+        dstCompanyId &&
+        (editable ? (
+          <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
+            <FormControl.SelectLocation />
+          </Form.Item>
+        ) : (
+          <Form.Item label="도착지" required>
+            <Input
+              value={props.initialOrder?.orderStock.dstLocation.name}
+              disabled={!editable}
+            />
+            <div className="text-gray-400 text-sm mt-2">
+              {`주소: ${Util.formatAddress(
+                props.initialOrder?.orderStock.dstLocation.address
+              )}`}
+            </div>
+          </Form.Item>
+        ))}
       {props.isSales && srcCompanyId && (
         <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
           <FormControl.SelectLocationForSales
@@ -451,7 +498,11 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      <Form.Item name="wantedDate" label="도착 희망일" rules={REQUIRED_RULES}>
+      <Form.Item
+        name="wantedDate"
+        label={props.isSales ? "납품 요청일" : "도착 희망일"}
+        rules={REQUIRED_RULES}
+      >
         <FormControl.DatePicker disabled={!editable} />
       </Form.Item>
       {(srcCompanyId || dstCompanyId) && (
@@ -463,10 +514,11 @@ function DataForm(props: DataFormProps) {
             <div className="flex-initial flex mb-4">
               <Button.Preset.SelectStockGroupInhouse
                 onSelect={(stockGroup) => {
+                  setOrderId(stockGroup.orderStock?.orderId ?? null);
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
                     warehouseId: stockGroup.warehouse?.id,
-                    orderStockId: stockGroup.orderStock?.id,
+                    orderStockId: stockGroup.orderStock?.orderId,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -508,25 +560,18 @@ function DataForm(props: DataFormProps) {
           )}
           {!manual && (
             <>
-              {props.isSales ? (
-                <Form.Item name="warehouseId" label="창고">
-                  <FormControl.SelectWarehouse disabled />
-                </Form.Item>
-              ) : (
-                <Form.Item
-                  name="warehouseId"
-                  label="창고"
-                  rules={[{ required: true }]}
-                >
+              <Form.Item
+                name="warehouseId"
+                label="창고"
+                hidden={!props.isSales}
+              >
+                <FormControl.SelectWarehouse disabled />
+              </Form.Item>
+              {!props.isSales && (
+                <Form.Item label="창고" rules={[{ required: true }]}>
                   <Input value={warehouse?.name} disabled />
                 </Form.Item>
               )}
-              <Form.Item label="창고 주소" rules={[{ required: true }]}>
-                <Input
-                  value={Util.formatAddress(warehouse?.address)}
-                  disabled
-                />
-              </Form.Item>
             </>
           )}
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
@@ -617,9 +662,48 @@ function DataForm(props: DataFormProps) {
         </>
       )}
       {packaging && (
-        <Form.Item name="quantity" label="매입 수량">
-          <FormControl.Quantity packaging={packaging} disabled={!editable} />
-        </Form.Item>
+        <>
+          <Form.Item label={"실물 수량"}>
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              value={stockGroupQuantity.data?.totalQuantity ?? 0}
+              disabled
+            />
+          </Form.Item>
+          <Form.Item label={"가용 수량"}>
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              value={
+                (stockGroupQuantity.data?.availableQuantity ?? 0) - quantity
+              }
+              disabled
+            />
+          </Form.Item>
+          <Form.Item
+            name="quantity"
+            label={props.isSales ? "매출 수량" : "매입 수량"}
+          >
+            <FormControl.Quantity
+              spec={{
+                grammage,
+                sizeX,
+                sizeY,
+                packaging,
+              }}
+              disabled={!editable}
+            />
+          </Form.Item>
+        </>
       )}
       <FormControl.Util.Split label="기타" />
       <Form.Item name="memo" label="기타 요청사항">
@@ -713,7 +797,7 @@ function RightSideOrder(props: RightSideOrderProps) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "재고를 승인하시겠습니까?"
         ))
       )
@@ -785,102 +869,126 @@ function RightSideOrder(props: RightSideOrderProps) {
       ];
 
   return (
-    <div className="flex-1 w-0 flex flex-col">
-      <Toolbar.Container rootClassName="p-4">
-        <Toolbar.ButtonPreset.Create
-          label="입고 정보 추가"
-          disabled={!accepted}
-          tooltip={
-            !accepted
-              ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
-              : undefined
-          }
-          onClick={() => props.order && setOpen(props.order.id)}
-        />
-        <div className="flex-1 flex flex-col justify-center select-none mx-8">
-          <Steps items={steps} current={status} />
-        </div>
-        {props.order?.status === "ORDER_PREPARING" && (
-          <Toolbar.ButtonPreset.Delete label="주문 삭제" onClick={cmdCancel} />
-        )}
-        {!isVirtual && props.order?.status === "ORDER_PREPARING" && (
-          <Toolbar.ButtonPreset.Send label="발주 요청" onClick={cmdRequest} />
-        )}
-        {isVirtual && props.order?.status === "ORDER_PREPARING" && (
-          <Toolbar.ButtonPreset.Continue
-            label="매입 등록"
-            onClick={cmdAccept(isVirtual)}
+    <div className="flex-1 w-0 flex">
+      <div className="flex-1 flex flex-col w-0">
+        <Toolbar.Container rootClassName="p-4">
+          <Toolbar.ButtonPreset.Create
+            label="입고 정보 추가"
+            disabled={!accepted}
+            tooltip={
+              !accepted
+                ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
+                : undefined
+            }
+            onClick={() => props.order && setOpen(props.order.id)}
           />
-        )}
-        {props.order?.status === "OFFER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Reject label="재고 거절" onClick={cmdReject} />
-        )}
-        {props.order?.status === "OFFER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Continue
-            label="재고 승인"
-            onClick={cmdAccept(isVirtual)}
-          />
-        )}
-        {props.order?.status === "ORDER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Send label="발주 요청" disabled />
-        )}
-        {props.order?.status === "ORDER_REJECTED" && (
-          <Toolbar.ButtonPreset.Continue
-            label="주문 재입력"
-            onClick={cmdReset}
-          />
-        )}
-      </Toolbar.Container>
-      <div className="flex-1 overflow-y-scroll px-4 pb-4">
-        <div className="flex-1">
-          <Table.Default<Model.StockEvent>
-            data={list.data ?? undefined}
-            page={page}
-            setPage={setPage}
-            keySelector={(record) => `${record.id}`}
-            selection="none"
-            columns={[
-              {
-                title: "#",
-                dataIndex: "id",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )}`}</div>
+          <div className="flex-1 flex flex-col justify-center select-none mx-8">
+            <Steps items={steps} current={status} />
+          </div>
+          {props.order?.status === "ORDER_PREPARING" && (
+            <Toolbar.ButtonPreset.Delete
+              label="주문 삭제"
+              onClick={cmdCancel}
+            />
+          )}
+          {!isVirtual && props.order?.status === "ORDER_PREPARING" && (
+            <Toolbar.ButtonPreset.Send label="발주 요청" onClick={cmdRequest} />
+          )}
+          {isVirtual && props.order?.status === "ORDER_PREPARING" && (
+            <Toolbar.ButtonPreset.Continue
+              label="매입 등록"
+              onClick={cmdAccept(isVirtual)}
+            />
+          )}
+          {props.order?.status === "OFFER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Reject
+              label="재고 거절"
+              onClick={cmdReject}
+            />
+          )}
+          {props.order?.status === "OFFER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Continue
+              label="재고 승인"
+              onClick={cmdAccept(isVirtual)}
+            />
+          )}
+          {props.order?.status === "ORDER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Send label="발주 요청" disabled />
+          )}
+          {props.order?.status === "ORDER_REJECTED" && (
+            <Toolbar.ButtonPreset.Continue
+              label="주문 재입력"
+              onClick={cmdReset}
+            />
+          )}
+        </Toolbar.Container>
+        <div className="flex-1 overflow-y-scroll px-4 pb-4">
+          <div className="flex-1">
+            <Table.Default<Model.ArrivalStockGroup>
+              data={list.data ?? undefined}
+              page={page}
+              setPage={setPage}
+              keySelector={(record) => `${record.id}`}
+              selection="none"
+              columns={[
+                {
+                  title: "작업 구분",
+                  render: (value: Model.ArrivalStockGroup) => (
+                    <div>{value.orderStock ? "정상 매입" : ""}</div>
+                  ),
+                },
+                {
+                  title: "작업 번호",
+                  dataIndex: ["stock", "initialOrder", "orderNo"],
+                  render: (value) => (
+                    <div className="flex">
+                      <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                        {value}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  title: "거래처",
+                  dataIndex: ["orderCompanyInfo", "businessName"],
+                },
+                {
+                  title: "도착 예정일",
+                  dataIndex: ["orderInfo", "wantedDate"],
+                  render: (value) => Util.formatIso8601ToLocalDate(value),
+                },
+                {
+                  title: "도착지",
+                  dataIndex: ["orderStock", "dstLocation", "name"],
+                },
+                ...Table.Preset.columnStockGroup<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  []
                 ),
-              },
-              ...Table.Preset.columnStock<Model.StockEvent>(
-                (p) => p.stock,
-                ["stock"]
-              ),
-              {
-                title: "입고 수량",
-                dataIndex: "change",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )}`}</div>
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["nonStoringQuantity"],
+                  { prefix: "배정" }
                 ),
-                fixed: "right",
-              },
-              {
-                title: "입고 여부",
-                dataIndex: "status",
-                render: (value: Model.Enum.StockEventStatus) => (
-                  <div className="font-bold">
-                    {value === "NORMAL" ? "입고 완료" : "입고 대기중"}
-                  </div>
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["storingQuantity"],
+                  { prefix: "입고" }
                 ),
-                fixed: "right",
-              },
-            ]}
-          />
+                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                  (p) => p, // TODO
+                  ["totalQuantity"],
+                  { prefix: "전체" }
+                ),
+              ]}
+            />
+          </div>
         </div>
       </div>
       {props.order && (
         <>
           <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} />
+          <PricePanel order={props.order} orderId={props.order.id} />
         </>
       )}
       <CreateArrival open={open} onClose={setOpen} />
@@ -908,7 +1016,7 @@ function RightSideSales(props: RightSideSalesProps) {
       if (
         !(await Util.confirm(
           virtual
-            ? "가상 매출처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
+            ? "비연결 매출처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
             : "주문을 승인하시겠습니까?"
         ))
       )
@@ -979,53 +1087,75 @@ function RightSideSales(props: RightSideSalesProps) {
         },
       ];
 
+  const plan = ApiHook.Working.Plan.useGetItem({
+    id: props.order?.orderStock.plan?.id ?? null,
+  });
+
   return (
-    <div className="flex-1 w-0 flex flex-col">
-      <Toolbar.Container rootClassName="p-4">
-        <div className="flex-1 flex flex-col justify-center select-none mx-8">
-          <Steps items={steps} current={status} />
+    <div className="flex-1 w-0 flex">
+      <div className="flex-1 flex flex-col w-0">
+        <Toolbar.Container rootClassName="flex-1 p-4">
+          <div className="flex-1 flex flex-col justify-center select-none mx-8">
+            <Steps items={steps} current={status} />
+          </div>
+          {props.order?.status === "OFFER_PREPARING" && (
+            <Toolbar.ButtonPreset.Delete
+              label="주문 삭제"
+              onClick={cmdCancel}
+            />
+          )}
+          {!isVirtual && props.order?.status === "OFFER_PREPARING" && (
+            <Toolbar.ButtonPreset.Send
+              label="주문 승인 요청"
+              onClick={cmdRequest}
+            />
+          )}
+          {isVirtual && props.order?.status === "OFFER_PREPARING" && (
+            <Toolbar.ButtonPreset.Continue
+              label="매출 등록"
+              onClick={cmdAccept(isVirtual)}
+            />
+          )}
+          {props.order?.status === "ORDER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Reject
+              label="주문 거절"
+              onClick={cmdReject}
+            />
+          )}
+          {props.order?.status === "ORDER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Continue
+              label="주문 승인"
+              onClick={cmdAccept(isVirtual)}
+            />
+          )}
+          {props.order?.status === "OFFER_REQUESTED" && (
+            <Toolbar.ButtonPreset.Send label="재고 승인" disabled />
+          )}
+          {props.order?.status === "OFFER_REJECTED" && (
+            <Toolbar.ButtonPreset.Continue
+              label="수주 내용 재입력"
+              onClick={cmdReset}
+            />
+          )}
+        </Toolbar.Container>
+        <div className="basis-px bg-gray-200" />
+        <div className="flex-1 flex h-0">
+          <div className="flex-1 bg-slate-100">
+            {plan.data && (
+              <TaskMap
+                plan={plan.data}
+                packagingType={
+                  plan.data?.targetStockGroupEvent.stockGroup.packaging.type
+                }
+              />
+            )}
+          </div>
         </div>
-        {props.order?.status === "OFFER_PREPARING" && (
-          <Toolbar.ButtonPreset.Delete label="주문 삭제" onClick={cmdCancel} />
-        )}
-        {!isVirtual && props.order?.status === "OFFER_PREPARING" && (
-          <Toolbar.ButtonPreset.Send
-            label="주문 승인 요청"
-            onClick={cmdRequest}
-          />
-        )}
-        {isVirtual && props.order?.status === "OFFER_PREPARING" && (
-          <Toolbar.ButtonPreset.Continue
-            label="매출 등록"
-            onClick={cmdAccept(isVirtual)}
-          />
-        )}
-        {props.order?.status === "ORDER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Reject label="주문 거절" onClick={cmdReject} />
-        )}
-        {props.order?.status === "ORDER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Continue
-            label="주문 승인"
-            onClick={cmdAccept(isVirtual)}
-          />
-        )}
-        {props.order?.status === "OFFER_REQUESTED" && (
-          <Toolbar.ButtonPreset.Send label="재고 승인" disabled />
-        )}
-        {props.order?.status === "OFFER_REJECTED" && (
-          <Toolbar.ButtonPreset.Continue
-            label="수주 내용 재입력"
-            onClick={cmdReset}
-          />
-        )}
-      </Toolbar.Container>
-      <div className="flex-1 overflow-y-scroll px-4 pb-4">
-        <div className="flex-1"></div>
       </div>
       {props.order && (
         <>
           <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} />
+          <PricePanel order={props.order} orderId={props.order.id} />
         </>
       )}
     </div>
@@ -1034,13 +1164,54 @@ function RightSideSales(props: RightSideSalesProps) {
 
 interface PricePanelProps {
   order: Model.Order;
+  orderId: number | null;
 }
 function PricePanel(props: PricePanelProps) {
   const [form] = useForm();
 
-  const processPrice = useWatch(["processPrice"], form);
-  const suppliedPrice = useWatch(["suppliedPrice"], form);
-  const vatPrice = useWatch(["vatPrice"], form);
+  const altSizeX = useWatch<number>(
+    ["orderStockTradeAltBundle", "altSizeX"],
+    form
+  );
+  const altSizeY = useWatch<number>(
+    ["orderStockTradeAltBundle", "altSizeY"],
+    form
+  );
+  const altQuantity = useWatch<number>(
+    ["orderStockTradeAltBundle", "altQuantity"],
+    form
+  );
+  const unitPrice = useWatch<number>(["stockPrice", "unitPrice"], form);
+  const unitPriceUnit = useWatch<Model.Enum.PriceUnit>(
+    ["stockPrice", "unitPriceUnit"],
+    form
+  );
+
+  const stockSuppliedPrice = useMemo(() => {
+    const quantity = altQuantity ?? props.order.orderStock.quantity;
+    const convert = (unit: "T" | "BOX" | "매") =>
+      PaperUtil.convertQuantityWith(props.order.orderStock, unit, quantity);
+
+    const converted =
+      props.order?.orderStock?.packaging.type === "ROLL"
+        ? convert("T")
+        : props.order?.orderStock?.packaging.type === "BOX"
+        ? convert("BOX")
+        : convert("매");
+
+    return !converted
+      ? 0
+      : unitPrice *
+          (unitPriceUnit === "WON_PER_TON"
+            ? converted.grams * 0.000001
+            : unitPriceUnit === "WON_PER_BOX"
+            ? converted.quantity
+            : converted.packed?.value ?? 0);
+  }, [props.order?.orderStock, unitPrice, unitPriceUnit, altQuantity]);
+
+  const processPrice = useWatch<number | null>(["processPrice"], form);
+  const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
+  const vatPrice = useWatch<number | null>(["vatPrice"], form);
 
   const data = ApiHook.Trade.OrderStock.useGetTradePrice({
     orderId: props.order.id,
@@ -1072,6 +1243,7 @@ function PricePanel(props: PricePanelProps) {
             : 0,
           unitPriceUnit: values.stockPrice.unitPriceUnit,
           processPrice: values.processPrice ?? 0,
+          orderStockTradeAltBundle: values.orderStockTradeAltBundle,
         },
         suppliedPrice: values.suppliedPrice ?? 0,
         vatPrice: values.vatPrice ?? 0,
@@ -1080,7 +1252,6 @@ function PricePanel(props: PricePanelProps) {
   }, [props.order, form, apiUpdate]);
 
   useEffect(() => {
-    console.log(data.data);
     if (data.data && data.data.orderStockTradePrice) {
       form.setFieldsValue({
         stockPrice: {
@@ -1106,10 +1277,32 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: 0,
       });
     }
-  }, [data.data, form, props.order.orderStock.packaging.type]);
+  }, [props.orderId, data.data, form, props.order.orderStock.packaging.type]);
+
+  const defaultSuppliedPrice = stockSuppliedPrice + (processPrice ?? 0);
+  const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
+
+  useEffect(() => {
+    form.setFieldValue(
+      "stockPrice",
+      FormControl.Util.Price.initialStockPrice(
+        altSizeX && altSizeY
+          ? "SKID"
+          : altSizeX
+          ? "ROLL"
+          : props.order.orderStock.packaging.type
+      )
+    );
+  }, [altSizeX, altSizeY, props.order.orderStock.packaging.type]);
+
+  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
+    .filter((_) => me.data)
+    .find((p) => p.id !== me.data?.companyId);
+
+  const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   return (
-    <div className="basis-[300px] overflow-y-scroll p-4 flex">
+    <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
       <Form
         form={form}
         layout="vertical"
@@ -1120,27 +1313,135 @@ function PricePanel(props: PricePanelProps) {
           ),
         }}
       >
-        <Form.Item label="거래 금액" name={["stockPrice"]}>
-          <FormControl.StockPrice
-            spec={{
-              grammage: props.order.orderStock.grammage,
-              packaging: props.order.orderStock.packaging,
-              sizeX: props.order.orderStock.sizeX,
-              sizeY: props.order.orderStock.sizeY,
-            }}
-          />
+        <FormControl.Util.Split label="단가 대체" />
+        <Form.Item label="단가 대체" name={["orderStockTradeAltBundle"]}>
+          <FormControl.Alt />
+        </Form.Item>
+        <Alert
+          message="단가 대체 규격을 수정하면 거래 금액정보가 초기화됩니다."
+          type="info"
+        />
+        <FormControl.Util.Split label="거래 금액 정보" />
+        <Form.Item label="거래 단가" name={["stockPrice"]}>
+          {positiveCompany && (
+            <FormControl.StockPrice
+              spec={{
+                grammage: props.order.orderStock.grammage,
+                packaging:
+                  altSizeX && altSizeY
+                    ? {
+                        packA: 0,
+                        packB: 0,
+                        type: "SKID",
+                      }
+                    : altSizeX
+                    ? {
+                        packA: 0,
+                        packB: 0,
+                        type: "ROLL",
+                      }
+                    : props.order.orderStock.packaging,
+                sizeX: altSizeX ?? props.order.orderStock.sizeX,
+                sizeY: altSizeY ?? props.order.orderStock.sizeY,
+              }}
+              officialSpec={{
+                productId: props.order.orderStock.product.id,
+                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
+                paperColorId: props.order.orderStock.paperColor?.id,
+                paperPatternId: props.order.orderStock.paperPattern?.id,
+                paperCertId: props.order.orderStock.paperCert?.id,
+              }}
+              discountSpec={{
+                companyRegistrationNumber:
+                  positiveCompany?.companyRegistrationNumber,
+                productId: props.order.orderStock.product.id,
+                discountRateType: isSales ? "SALES" : "PURCHASE",
+                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
+                paperColorId: props.order.orderStock.paperColor?.id,
+                paperPatternId: props.order.orderStock.paperPattern?.id,
+                paperCertId: props.order.orderStock.paperCert?.id,
+              }}
+            />
+          )}
         </Form.Item>
         <Form.Item name={"processPrice"} label="공정비">
-          <FormControl.Number />
+          <FormControl.Number unit="원" />
         </Form.Item>
-        <Form.Item name={"suppliePrice"} label="공급가">
-          <FormControl.Number />
-        </Form.Item>
-        <Form.Item name={"vatPrice"} label="부가세">
-          <FormControl.Number />
+        <Form.Item name={"suppliedPrice"} label="공급가">
+          <FormControl.Number unit="원" />
         </Form.Item>
         <div className="flex-initial flex justify-end">
+          <div className="flex-1 flex gap-x-2 font-fixed text-xs">
+            <div className="flex flex-col text-gray-500">
+              {`기준공급가: ${Util.comma(
+                stockSuppliedPrice + (processPrice ?? 0)
+              )}원`}
+            </div>
+            {suppliedPrice &&
+            Math.abs(suppliedPrice - defaultSuppliedPrice) >= 1 ? (
+              <div
+                className={classNames("flex flex-col", {
+                  "text-orange-600": suppliedPrice > defaultSuppliedPrice,
+                  "text-green-600": suppliedPrice < defaultSuppliedPrice,
+                })}
+              >
+                {`(${Util.comma(
+                  Math.abs(suppliedPrice - defaultSuppliedPrice)
+                )}원 ${
+                  suppliedPrice > defaultSuppliedPrice ? "절상" : "절사"
+                })`}
+              </div>
+            ) : null}
+          </div>
+          <Button.Default
+            type="default"
+            label="기준공급가 적용"
+            onClick={() =>
+              form.setFieldValue("suppliedPrice", defaultSuppliedPrice)
+            }
+          />
+        </div>
+        <Form.Item name={"vatPrice"} label="부가세">
+          <FormControl.Number unit="원" />
+        </Form.Item>
+        <div className="flex-initial flex justify-end">
+          <div className="flex-1 flex gap-x-2 font-fixed text-xs">
+            <div className="flex flex-col text-gray-500">
+              {`10%부가세: ${Util.comma(defaultVatPrice)}원`}
+            </div>
+            {vatPrice && Math.abs(vatPrice - defaultVatPrice) >= 1 ? (
+              <div
+                className={classNames("flex flex-col", {
+                  "text-orange-600": vatPrice > defaultVatPrice,
+                  "text-green-600": vatPrice < defaultVatPrice,
+                })}
+              >
+                {`(${Util.comma(Math.abs(vatPrice - defaultVatPrice))}원 ${
+                  vatPrice > defaultVatPrice ? "절상" : "절사"
+                })`}
+              </div>
+            ) : null}
+          </div>
+          <Button.Default
+            type="default"
+            label="10%부가세 적용"
+            onClick={() => form.setFieldValue("vatPrice", defaultVatPrice)}
+          />
+        </div>
+        <Form.Item label="합계">
+          <FormControl.Number
+            unit="원"
+            value={(suppliedPrice ?? 0) + (vatPrice ?? 0)}
+            disabled
+          />
+        </Form.Item>
+        <div className="flex-initial flex justify-end mt-4 gap-x-2">
           <Button.Default type="secondary" label="저장" onClick={cmdUpdate} />
+          <Button.Default
+            type="primary"
+            icon={<TbRubberStamp />}
+            label="거래 마감"
+          />
         </div>
         <div className="h-8" />
       </Form>

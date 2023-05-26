@@ -1,13 +1,13 @@
-import { Model } from "@/@shared";
 import { PaginationResponse } from "@/@shared/models/pagination";
-import { ApiHook, Protocol } from "@/common";
+import { ApiHook } from "@/common";
 import { Table } from "antd";
 import { ColumnType, ExpandableConfig } from "antd/lib/table/interface";
 import { TableComponents } from "rc-table/lib/interface";
+import { useEffect } from "react";
 import { useMemo } from "react";
 
 interface Props<T> {
-  data: PaginationResponse<T> | undefined;
+  data: PaginationResponse<T> | null | undefined;
   page?: ApiHook.Common.GetPaginationQuery;
   setPage?: (page: ApiHook.Common.GetPaginationQuery) => void;
   columns: ColumnType<T>[];

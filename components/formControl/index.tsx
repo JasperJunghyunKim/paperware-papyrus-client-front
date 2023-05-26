@@ -1,4 +1,9 @@
 import Address from "./Address";
+import Alt from "./Alt";
+import SelectPaperDomain from "./SelectPaperDomain";
+import SelectPaperGroup from "./SelectPaperGroup";
+import SelectPaperType from "./SelectPaperType";
+import SelectManufacturer from "./SelectManufacturer";
 import SelectCert from "./SelectCert";
 import SelectColor from "./SelectColor";
 import SelectColorGroup from "./SelectColorGroup";
@@ -19,6 +24,7 @@ export * as Util from "./util";
 import SelectPartner from "./SelectPartner";
 import SelectMethod from "./SelectMethod";
 import SelectSubject from "./SelectSubject";
+import SelectPackagingType from "./SelectPackagingType";
 import SelectCard from "./SelectCard";
 import SelectBank from "./SelectBank";
 import SelectApiBank from "./SelectApiBank";
@@ -31,6 +37,11 @@ import SelectEndorsementType from "./SelectEndorsementType";
 
 export {
   Address,
+  Alt,
+  SelectPaperDomain,
+  SelectPaperGroup,
+  SelectPaperType,
+  SelectManufacturer,
   SelectPartner,
   SelectProduct,
   SelectColorGroup,
@@ -50,6 +61,7 @@ export {
   SelectLocationForSales,
   DatePicker,
   StockPrice,
+  SelectPackagingType,
   SelectBank,
   SelectCard,
   SelectBankAccount,

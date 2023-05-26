@@ -27,7 +27,7 @@ export default function Component(props: Props) {
         <Input maxLength={20} />
       </Form.Item>
       <Form.Item className="flex justify-end">
-        <Button.Preset.Submit label="가상 거래처 추가" />
+        <Button.Preset.Submit label="거래처 추가" />
       </Form.Item>
     </Form>
   );

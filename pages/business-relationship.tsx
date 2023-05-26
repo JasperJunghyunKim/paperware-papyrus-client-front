@@ -18,6 +18,12 @@ export default function Component() {
   const pendingCount =
     ApiHook.Inhouse.BusinessRelationshipRequest.useGetPendingCount();
 
+  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
+    ["companyRegistrationNumber"],
+    {
+      title: "거래처명",
+    }
+  );
   const [page, setPage] = usePage();
   const list = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
     query: {
@@ -114,10 +120,7 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          {
-            title: "거래처명",
-            dataIndex: ["businessName"],
-          },
+          ...partnerColumn,
           ...Table.Preset.columnConnection<RecordType>(["managedById"]),
           {
             title: "송장 코드",

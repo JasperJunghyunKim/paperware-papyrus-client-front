@@ -16,10 +16,18 @@ export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
   const [form] = useForm<Api.StockCreateRequest>();
+  const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const sizeX = useWatch<number>(["sizeX"], form);
   const sizeY = useWatch<number>(["sizeY"], form);
   const grammage = useWatch(["grammage"], form);
+  const paperColorGroupId = useWatch<number | null>(
+    ["paperColorGroupId"],
+    form
+  );
+  const paperColorId = useWatch<number | null>(["paperColorId"], form);
+  const paperPatternId = useWatch<number | null>(["paperPatternId"], form);
+  const paperCertId = useWatch<number | null>(["paperCertId"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
@@ -146,16 +154,30 @@ export default function Component(props: Props) {
                   sizeX,
                   sizeY,
                 }}
+                officialSpec={{
+                  productId,
+                  paperColorGroupId,
+                  paperColorId,
+                  paperPatternId,
+                  paperCertId,
+                }}
               />
             </Form.Item>
           )}
           {packaging && (
             <Form.Item name="quantity" label="재고 수량">
-              <FormControl.Quantity packaging={packaging} />
+              <FormControl.Quantity
+                spec={{
+                  grammage,
+                  sizeX,
+                  sizeY,
+                  packaging,
+                }}
+              />
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="재고 추가" />
+            <Button.Preset.Submit label="재고 추가" disabled={api.isLoading} />
           </Form.Item>
         </Form>
       </div>

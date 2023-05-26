@@ -3,6 +3,7 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
+import { useEffect } from "react";
 import { useCallback, useState } from "react";
 import { TbHome, TbHomeShield } from "react-icons/tb";
 
@@ -25,6 +26,29 @@ export default function Component() {
     [apiCreate]
   );
 
+  const apiForaward = ApiHook.Shipping.Shipping.useForward();
+  const cmdForward = useCallback(async () => {
+    if (!only) {
+      return;
+    }
+    await apiForaward.mutateAsync({ shippingId: only.id });
+  }, [only, selected, apiForaward]);
+
+  const apiBackward = ApiHook.Shipping.Shipping.useBackward();
+  const cmdBackward = useCallback(async () => {
+    if (!only) {
+      return;
+    }
+    await apiBackward.mutateAsync({ shippingId: only.id });
+  }, [only, selected, apiBackward]);
+
+  useEffect(() => {
+    if (list.data && only) {
+      const found = list.data.items.find((x) => x.id === only.id);
+      setSelected(found ? [found] : []);
+    }
+  }, [list.data, only]);
+
   return (
     <Page title="배송 설정">
       <StatBar.Container>
@@ -43,10 +67,24 @@ export default function Component() {
         />
         <div className="flex-1" />
         {only && (
-          <Toolbar.ButtonPreset.Update
-            label="선택 배송 상세"
-            onClick={() => setOpenUpdate(only.id)}
-          />
+          <>
+            <Toolbar.ButtonPreset.Update
+              label="선택 배송 상세"
+              onClick={() => setOpenUpdate(only.id)}
+            />
+            <Toolbar.Button
+              type="primary"
+              label="배송 역행"
+              onClick={cmdBackward}
+              disabled={only.status === "PREPARING"}
+            />
+            <Toolbar.Button
+              type="primary"
+              label="배송 진행"
+              onClick={cmdForward}
+              disabled={only.status === "DONE"}
+            />
+          </>
         )}
       </Toolbar.Container>
       <Table.Default<Model.Shipping>
@@ -61,6 +99,28 @@ export default function Component() {
             title: "배송 번호",
             dataIndex: "shippingNo",
             render: (value) => <div className="font-fixed">{value}</div>,
+          },
+          {
+            title: "배송 상태",
+            dataIndex: "status",
+            render: (value) => <div>{Util.shippingStatusToString(value)}</div>,
+          },
+          {
+            title: "운송장 개수",
+            dataIndex: "invoiceCount",
+            render: (value) => (
+              <div className="font-fixed text-right">{value} 개</div>
+            ),
+          },
+          {
+            title: "배송 중량",
+            dataIndex: "weight",
+            render: (value) => <div className="font-fixed">{value}</div>,
+          },
+          {
+            title: "배송 담당자",
+            dataIndex: "manager",
+            render: (value) => <div>{value}</div>,
           },
         ]}
       />

@@ -1,6 +1,6 @@
 import { Api } from "@/@shared";
 import { Button, FormControl } from "@/components";
-import { Form, FormInstance, Input, Switch } from "antd";
+import { Form, FormInstance, Input, Radio, Switch } from "antd";
 
 interface Props {
   form: FormInstance<Api.LocationCreateRequest>;
@@ -13,17 +13,26 @@ export default function Component(props: Props) {
       <Form.Item name="name" label="도착지 이름" rules={[{ required: true }]}>
         <Input />
       </Form.Item>
-      <Form.Item name="code" label="도착지 코드">
-        <Input />
-      </Form.Item>
       <Form.Item
         name="isPublic"
         label="자사 도착지 여부"
-        valuePropName="checked"
         rules={[{ required: true }]}
-        initialValue={false}
+        initialValue={true}
       >
-        <Switch />
+        <Radio.Group
+          optionType="button"
+          buttonStyle="solid"
+          options={[
+            {
+              label: "자사 도착지",
+              value: true,
+            },
+            {
+              label: "기타 도착지",
+              value: false,
+            },
+          ]}
+        />
       </Form.Item>
       <Form.Item name="address" label="주소" rules={[{ required: true }]}>
         <FormControl.Address />

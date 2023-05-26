@@ -1,9 +1,12 @@
-import { ApiHook } from "@/common";
 import { Popup } from "@/components";
 import { useCallback } from "react";
 import { FormCreate } from "./common";
 import { useForm } from "antd/lib/form/Form";
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
+import { ApiHook } from "@/common";
+import { OfficialPriceCreateRequest } from "@/@shared/api/inhouse/official-price.request";
+
+type DataType = OfficialPriceCreateRequest;
 
 export interface Props {
   open: boolean;
@@ -11,11 +14,11 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.VirtualCompanyCreateRequest>();
+  const [form] = useForm<DataType>();
 
-  const api = ApiHook.Inhouse.VirtualCompany.useCreate();
+  const api = ApiHook.Inhouse.OfficialPrice.useCreate();
   const cmd = useCallback(
-    async (values: Api.VirtualCompanyCreateRequest) => {
+    async (values: DataType) => {
       await api.mutateAsync({ data: values });
       form.resetFields();
       props.onClose(false);
@@ -24,7 +27,7 @@ export default function Component(props: Props) {
   );
 
   return (
-    <Popup.Template.Property title="가상 거래처 추가" {...props}>
+    <Popup.Template.Property title="고시가 추가" {...props}>
       <div className="flex-1 p-4">
         <FormCreate
           form={form}

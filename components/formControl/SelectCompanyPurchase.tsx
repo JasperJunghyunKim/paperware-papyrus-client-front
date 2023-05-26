@@ -70,7 +70,7 @@ function Item(props: ItemProps) {
           "text-purple-600": x.srcCompany.managedById !== null,
         })}
       >
-        {x.srcCompany.managedById !== null ? "가상" : "관리"}
+        {x.srcCompany.managedById !== null ? "비연결" : "연결"}
       </div>
     </div>
   );

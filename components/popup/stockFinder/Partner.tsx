@@ -2,6 +2,7 @@ import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, Icon, Popup, Table } from "@/components";
+import _ from "lodash";
 import { useEffect, useState } from "react";
 
 type CompanyId = number;
@@ -16,8 +17,8 @@ export default function Component(props: Props) {
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.PartnerStock.useGetList({
     query: {
-      companyId: typeof props.open === "number" ? props.open : undefined,
       ...groupPage,
+      companyId: _.isNumber(props.open) ? props.open : undefined,
     },
   });
   const [selectedGroup, setSelectedGroup] = useState<Model.PartnerStockGroup[]>(
@@ -32,7 +33,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title="자사 재고 선택"
+      title="매입처 재고 선택"
       {...props}
       open={!!props.open}
       width="calc(100vw - 200px)"
@@ -59,100 +60,20 @@ export default function Component(props: Props) {
                 title: "창고",
                 dataIndex: ["warehouse", "name"],
               },
-              {
-                title: "제품 유형",
-                dataIndex: ["product", "paperDomain", "name"],
-              },
-              {
-                title: "제지사",
-                dataIndex: ["product", "manufacturer", "name"],
-              },
-              {
-                title: "지군",
-                dataIndex: ["product", "paperGroup", "name"],
-              },
-              {
-                title: "지종",
-                dataIndex: ["product", "paperType", "name"],
-              },
-              {
-                title: "포장",
-                dataIndex: ["packaging", "type"],
-                render: (value, record) => (
-                  <div className="font-fixed flex gap-x-1">
-                    <div className="flex-initial flex flex-col justify-center text-lg">
-                      <Icon.PackagingType
-                        packagingType={record.packaging.type}
-                      />
-                    </div>
-                    <div className="flex-initial flex flex-col justify-center">
-                      {value}
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                title: "평량",
-                dataIndex: "grammage",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )} ${Util.UNIT_GPM}`}</div>
-                ),
-              },
-              {
-                title: "지폭",
-                dataIndex: "sizeX",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )} mm`}</div>
-                ),
-              },
-              {
-                title: "지장",
-                dataIndex: "sizeY",
-                render: (value, record) =>
-                  record.packaging.type !== "ROLL" ? (
-                    <div className="text-right font-fixed">{`${Util.comma(
-                      value
-                    )} mm`}</div>
-                  ) : null,
-              },
-              {
-                title: "색군",
-                dataIndex: ["paperColorGroup", "name"],
-              },
-              {
-                title: "색상",
-                dataIndex: ["paperColor", "name"],
-              },
-              {
-                title: "무늬",
-                dataIndex: ["paperPattern", "name"],
-              },
-              {
-                title: "인증",
-                dataIndex: ["paperCert", "name"],
-              },
-              {
-                title: "실물 수량",
-                dataIndex: "totalQuantity",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )}`}</div>
-                ),
-              },
-              {
-                title: "가용 수량",
-                dataIndex: "availableQuantity",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )}`}</div>
-                ),
-              },
+              ...Table.Preset.columnStockGroup<Model.PartnerStockGroup>(
+                (p) => p, // TODO
+                []
+              ),
+              ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+                (p) => p, // TODO
+                ["availableQuantity"],
+                { prefix: "가용" }
+              ),
+              ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+                (p) => p, // TODO
+                ["totalQuantity"],
+                { prefix: "실물" }
+              ),
             ]}
           />
         </div>

@@ -2,7 +2,7 @@ import { Api } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form } from "antd";
+import { Form, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useCallback, useEffect } from "react";
@@ -66,7 +66,11 @@ export default function Component(props: Props) {
   }, [packagingId, grammage, sizeX, sizeY]);
 
   return (
-    <Popup.Template.Property title="재고 추가" {...props} open={!!props.open}>
+    <Popup.Template.Property
+      title="도착 재고 추가"
+      {...props}
+      open={!!props.open}
+    >
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
@@ -135,24 +139,40 @@ export default function Component(props: Props) {
             <FormControl.SelectCert />
           </Form.Item>
           {packaging && (
-            <Form.Item name="stockPrice" label="재고 금액">
-              <FormControl.StockPrice
+            <>
+              <Form.Item
+                name="isSyncPrice"
+                label="매입 동기화"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+              <Form.Item name="stockPrice" label="재고 금액">
+                <FormControl.StockPrice
+                  spec={{
+                    packaging,
+                    grammage,
+                    sizeX,
+                    sizeY,
+                  }}
+                />
+              </Form.Item>
+            </>
+          )}
+          {packaging && (
+            <Form.Item name="quantity" label="재고 수량">
+              <FormControl.Quantity
                 spec={{
-                  packaging,
                   grammage,
                   sizeX,
                   sizeY,
+                  packaging,
                 }}
               />
             </Form.Item>
           )}
-          {packaging && (
-            <Form.Item name="quantity" label="재고 수량">
-              <FormControl.Quantity packaging={packaging} />
-            </Form.Item>
-          )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="재고 추가" />
+            <Button.Preset.Submit label="도착 재고 추가" />
           </Form.Item>
         </Form>
       </div>
