@@ -3,9 +3,11 @@ import { Enum } from "@/@shared/models";
 import { AccountedType } from "@/@shared/models/enum";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
+import { selectPartnerAtom } from "@/components/formControl/SelectPartner";
 import { message } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { useCallback } from "react";
+import { useRecoilValue } from "recoil";
 import { FormCreate } from "./common";
 
 type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest | Api.BySecurityCreateRequest;
@@ -19,6 +21,7 @@ interface Props {
 export default function Component(props: Props) {
   const [form] = useForm<Request>();
   const [messageApi, contextHolder] = message.useMessage();
+  const setSelectPartner = useRecoilValue(selectPartnerAtom);
 
   const apiByCash = ApiHook.Partner.ByCash.useByCashCreate();
   const apiByEtc = ApiHook.Partner.ByEtc.useByEtcCreate();
@@ -31,9 +34,9 @@ export default function Component(props: Props) {
     async (values: Request) => {
       const method: Enum.Method = form.getFieldValue("accountedMethod");
       values.accountedType = props.accountedType;
-
-      values.companyId = parseInt((values as any).partnerNickName.split('/')[0]);
-      values.companyRegistrationNumber = (values as any).partnerNickName.split('/')[1];
+      values.companyId = setSelectPartner.companyId;
+      values.companyRegistrationNumber = setSelectPartner.companyRegistrationNumber;
+      (values as any).partnerNickName = setSelectPartner.partnerNickName;
 
       switch (method) {
         case 'ACCOUNT_TRANSFER':
@@ -116,7 +119,7 @@ export default function Component(props: Props) {
       form.resetFields();
       props.onClose(false);
     },
-    [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, apiBySecurity, form, props]
+    [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, apiBySecurity, form, setSelectPartner, props]
   );
 
   return (

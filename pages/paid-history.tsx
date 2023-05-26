@@ -8,7 +8,7 @@ import { METHOD_OPTIONS } from "@/components/formControl/SelectMethod";
 import { SUBJECT_OPTIONS } from "@/components/formControl/SelectSubject";
 import { Page } from "@/components/layout";
 import { message } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRecoilValue } from "recoil";
 
 export default function Component() {
@@ -25,6 +25,7 @@ export default function Component() {
     query: {
       ...page,
       ...condition,
+      companyRegistrationNumber: condition.companyRegistrationNumber === '전체' ? '' : condition.companyRegistrationNumber,
       accountedType: "PAID",
     },
     successCallback: (data) => {
@@ -65,6 +66,13 @@ export default function Component() {
         });
         break;
       case 'PROMISSORY_NOTE':
+        if (only.securityStatus !== 'NONE') {
+          return messageApi.open({
+            type: 'error',
+            content: '해당 유가증권이 사용중에 있습니다.'
+          })
+        }
+
         await apiBySecurityDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
@@ -90,7 +98,7 @@ export default function Component() {
         break;
     }
 
-  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, only]);
+  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, messageApi, only]);
 
   return (
     <Page title="지급 내역 조회">
