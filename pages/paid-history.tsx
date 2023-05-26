@@ -1,5 +1,4 @@
 import { Model } from "@/@shared";
-import { accountedSubject } from "@/@shared/helper/enum.util";
 import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
@@ -155,7 +154,7 @@ export default function Component() {
             title: "계정 과목",
             dataIndex: ["accountedSubject"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${accountedSubject('PAID', SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.accountedSubject('PAID', SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value)}`}</div>
             ),
           },
           {

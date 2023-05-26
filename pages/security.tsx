@@ -2,7 +2,6 @@ import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
-import { CARD_OPTIONS } from "@/components/formControl/SelectCard";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
 
