@@ -3,10 +3,10 @@ import { Enum } from "@/@shared/models";
 import { AccountedType } from "@/@shared/models/enum";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
-import { useForm } from "antd/lib/form/Form";
-import { useCallback, useEffect } from "react";
-import { FormCreate } from "./common";
 import { message } from "antd";
+import { useForm } from "antd/lib/form/Form";
+import { useCallback } from "react";
+import { FormCreate } from "./common";
 
 type Request = Api.ByCashCreateRequest | Api.ByEtcCreateRequest | Api.ByBankAccountCreateRequest | Api.ByCardCreateRequest | Api.ByOffsetCreateRequest | Api.BySecurityCreateRequest;
 
@@ -118,10 +118,6 @@ export default function Component(props: Props) {
     },
     [messageApi, apiByBankAccount, apiByCard, apiByCash, apiByEtc, apiByOffset, apiBySecurity, form, props]
   );
-
-  useEffect(() => {
-    form.resetFields();
-  }, [form, props])
 
   return (
     <Popup.Template.Property title={`${props.accountedType === 'PAID' ? '지급' : '수금'} 등록`} width="800px" {...props} >

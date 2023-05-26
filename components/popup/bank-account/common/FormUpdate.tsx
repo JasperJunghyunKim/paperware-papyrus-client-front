@@ -53,7 +53,7 @@ export default function Component(props: Props) {
         label="계좌 종류"
         rules={[{ required: true }]}
       >
-        <Input />
+        <FormControl.SelectBankAccount />
       </Form.Item>
       <Form.Item
         name="accountNumber"

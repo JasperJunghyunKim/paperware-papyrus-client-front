@@ -1,9 +1,8 @@
+import { Model } from "@/@shared";
+import { AccountedType, Subject } from "@/@shared/models/enum";
 import { Modal } from "antd";
-import { Record } from "./protocol";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ko";
-import { Protocol } from ".";
-import { Model } from "@/@shared";
 import _ from "lodash";
 
 export type PromiseOrFn = (() => Promise<void>) | (() => any);
@@ -439,7 +438,67 @@ export function convertQuantity(
   };
 }
 
-export function securityStatusToSTring(value: Model.Enum.SecurityStatus) {
+export function accountedSubject(accountedType: AccountedType, subject: Subject): string {
+  if (accountedType === 'PAID') {
+    switch (subject) {
+      case 'ACCOUNTS_RECEIVABLE':
+        return '외상 매출금';
+      case 'UNPAID':
+        return '미수금';
+      case 'ADVANCES':
+        return '선수금';
+      case 'MISCELLANEOUS_INCOME':
+        return '잡이익';
+      case 'PRODUCT_SALES':
+        return '상품 매출';
+      case 'ETC':
+        return '기타';
+      case 'All':
+        return '전체';
+    }
+  } else {
+    switch (subject) {
+      case 'ACCOUNTS_RECEIVABLE':
+        return '외상 매입금';
+      case 'UNPAID':
+        return '미지급금';
+      case 'ADVANCES':
+        return '선지급금';
+      case 'MISCELLANEOUS_INCOME':
+        return '잡손실';
+      case 'PRODUCT_SALES':
+        return '상품 매입';
+      case 'ETC':
+        return '기타';
+      case 'All':
+        return '전체';
+    }
+  }
+}
+
+export function endorsementTypeToString(value?: Model.Enum.SecurityStatus | number | string) {
+  switch (value) {
+    case "NONE":
+      return "선택안함";
+    case "SELF_NOTE":
+      return "자수";
+    case "OTHERS_NOTE":
+      return "타수";
+    default:
+      return ""
+  }
+}
+
+export function bankAccountTypeToString(value?: Model.Enum.SecurityStatus | number | string) {
+  switch (value) {
+    case "DEPOSIT":
+      return "보통 예금";
+    default:
+      return ""
+  }
+}
+
+export function securityStatusToSTring(value?: Model.Enum.SecurityStatus | number | string) {
   switch (value) {
     case "NONE":
       return "기본";
@@ -455,19 +514,23 @@ export function securityStatusToSTring(value: Model.Enum.SecurityStatus) {
       return "분실";
     case "SAFEKEEPING":
       return "보관";
+    default:
+      return ""
   }
 }
 
-export function drawedStatusToSTring(value: Model.Enum.DrawedStatus) {
+export function drawedStatusToSTring(value?: Model.Enum.DrawedStatus | number | string) {
   switch (value) {
     case "SELF":
       return "자사 발행";
     case "ACCOUNTED":
       return "수금";
+    default:
+      return ""
   }
 }
 
-export function securityTypeToSTring(value: Model.Enum.SecurityType) {
+export function securityTypeToSTring(value?: Model.Enum.SecurityType | number | string) {
   switch (value) {
     case "PROMISSORY_NOTE":
       return "약속 어음";
@@ -485,6 +548,8 @@ export function securityTypeToSTring(value: Model.Enum.SecurityType) {
       return "문방구 어음";
     case "ETC":
       return "기타";
+    default:
+      return ""
   }
 }
 export function nanToZero(value: number | null | undefined) {

@@ -1,7 +1,6 @@
 import { Model } from "@/@shared";
-import { accountedSubject } from "@/@shared/helper/enum.util";
+import { accountedSubject } from "@/common/util";
 import { Select } from "antd";
-import { DefaultOptionType } from "antd/es/select";
 import { useMemo } from "react";
 
 export const SUBJECT_OPTIONS = [
@@ -43,8 +42,8 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        defaultValue={props.isAll ? undefined : props.value as unknown as Model.Enum.Subject as any}
-        value={accountedSubject(props.accountedType, props.value as any) as unknown as Model.Enum.Subject as any}
+        defaultValue={props.isAll ? undefined : props.value as unknown as number}
+        value={accountedSubject(props.accountedType, props.value as any) as unknown as number}
         onChange={props.onChange}
         placeholder="계정 과목"
       >

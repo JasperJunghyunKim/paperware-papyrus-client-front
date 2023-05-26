@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Util } from "@/common";
 import { Select } from "antd";
 
 export const SECURITY_TYPE_OPTIONS = [
@@ -46,7 +47,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        value={props.value}
+        value={Util.securityTypeToSTring(props.value) as unknown as number}
         onChange={props.onChange}
         disabled={props.disabled}
         options={SECURITY_TYPE_OPTIONS}

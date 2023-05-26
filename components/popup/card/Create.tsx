@@ -26,10 +26,6 @@ export default function Component(props: Props) {
     [apiCard, form, props]
   );
 
-  useEffect(() => {
-    form.resetFields();
-  }, [form, props])
-
   return (
     <Popup.Template.Property title={`카드 등록`} {...props}>
       <div className="flex-1 p-4">

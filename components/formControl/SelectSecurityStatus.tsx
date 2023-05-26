@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Util } from "@/common";
 import { Select } from "antd";
 
 export const SECURITY_STATUS_OPTIONS = [
@@ -34,7 +35,7 @@ export const SECURITY_STATUS_OPTIONS = [
 
 interface Props {
   disabled?: boolean;
-  value?: Model.Enum.SecurityStatus & string & number;
+  value?: Model.Enum.SecurityStatus | string | number;
   onChange?: (value: number) => void;
 }
 
@@ -42,7 +43,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        value={props.value}
+        value={Util.securityStatusToSTring(props.value) as unknown as number}
         onChange={props.onChange}
         disabled={props.disabled}
         options={SECURITY_STATUS_OPTIONS.filter((el) => el.value !== "ENDORSED")}

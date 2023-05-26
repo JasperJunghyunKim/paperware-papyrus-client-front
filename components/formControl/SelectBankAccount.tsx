@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Util } from "@/common";
 import { Select } from "antd";
 
 export const BANK_ACCOUNT_OPTIONS = [
@@ -18,7 +19,7 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        value={props.value}
+        value={Util.bankAccountTypeToString(props.value) as unknown as number}
         onChange={props.onChange}
         disabled={props.isDisabled}
         options={BANK_ACCOUNT_OPTIONS}

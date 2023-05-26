@@ -148,11 +148,6 @@ export default function Component(props: Props) {
   );
 
   useEffect(() => {
-    form.resetFields();
-    setEdit(false);
-  }, [form, props])
-
-  useEffect(() => {
     switch (props.method) {
       case 'ACCOUNT_TRANSFER':
         form.setFieldsValue({

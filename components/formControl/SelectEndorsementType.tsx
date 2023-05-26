@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Util } from "@/common";
 import { Select } from "antd";
 
 export const ENDORSEMENT_TYPE_OPTIONS = [
@@ -25,9 +26,9 @@ export default function Component(props: Props) {
   return (
     <div className="flex flex-col gap-y-1">
       <Select
-        value={props.value}
+        value={Util.endorsementTypeToString(props.value) as unknown as number}
         onChange={props.onChange}
-        placeholder="유가증권 목록"
+        placeholder="배서 목록"
         options={ENDORSEMENT_TYPE_OPTIONS}
       />
     </div>
