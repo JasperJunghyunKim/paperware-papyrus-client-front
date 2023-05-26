@@ -1251,6 +1251,28 @@ function PricePanel(props: PricePanelProps) {
     });
   }, [props.order, form, apiUpdate]);
 
+  const defaultSuppliedPrice = stockSuppliedPrice + (processPrice ?? 0);
+  const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
+
+  useEffect(() => {
+    form.setFieldValue(
+      "stockPrice",
+      FormControl.Util.Price.initialStockPrice(
+        altSizeX && altSizeY
+          ? "SKID"
+          : altSizeX
+          ? "ROLL"
+          : props.order.orderStock.packaging.type
+      )
+    );
+  }, [altSizeX, altSizeY, props.order.orderStock.packaging.type]);
+
+  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
+    .filter((_) => me.data)
+    .find((p) => p.id !== me.data?.companyId);
+
+  const isSales = props.order.dstCompany.id === me.data?.companyId;
+
   useEffect(() => {
     if (data.data && data.data.orderStockTradePrice) {
       form.setFieldsValue({
@@ -1278,28 +1300,6 @@ function PricePanel(props: PricePanelProps) {
       });
     }
   }, [props.orderId, data.data, form, props.order.orderStock.packaging.type]);
-
-  const defaultSuppliedPrice = stockSuppliedPrice + (processPrice ?? 0);
-  const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
-
-  useEffect(() => {
-    form.setFieldValue(
-      "stockPrice",
-      FormControl.Util.Price.initialStockPrice(
-        altSizeX && altSizeY
-          ? "SKID"
-          : altSizeX
-          ? "ROLL"
-          : props.order.orderStock.packaging.type
-      )
-    );
-  }, [altSizeX, altSizeY, props.order.orderStock.packaging.type]);
-
-  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
-    .filter((_) => me.data)
-    .find((p) => p.id !== me.data?.companyId);
-
-  const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">

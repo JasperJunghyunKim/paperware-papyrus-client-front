@@ -48,11 +48,11 @@ export default function Component(props: Props) {
           options={[
             {
               label: "자사 도착지",
-              value: true,
+              value: false,
             },
             {
               label: "기타 도착지",
-              value: false,
+              value: true,
             },
           ]}
         />
