@@ -242,7 +242,7 @@ export default function Component(props: Props) {
       >
         {({ getFieldValue }) =>
           getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method && (
-            <Form.Item name="bankAccountName" label="계좌 목록" rules={[{ required: true }]}>
+            <Form.Item name="accountName" label="계좌 목록" rules={[{ required: true }]}>
               <Input disabled />
             </Form.Item>
           )
