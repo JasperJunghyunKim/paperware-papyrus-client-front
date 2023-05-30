@@ -10,7 +10,7 @@ export const BANK_ACCOUNT_OPTIONS = [
 ];
 
 interface Props {
-  isDisabled?: boolean;
+  disabled?: boolean;
   value?: Model.Enum.CardCompany & string & number;
   onChange?: (value: number) => void;
 }
@@ -21,7 +21,7 @@ export default function Component(props: Props) {
       <Select
         value={Util.bankAccountTypeToString(props.value) as unknown as number}
         onChange={props.onChange}
-        disabled={props.isDisabled}
+        disabled={props.disabled}
         options={BANK_ACCOUNT_OPTIONS}
         placeholder="예금 종류"
       />

@@ -41,6 +41,7 @@ export default function Component(props: Props) {
       props.form.setFieldValue("payingBankBranch", securityAtom.payingBankBranch);
       props.form.setFieldValue("payer", securityAtom.payer);
       props.form.setFieldValue("securityMemo", securityAtom.memo);
+      props.form.setFieldValue("endorsementType", "NONE")
     }
   }, [securityAtom, props])
 

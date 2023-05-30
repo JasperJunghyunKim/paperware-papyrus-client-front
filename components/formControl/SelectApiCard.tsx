@@ -43,7 +43,7 @@ export const CARD_OPTIONS = [
 ];
 
 interface Props {
-  isDisabled?: boolean;
+  disabled?: boolean;
   value?: Model.Enum.CardCompany & string & number;
   onChange?: (value: number) => void;
 }
@@ -54,7 +54,7 @@ export default function Component(props: Props) {
   const options = useMemo(() => {
     return staticData.data?.items.map((el) => ({
       label: <Item item={el} />,
-      text: `${el.cardCompany} ${el.cardName}`,
+      text: `${el.cardCompany} ${el.cardName} ${el.cardNumber}`,
       value: el.cardId,
     }));
   }, [staticData]);
@@ -64,7 +64,16 @@ export default function Component(props: Props) {
       <Select
         value={props.value}
         onChange={props.onChange}
-        disabled={props.isDisabled}
+        filterOption={(input, option) => {
+          if (!option) {
+            return false;
+          }
+          return option.text.toLowerCase().includes(input.toLowerCase());
+        }}
+        showSearch
+        allowClear
+        dropdownMatchSelectWidth={false}
+        disabled={props.disabled}
         options={options}
         placeholder="카드 목록"
       />

@@ -21,6 +21,7 @@ export default function Component(props: Props) {
       if (!props.open) {
         return;
       }
+      debugger
 
       api.mutateAsync({ id: props.open, data: values })
 

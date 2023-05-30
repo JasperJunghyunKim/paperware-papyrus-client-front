@@ -126,17 +126,6 @@ export default function Component(props: PropsWithChildren<Props>) {
       },
       { path: null },
       {
-        label: "수금 관리",
-        icon: <TbVector />,
-        path: "/collected-history",
-      },
-      {
-        label: "지급 관리",
-        icon: <TbVectorTriangle />,
-        path: "/paid-history",
-      },
-      { path: null },
-      {
         label: "카드 관리",
         icon: <TbCards />,
         path: "/card",
@@ -150,6 +139,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "유가증권 관리",
         icon: <TbReportMoney />,
         path: "/security",
+      },
+      { path: null },
+      {
+        label: "수금 관리",
+        icon: <TbVector />,
+        path: "/collected-history",
+      },
+      {
+        label: "지급 관리",
+        icon: <TbVectorTriangle />,
+        path: "/paid-history",
       },
     ],
     [businessRelationshipRequestCount.data?.value]

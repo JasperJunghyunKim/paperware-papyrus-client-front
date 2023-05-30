@@ -178,8 +178,8 @@ export default function Component(props: Props) {
       >
         {({ getFieldValue }) =>
           getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
-            <Form.Item name="cardId" label="카드 목록" rules={[{ required: true }]}>
-              <FormControl.SelectApiCard />
+            <Form.Item name="cardName" label="카드" rules={[{ required: true }]}>
+              <Input disabled />
             </Form.Item>
           )
         }
@@ -242,8 +242,8 @@ export default function Component(props: Props) {
       >
         {({ getFieldValue }) =>
           getFieldValue('accountedMethod') === 'ACCOUNT_TRANSFER' as Model.Enum.Method && (
-            <Form.Item name="bankAccountId" label="계좌 목록" rules={[{ required: true }]}>
-              <FormControl.SelectApiBank />
+            <Form.Item name="bankAccountName" label="계좌 목록" rules={[{ required: true }]}>
+              <Input disabled />
             </Form.Item>
           )
         }
@@ -296,81 +296,81 @@ export default function Component(props: Props) {
                 label={"유가증권 유형"}
                 rules={[{ required: true }]}
               >
-                <FormControl.SelectSecurityType disabled={props.accountedType === 'PAID'} />
+                <FormControl.SelectSecurityType disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="securitySerial"
                 label={"유가증권 번호"}
                 rules={[{ required: true }]}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="securityAmount"
                 label="유가증권 금액"
                 rules={[{ required: true }]}
               >
-                <FormControl.Number disabled={props.accountedType === 'PAID'} />
+                <FormControl.Number disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="drawedDate"
                 label={"발행일"}
               >
-                <FormControl.DatePicker disabled={props.accountedType === 'PAID'} />
+                <FormControl.DatePicker disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="drawedBank"
                 label={"발행은행"}
               >
-                <FormControl.SelectBank disabled={props.accountedType === 'PAID'} />
+                <FormControl.SelectBank disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="drawedBankBranch"
                 label={"발행 지점명"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="drawedRegion"
                 label={"발행지"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="drawer"
                 label={"발행인"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="maturedDate"
                 label={"만기일"}
               >
-                <FormControl.DatePicker disabled={props.accountedType === 'PAID'} />
+                <FormControl.DatePicker disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="payingBank"
                 label={"지급은행"}
               >
-                <FormControl.SelectBank disabled={props.accountedType === 'PAID'} />
+                <FormControl.SelectBank disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="payingBankBranch"
                 label={"지급 지점명"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="payer"
                 label={"지급인"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
               <Form.Item
                 name="securityMemo"
                 label={"유가증권 비고"}
               >
-                <Input disabled={props.accountedType === 'PAID'} />
+                <Input disabled={props.accountedType === 'PAID' || !props.edit} />
               </Form.Item>
             </>
           )}

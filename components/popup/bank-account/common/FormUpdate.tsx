@@ -39,7 +39,7 @@ export default function Component(props: Props) {
         label={"은행"}
         rules={[{ required: true }]}
       >
-        <FormControl.SelectBank />
+        <FormControl.SelectBank disabled />
       </Form.Item>
       <Form.Item
         name="accountName"
@@ -53,21 +53,21 @@ export default function Component(props: Props) {
         label="계좌 종류"
         rules={[{ required: true }]}
       >
-        <FormControl.SelectBankAccount />
+        <FormControl.SelectBankAccount disabled />
       </Form.Item>
       <Form.Item
         name="accountNumber"
         label={"계좌 번호"}
         rules={[{ required: true }]}
       >
-        <Input />
+        <Input disabled />
       </Form.Item>
       <Form.Item
         name="accountHolder"
         label={"계좌 소유자"}
         rules={[{ required: true }]}
       >
-        <Input />
+        <Input disabled />
       </Form.Item>
     </Form>
   );
