@@ -66,13 +66,6 @@ export default function Component() {
         });
         break;
       case 'PROMISSORY_NOTE':
-        if (only.securityStatus !== 'NONE') {
-          return messageApi.open({
-            type: 'error',
-            content: '해당 유가증권이 사용중에 있습니다.'
-          })
-        }
-
         await apiBySecurityDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
@@ -98,7 +91,9 @@ export default function Component() {
         break;
     }
 
-  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, messageApi, only]);
+    setOnly(undefined);
+
+  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, only]);
 
   return (
     <Page title="지급 내역 조회">

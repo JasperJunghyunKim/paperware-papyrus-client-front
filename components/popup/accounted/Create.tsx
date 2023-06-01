@@ -6,7 +6,7 @@ import { Popup } from "@/components";
 import { selectPartnerAtom } from "@/components/formControl/SelectPartner";
 import { message } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRecoilValue } from "recoil";
 import { FormCreate } from "./common";
 

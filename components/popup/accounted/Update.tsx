@@ -148,6 +148,12 @@ export default function Component(props: Props) {
   );
 
   useEffect(() => {
+    if (typeof props.open === "number") {
+      form.resetFields();
+    }
+  }, [form, props.open])
+
+  useEffect(() => {
     switch (props.method) {
       case 'ACCOUNT_TRANSFER':
         form.setFieldsValue({
@@ -168,6 +174,7 @@ export default function Component(props: Props) {
           accountedSubject: resByCard.data?.accountedSubject,
           memo: resByCard.data?.memo,
           amount: resByCard.data?.amount,
+          accountName: resByCard.data?.accountName,
           cardName: resByCard.data?.cardName,
           approvalNumber: resByCard.data?.approvalNumber,
           chargeAmount: resByCard.data?.chargeAmount,

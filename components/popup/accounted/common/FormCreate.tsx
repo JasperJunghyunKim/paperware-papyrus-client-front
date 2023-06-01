@@ -173,8 +173,12 @@ export default function Component(props: Props) {
         shouldUpdate={(prevValues, currentValues) => prevValues.accountedMethod !== currentValues.accountedMethod}
       >
         {({ getFieldValue }) =>
-          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
-            <Form.Item name="cardId" label={`${props.accountedType === 'COLLECTED' ? '계좌 목록' : '카드 목록'}`} rules={[{ required: true }]}>
+          getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && props.accountedType === 'COLLECTED' ? (
+            <Form.Item name="bankAccountId" label={"계좌 목록"} rules={[{ required: true }]}>
+              <FormControl.SelectApiBank />
+            </Form.Item>
+          ) : getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
+            <Form.Item name="cardId" label={"카드 목록"} rules={[{ required: true }]}>
               <FormControl.SelectApiCard />
             </Form.Item>
           )
@@ -195,7 +199,8 @@ export default function Component(props: Props) {
                 label={`${props.accountedType === 'COLLECTED' ? '카드 입금 금액' : '금액'}`}
                 shouldUpdate={(prevValues, currentValues) => {
                   return prevValues.amount !== currentValues.amount || prevValues.chargeAmount !== currentValues.chargeAmount
-                }}>
+                }}
+                rules={[{ required: true }]}>
                 <FormControl.Number
                   rootClassName="text-right"
                   unit="원"

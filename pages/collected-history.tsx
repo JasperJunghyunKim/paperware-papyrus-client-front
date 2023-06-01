@@ -97,6 +97,8 @@ export default function Component() {
         break;
     }
 
+    setOnly(undefined);
+
   }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, messageApi, only]);
 
   return (
