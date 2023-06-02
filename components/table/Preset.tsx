@@ -7,6 +7,7 @@ import { TbHome, TbHomeLink } from "react-icons/tb";
 import classNames from "classnames";
 import DiscountRate from "@/@shared/models/discount-rate";
 import { useCallback } from "react";
+import _ from "lodash";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
@@ -259,7 +260,7 @@ export function columnQuantity<T>(
               )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
             : null;
         case "weight":
-          return quantity.grams
+          return _.isFinite(quantity.grams)
             ? `${Util.comma(
                 quantity.grams * 0.000001,
                 PaperUtil.recommendedPrecision("T")
@@ -274,7 +275,9 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {value && record ? format("packed")(getQuantity(value, record)) : ""}
+          {_.isFinite(value) && record
+            ? format("packed")(getQuantity(value, record))
+            : ""}
         </div>
       ),
     },
@@ -283,7 +286,7 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {value && record
+          {_.isFinite(value) && record
             ? format("unpacked")(getQuantity(value, record))
             : ""}
         </div>
@@ -294,7 +297,9 @@ export function columnQuantity<T>(
       dataIndex: [...path],
       render: (value: number, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {value && record ? format("weight")(getQuantity(value, record)) : ""}
+          {_.isFinite(value) && record
+            ? format("weight")(getQuantity(value, record))
+            : ""}
         </div>
       ),
     },

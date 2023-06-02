@@ -10,8 +10,11 @@ type RecordType = Model.StockGroup;
 
 export default function Component() {
   const [page, setPage] = usePage();
-  const list = ApiHook.Stock.StockArrival.useGetList({
-    query: page,
+  const list = ApiHook.Stock.StockInhouse.useGetGroupList({
+    query: {
+      planId: "any",
+      ...page,
+    },
   });
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
@@ -66,7 +69,7 @@ export default function Component() {
           },
           {
             title: "작업 번호",
-            dataIndex: ["stock", "initialOrder", "orderNo"],
+            dataIndex: ["plan", "orderStock", "order", "orderNo"],
             render: (value, record) => (
               <div className="flex">
                 <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
@@ -77,16 +80,26 @@ export default function Component() {
           },
           {
             title: "거래처",
-            dataIndex: ["orderCompanyInfo", "businessName"],
-          },
-          {
-            title: "도착 예정일",
-            dataIndex: ["orderInfo", "wantedDate"],
-            render: (value) => Util.formatIso8601ToLocalDate(value),
+            dataIndex: [
+              "plan",
+              "orderStock",
+              "order",
+              "partnerCompany",
+              "businessName",
+            ],
           },
           {
             title: "도착지",
-            dataIndex: ["orderStock", "dstLocation", "name"],
+            dataIndex: ["plan", "orderStock", "dstLocation", "name"],
+          },
+          {
+            title: "예정일",
+            dataIndex: ["plan", "orderStock", "order", "wantedDate"],
+            render: (value) => (
+              <div className="font-fixed">
+                {Util.formatIso8601ToLocalDate(value)}
+              </div>
+            ),
           },
           ...Table.Preset.columnStockGroup<RecordType>(
             (p) => p, // TODO

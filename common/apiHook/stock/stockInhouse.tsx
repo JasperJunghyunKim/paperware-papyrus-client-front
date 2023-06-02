@@ -8,7 +8,13 @@ export function useGetGroupList(params: {
   query: Partial<Api.StockGroupListQuery>;
 }) {
   return useQuery(
-    ["stockInhouse", "groupList", params.query.skip, params.query.take],
+    [
+      "stockInhouse",
+      "groupList",
+      params.query.skip,
+      params.query.take,
+      params.query.planId,
+    ],
     async () => {
       const resp = await axios.get<Api.StockGroupListResponse>(
         `${API_HOST}/stock/group`,
