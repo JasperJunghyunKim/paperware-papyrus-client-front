@@ -70,7 +70,7 @@ export function SelectStockGroupInhouse(props: SelectStockGroupInhouseProps) {
 
 interface SelectPartnerStockGroupProps {
   companyId: number | null;
-  onSelect: (stockGroup: Model.PartnerStockGroup) => void;
+  onSelect: (stockGroup: Model.StockGroup) => void;
   rootClassName?: string;
 }
 export function SelectPartnerStockGroup(props: SelectPartnerStockGroupProps) {

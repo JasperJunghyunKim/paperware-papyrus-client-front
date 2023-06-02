@@ -10,10 +10,10 @@ import { useCallback } from "react";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
-    | Model.StockGroupBase
-    | Model.OrderStockBase
-    | Model.PartnerStockGroup
+    | null
+    | undefined
     | Model.StockGroup
+    | Model.Stock
     | {
         product: Model.Product;
         packaging?: Model.Packaging;
@@ -64,8 +64,10 @@ export function columnStockGroup<T>(
       render: (_value: any, record: T) => (
         <div className="font-fixed">
           {
-            Util.findPaperSize(getStock(record)?.sizeX, getStock(record)?.sizeY)
-              ?.name
+            Util.findPaperSize(
+              getStock(record)?.sizeX ?? 1,
+              getStock(record)?.sizeY ?? 1
+            )?.name
           }
         </div>
       ),
@@ -211,7 +213,7 @@ export function columnStock<T>(
 }
 
 export function columnQuantity<T>(
-  getStock: (record: T) => PaperUtil.QuantitySpec,
+  getStock: (record: T) => null | undefined | PaperUtil.QuantitySpec,
   path: string[],
   options?: {
     prefix?: string;

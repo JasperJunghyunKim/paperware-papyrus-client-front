@@ -6,7 +6,7 @@ import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
 
-type RecordType = Model.ArrivalStockGroup;
+type RecordType = Model.StockGroup;
 
 export default function Component() {
   const [page, setPage] = usePage();
@@ -38,14 +38,22 @@ export default function Component() {
         <Toolbar.ButtonPreset.Continue
           label="재고 입고"
           disabled={!only}
-          onClick={() => only && setOpenApply(only.id)}
+          onClick={() => only?.plan && setOpenApply(only.plan.id)}
         />
       </Toolbar.Container>
       <Table.Default<RecordType>
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) => `${record.id}`}
+        keySelector={(record) =>
+          `${record.product.id} ${record.sizeX} ${record.sizeY} ${
+            record.grammage
+          } ${record.paperColorGroup?.id ?? "_"} ${
+            record.paperColor?.id ?? "_"
+          } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
+            record.warehouse?.id ?? "_"
+          } ${record.plan?.id ?? "_"}`
+        }
         selected={selected}
         onSelectedChange={setSelected}
         selection="single"
@@ -53,7 +61,7 @@ export default function Component() {
           {
             title: "작업 구분",
             render: (value: RecordType) => (
-              <div>{value.orderStock ? "정상 매입" : ""}</div>
+              <div>{value ? "정상 매입" : ""}</div>
             ),
           },
           {

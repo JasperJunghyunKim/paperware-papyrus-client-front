@@ -145,7 +145,10 @@ export default function Component() {
               <div className="font-fixed flex gap-x-1">
                 <div className="flex-initial flex flex-col justify-center text-lg">
                   <Icon.PackagingType
-                    packagingType={record.orderStock.packaging.type}
+                    packagingType={
+                      record.orderStock.plan.at(0)?.assignStockEvent?.stock
+                        .packaging.type
+                    }
                   />
                 </div>
                 <div className="flex-initial flex flex-col justify-center">
@@ -176,7 +179,8 @@ export default function Component() {
             title: "지장",
             dataIndex: ["orderStock", "sizeY"],
             render: (value, record) =>
-              record.orderStock.packaging.type !== "ROLL" ? (
+              record.orderStock.plan.at(0)?.assignStockEvent?.stock.packaging
+                .type !== "ROLL" ? (
                 <div className="text-right font-fixed">{`${Util.comma(
                   value
                 )} mm`}</div>

@@ -13,16 +13,14 @@ export default function Component() {
   const groupList = ApiHook.Stock.PartnerStock.useGetList({
     query: groupPage,
   });
-  const [selectedGroup, setSelectedGroup] = useState<Model.PartnerStockGroup[]>(
-    []
-  );
+  const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
 
   return (
     <Page title="매입처 재고 조회">
       <StatBar.Container>
         <StatBar.Item icon={<TbMapPinFilled />} label="매입처" value={"-"} />
       </StatBar.Container>
-      <Table.Default<Model.PartnerStockGroup>
+      <Table.Default<Model.StockGroup>
         data={groupList.data}
         keySelector={(record) =>
           `${record.product.id} ${record.sizeX} ${record.sizeY} ${
@@ -53,16 +51,16 @@ export default function Component() {
             ),
           },
 
-          ...Table.Preset.columnStockGroup<Model.PartnerStockGroup>(
+          ...Table.Preset.columnStockGroup<Model.StockGroup>(
             (record) => record,
             []
           ),
-          ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+          ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
             ["totalQuantity"],
             { prefix: "실물" }
           ),
-          ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+          ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
             ["availableQuantity"],
             { prefix: "가용" }

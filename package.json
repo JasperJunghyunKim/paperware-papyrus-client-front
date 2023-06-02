@@ -32,6 +32,7 @@
     "react-sticky-box": "^2.0.4",
     "recoil": "^0.7.7",
     "tailwindcss": "^3.3.1",
+    "ts-pattern": "^4.3.0",
     "typescript": "5.0.4",
     "uuid": "^9.0.0"
   },

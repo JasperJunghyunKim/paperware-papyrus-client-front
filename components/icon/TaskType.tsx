@@ -11,7 +11,7 @@ export default function Component(props: Props) {
       return <TbRefresh />;
     case "GUILLOTINE":
       return <TbCrop />;
-    case "QUANTITY":
+    case "RELEASE":
       return <Tb123 />;
     default:
       return null;

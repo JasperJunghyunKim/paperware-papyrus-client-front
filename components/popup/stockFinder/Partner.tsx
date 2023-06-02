@@ -10,7 +10,7 @@ type OpenType = CompanyId | false;
 export interface Props {
   open: OpenType;
   onClose: (unit: false) => void;
-  onSelect: (stockGroup: Model.PartnerStockGroup) => void;
+  onSelect: (stockGroup: Model.StockGroup) => void;
 }
 
 export default function Component(props: Props) {
@@ -21,9 +21,7 @@ export default function Component(props: Props) {
       companyId: _.isNumber(props.open) ? props.open : undefined,
     },
   });
-  const [selectedGroup, setSelectedGroup] = useState<Model.PartnerStockGroup[]>(
-    []
-  );
+  const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
 
   useEffect(() => {
     if (props.open) {
@@ -41,7 +39,7 @@ export default function Component(props: Props) {
     >
       <div className="flex flex-col w-full h-full">
         <div className="flex-1">
-          <Table.Default<Model.PartnerStockGroup>
+          <Table.Default<Model.StockGroup>
             data={groupList.data}
             keySelector={(record) =>
               `${record.product.id} ${record.sizeX} ${record.sizeY} ${
@@ -60,16 +58,16 @@ export default function Component(props: Props) {
                 title: "창고",
                 dataIndex: ["warehouse", "name"],
               },
-              ...Table.Preset.columnStockGroup<Model.PartnerStockGroup>(
+              ...Table.Preset.columnStockGroup<Model.StockGroup>(
                 (p) => p, // TODO
                 []
               ),
-              ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+              ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
                 ["availableQuantity"],
                 { prefix: "가용" }
               ),
-              ...Table.Preset.columnQuantity<Model.PartnerStockGroup>(
+              ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
                 ["totalQuantity"],
                 { prefix: "실물" }

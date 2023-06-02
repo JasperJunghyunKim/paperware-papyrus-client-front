@@ -85,7 +85,7 @@ export default function Component() {
             dataIndex: ["orderStock", "dstLocation", "name"],
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
-            (record) => record.orderStock,
+            (record) => record.orderStock.plan.at(0)?.assignStockEvent?.stock,
             ["orderStock"]
           ),
           {
@@ -122,7 +122,7 @@ export default function Component() {
             ),
           },
           ...Table.Preset.columnQuantity<Model.Order>(
-            (record) => record.orderStock,
+            (record) => record.orderStock.plan.at(0)?.assignStockEvent?.stock,
             ["orderStock", "quantity"],
             { prefix: "매출" }
           ),

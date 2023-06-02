@@ -20,6 +20,7 @@ import {
 } from "react-icons/tb";
 import { CreateArrival } from ".";
 import { TaskMap } from "../plan/common";
+import { mine } from "@/common/util";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -314,7 +315,6 @@ function DataForm(props: DataFormProps) {
   const [form] = useForm<
     Api.OrderStockCreateRequest | Api.OrderStockUpdateRequest
   >();
-  const [orderId, setOrderId] = useState<number | null>(null);
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
   );
@@ -371,31 +371,37 @@ function DataForm(props: DataFormProps) {
 
   useEffect(() => {
     if (props.initialOrder) {
+      const assignStockEvent = props.initialOrder.orderStock.plan.find(
+        (p) => p.companyId === props.initialOrder?.dstCompany.id
+      )?.assignStockEvent;
+      const assignStock = assignStockEvent?.stock;
+
+      console.log(assignStockEvent);
+
       form.setFieldsValue({
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
         locationId: props.initialOrder.orderStock.dstLocation.id,
         wantedDate: props.initialOrder.wantedDate,
-        warehouseId: props.initialOrder.orderStock.warehouse?.id,
-        orderStockId: props.initialOrder.orderStock.orderStock?.id,
-        productId: props.initialOrder.orderStock.product.id,
-        packagingId: props.initialOrder.orderStock.packaging.id,
-        grammage: props.initialOrder.orderStock.grammage,
-        sizeX: props.initialOrder.orderStock.sizeX,
-        sizeY: props.initialOrder.orderStock.sizeY,
-        paperColorGroupId: props.initialOrder.orderStock.paperColorGroup?.id,
-        paperColorId: props.initialOrder.orderStock.paperColor?.id,
-        paperPatternId: props.initialOrder.orderStock.paperPattern?.id,
-        paperCertId: props.initialOrder.orderStock.paperCert?.id,
-        quantity: props.initialOrder.orderStock.quantity,
+        warehouseId: assignStock?.warehouse?.id,
+        planId: assignStock?.planId,
+        productId: assignStock?.product.id,
+        packagingId: assignStock?.packaging.id,
+        grammage: assignStock?.grammage,
+        sizeX: assignStock?.sizeX,
+        sizeY: assignStock?.sizeY,
+        paperColorGroupId: assignStock?.paperColorGroup?.id,
+        paperColorId: assignStock?.paperColor?.id,
+        paperPatternId: assignStock?.paperPattern?.id,
+        paperCertId: assignStock?.paperCert?.id,
+        quantity: assignStockEvent?.change,
         memo: props.initialOrder.memo,
       });
-      setOrderId(props.initialOrder.orderStock.orderId);
-      setWarehouse(props.initialOrder.orderStock.warehouse);
+      setWarehouse(assignStock?.warehouse ?? null);
     } else {
       form.resetFields();
     }
-  }, [form, props.initialOrder]);
+  }, [form, props.initialOrder, me.data?.companyId]);
 
   const apiCreate = ApiHook.Trade.OrderStock.useCreate();
   const cmdCreate = useCallback(async () => {
@@ -514,11 +520,10 @@ function DataForm(props: DataFormProps) {
             <div className="flex-initial flex mb-4">
               <Button.Preset.SelectStockGroupInhouse
                 onSelect={(stockGroup) => {
-                  setOrderId(stockGroup.orderStock?.orderId ?? null);
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
                     warehouseId: stockGroup.warehouse?.id,
-                    orderStockId: stockGroup.orderStock?.orderId,
+                    planId: stockGroup.plan?.id,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -542,7 +547,7 @@ function DataForm(props: DataFormProps) {
                   setWarehouse(stockGroup.warehouse);
                   form.setFieldsValue({
                     warehouseId: stockGroup.warehouse?.id,
-                    orderStockId: stockGroup.orderStock?.id,
+                    planId: stockGroup.plan?.id,
                     productId: stockGroup.product.id,
                     packagingId: stockGroup.packaging.id,
                     grammage: stockGroup.grammage,
@@ -928,17 +933,17 @@ function RightSideOrder(props: RightSideOrderProps) {
         </Toolbar.Container>
         <div className="flex-1 overflow-y-scroll px-4 pb-4">
           <div className="flex-1">
-            <Table.Default<Model.ArrivalStockGroup>
+            <Table.Default<Model.StockGroup>
               data={list.data ?? undefined}
               page={page}
               setPage={setPage}
-              keySelector={(record) => `${record.id}`}
+              keySelector={(record) => `${record.plan?.id}`}
               selection="none"
               columns={[
                 {
                   title: "작업 구분",
-                  render: (value: Model.ArrivalStockGroup) => (
-                    <div>{value.orderStock ? "정상 매입" : ""}</div>
+                  render: (value: Model.StockGroup) => (
+                    <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
                   ),
                 },
                 {
@@ -965,21 +970,21 @@ function RightSideOrder(props: RightSideOrderProps) {
                   title: "도착지",
                   dataIndex: ["orderStock", "dstLocation", "name"],
                 },
-                ...Table.Preset.columnStockGroup<Model.ArrivalStockGroup>(
+                ...Table.Preset.columnStockGroup<Model.StockGroup>(
                   (p) => p, // TODO
                   []
                 ),
-                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                ...Table.Preset.columnQuantity<Model.StockGroup>(
                   (p) => p, // TODO
                   ["nonStoringQuantity"],
                   { prefix: "배정" }
                 ),
-                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                ...Table.Preset.columnQuantity<Model.StockGroup>(
                   (p) => p, // TODO
                   ["storingQuantity"],
                   { prefix: "입고" }
                 ),
-                ...Table.Preset.columnQuantity<Model.ArrivalStockGroup>(
+                ...Table.Preset.columnQuantity<Model.StockGroup>(
                   (p) => p, // TODO
                   ["totalQuantity"],
                   { prefix: "전체" }
@@ -1091,8 +1096,10 @@ function RightSideSales(props: RightSideSalesProps) {
         },
       ];
 
+  const me = ApiHook.Auth.useGetMe();
+
   const plan = ApiHook.Working.Plan.useGetItem({
-    id: props.order?.orderStock.plan?.id ?? null,
+    id: props.order?.orderStock.plan.find(mine(me.data))?.id ?? null,
   });
 
   return (
@@ -1145,12 +1152,10 @@ function RightSideSales(props: RightSideSalesProps) {
         <div className="basis-px bg-gray-200" />
         <div className="flex-1 flex h-0">
           <div className="flex-1 bg-slate-100">
-            {plan.data && (
+            {plan.data?.assignStockEvent && (
               <TaskMap
                 plan={plan.data}
-                packagingType={
-                  plan.data?.targetStockGroupEvent.stockGroup.packaging.type
-                }
+                packagingType={plan.data.assignStockEvent.stock.packaging.type}
               />
             )}
           </div>
@@ -1191,15 +1196,21 @@ function PricePanel(props: PricePanelProps) {
     form
   );
 
+  const me = ApiHook.Auth.useGetMe();
+
+  const assignStockEvent = props.order.orderStock.plan.find(
+    (p) => p.companyId === props.order.dstCompany.id
+  )!.assignStockEvent;
+
   const stockSuppliedPrice = useMemo(() => {
-    const quantity = altQuantity ?? props.order.orderStock.quantity;
+    const quantity = altQuantity ?? assignStockEvent.change;
     const convert = (unit: "T" | "BOX" | "매") =>
-      PaperUtil.convertQuantityWith(props.order.orderStock, unit, quantity);
+      PaperUtil.convertQuantityWith(assignStockEvent.stock, unit, quantity);
 
     const converted =
-      props.order?.orderStock?.packaging.type === "ROLL"
+      assignStockEvent.stock.packaging.type === "ROLL"
         ? convert("T")
-        : props.order?.orderStock?.packaging.type === "BOX"
+        : assignStockEvent.stock.packaging.type === "BOX"
         ? convert("BOX")
         : convert("매");
 
@@ -1220,8 +1231,6 @@ function PricePanel(props: PricePanelProps) {
   const data = ApiHook.Trade.OrderStock.useGetTradePrice({
     orderId: props.order.id,
   });
-
-  const me = ApiHook.Auth.useGetMe();
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdateTradePrice();
   const cmdUpdate = useCallback(async () => {
@@ -1266,10 +1275,10 @@ function PricePanel(props: PricePanelProps) {
           ? "SKID"
           : altSizeX
           ? "ROLL"
-          : props.order.orderStock.packaging.type
+          : assignStockEvent.stock.packaging.type
       )
     );
-  }, [altSizeX, altSizeY, props.order.orderStock.packaging.type]);
+  }, [altSizeX, altSizeY, assignStockEvent.stock.packaging.type]);
 
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)
@@ -1296,14 +1305,14 @@ function PricePanel(props: PricePanelProps) {
     } else {
       form.setFieldsValue({
         stockPrice: FormControl.Util.Price.initialStockPrice(
-          props.order.orderStock.packaging.type
+          assignStockEvent.stock.packaging.type
         ),
         processPrice: 0,
         suppliedPrice: 0,
         vatPrice: 0,
       });
     }
-  }, [props.orderId, data.data, form, props.order.orderStock.packaging.type]);
+  }, [props.orderId, data.data, form, assignStockEvent.stock.packaging.type]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -1313,7 +1322,7 @@ function PricePanel(props: PricePanelProps) {
         rootClassName="flex-initial basis-[500px]"
         initialValues={{
           price: FormControl.Util.Price.initialStockPrice(
-            props.order.orderStock.packaging.type
+            assignStockEvent.stock.packaging.type
           ),
         }}
       >
@@ -1330,7 +1339,7 @@ function PricePanel(props: PricePanelProps) {
           {positiveCompany && (
             <FormControl.StockPrice
               spec={{
-                grammage: props.order.orderStock.grammage,
+                grammage: assignStockEvent.stock.grammage,
                 packaging:
                   altSizeX && altSizeY
                     ? {
@@ -1344,26 +1353,26 @@ function PricePanel(props: PricePanelProps) {
                         packB: 0,
                         type: "ROLL",
                       }
-                    : props.order.orderStock.packaging,
-                sizeX: altSizeX ?? props.order.orderStock.sizeX,
-                sizeY: altSizeY ?? props.order.orderStock.sizeY,
+                    : assignStockEvent.stock.packaging,
+                sizeX: altSizeX ?? assignStockEvent.stock.sizeX,
+                sizeY: altSizeY ?? assignStockEvent.stock.sizeY,
               }}
               officialSpec={{
-                productId: props.order.orderStock.product.id,
-                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
-                paperColorId: props.order.orderStock.paperColor?.id,
-                paperPatternId: props.order.orderStock.paperPattern?.id,
-                paperCertId: props.order.orderStock.paperCert?.id,
+                productId: assignStockEvent.stock.product.id,
+                paperColorGroupId: assignStockEvent.stock.paperColorGroup?.id,
+                paperColorId: assignStockEvent.stock.paperColor?.id,
+                paperPatternId: assignStockEvent.stock.paperPattern?.id,
+                paperCertId: assignStockEvent.stock.paperCert?.id,
               }}
               discountSpec={{
                 companyRegistrationNumber:
                   positiveCompany?.companyRegistrationNumber,
-                productId: props.order.orderStock.product.id,
+                productId: assignStockEvent.stock.product.id,
                 discountRateType: isSales ? "SALES" : "PURCHASE",
-                paperColorGroupId: props.order.orderStock.paperColorGroup?.id,
-                paperColorId: props.order.orderStock.paperColor?.id,
-                paperPatternId: props.order.orderStock.paperPattern?.id,
-                paperCertId: props.order.orderStock.paperCert?.id,
+                paperColorGroupId: assignStockEvent.stock.paperColorGroup?.id,
+                paperColorId: assignStockEvent.stock.paperColor?.id,
+                paperPatternId: assignStockEvent.stock.paperPattern?.id,
+                paperCertId: assignStockEvent.stock.paperCert?.id,
               }}
             />
           )}

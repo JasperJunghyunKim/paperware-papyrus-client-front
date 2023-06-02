@@ -75,8 +75,8 @@ export default function Component(props: Props) {
                 parentTaskId={null}
               />
             )}
-            {!converted.some((p) => p.value.type === "QUANTITY") && (
-              <AddNode type="QUANTITY" plan={props.plan} parentTaskId={null} />
+            {!converted.some((p) => p.value.type === "RELEASE") && (
+              <AddNode type="RELEASE" plan={props.plan} parentTaskId={null} />
             )}
           </>
         )}
@@ -118,7 +118,7 @@ function Item(props: ItemProps) {
               {
                 "bg-purple-800": props.data.value.type === "CONVERTING",
                 "bg-green-800": props.data.value.type === "GUILLOTINE",
-                "bg-orange-800": props.data.value.type === "QUANTITY",
+                "bg-orange-800": props.data.value.type === "RELEASE",
               }
             )}
           >
@@ -203,7 +203,7 @@ function Item(props: ItemProps) {
               {props.data.childs.length === 0 &&
                 Util.inc(props.data.value.type, "CONVERTING", "GUILLOTINE") && (
                   <AddNode
-                    type="QUANTITY"
+                    type="RELEASE"
                     plan={props.plan}
                     parentTaskId={props.data.value.id}
                   />
@@ -234,8 +234,8 @@ function AddNode(props: AddNodeProps) {
           data: {
             planId: props.plan.id,
             parentTaskId: props.parentTaskId,
-            sizeX: props.plan.targetStockGroupEvent.stockGroup.sizeX,
-            sizeY: props.plan.targetStockGroupEvent.stockGroup.sizeY,
+            sizeX: props.plan.assignStockEvent?.stock.sizeX ?? 0,
+            sizeY: props.plan.assignStockEvent?.stock.sizeY ?? 0,
             memo: "",
           },
         });
@@ -246,14 +246,14 @@ function AddNode(props: AddNodeProps) {
           data: {
             planId: props.plan.id,
             parentTaskId: props.parentTaskId,
-            sizeX: props.plan.targetStockGroupEvent.stockGroup.sizeX,
-            sizeY: props.plan.targetStockGroupEvent.stockGroup.sizeY,
+            sizeX: props.plan.assignStockEvent?.stock.sizeX ?? 0,
+            sizeY: props.plan.assignStockEvent?.stock.sizeY ?? 0,
             memo: "",
           },
         });
         break;
       }
-      case "QUANTITY": {
+      case "RELEASE": {
         const res = await apiCreateQuantity.mutateAsync({
           data: {
             planId: props.plan.id,
@@ -276,7 +276,7 @@ function AddNode(props: AddNodeProps) {
             {
               "border-purple-600 text-purple-600": props.type === "CONVERTING",
               "border-green-600 text-green-600": props.type === "GUILLOTINE",
-              "border-orange-600 text-orange-600": props.type === "QUANTITY",
+              "border-orange-600 text-orange-600": props.type === "RELEASE",
             }
           )}
           onClick={() => cmdCreate()}
@@ -648,23 +648,23 @@ function QuantityNode(props: QuantityProps) {
 
   const getWeight = useCallback(() => {
     let parent = props.parent;
-    return (
-      (PaperUtil.convertQuantityWith(
-        {
-          ...props.plan.targetStockGroupEvent.stockGroup,
-          sizeX:
-            parent?.value.taskConverting?.sizeX ??
-            parent?.value.taskGuillotine?.sizeX ??
-            0,
-          sizeY:
-            parent?.value.taskConverting?.sizeY ??
-            parent?.value.taskGuillotine?.sizeY ??
-            0,
-        },
-        "매",
-        props.data.quantity
-      )?.grams ?? 0) * 0.000001
-    );
+    return props.plan.assignStockEvent
+      ? (PaperUtil.convertQuantityWith(
+          {
+            ...props.plan.assignStockEvent.stock,
+            sizeX:
+              parent?.value.taskConverting?.sizeX ??
+              parent?.value.taskGuillotine?.sizeX ??
+              0,
+            sizeY:
+              parent?.value.taskConverting?.sizeY ??
+              parent?.value.taskGuillotine?.sizeY ??
+              0,
+          },
+          "매",
+          props.data.quantity
+        )?.grams ?? 0) * 0.000001
+      : 0;
   }, [props.current, props.parent]);
 
   return (

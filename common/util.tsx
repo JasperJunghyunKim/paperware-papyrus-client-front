@@ -4,6 +4,7 @@ import { Modal } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ko";
 import _ from "lodash";
+import { match } from "ts-pattern";
 
 export type PromiseOrFn = (() => Promise<void>) | (() => any);
 export async function call(p?: PromiseOrFn) {
@@ -61,9 +62,9 @@ export function comma(
   return typeof num === "number" && !isNaN(num) && !isFinite(num)
     ? ""
     : num.toLocaleString("ko-KR", {
-      minimumFractionDigits: precision,
-      maximumFractionDigits: precision,
-    });
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision,
+      });
 }
 
 export function passString(value: string | null | undefined) {
@@ -80,9 +81,11 @@ export interface Address {
 }
 
 export function encodeAddress(address: Partial<Address>) {
-  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${address.roadAddressEnglish ?? ""
-    }]] [[${address.jibunAddress ?? ""}::${address.jibunAddressEnglish ?? ""
-    }]] [[${address.detail ?? ""}]]`;
+  return `[[${address.zonecode ?? ""}]] [[${address.roadAddress ?? ""}::${
+    address.roadAddressEnglish ?? ""
+  }]] [[${address.jibunAddress ?? ""}::${
+    address.jibunAddressEnglish ?? ""
+  }]] [[${address.detail ?? ""}]]`;
 }
 
 export function decodeAddress(address: string | null | undefined): Address {
@@ -134,8 +137,9 @@ export function formatAddress(address: string | Address | null | undefined) {
     return "";
   }
 
-  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${decoded.detail === "" ? "" : `(${decoded.detail})`
-    }`;
+  return `${passString(decoded.roadAddress) ?? decoded.jibunAddress} ${
+    decoded.detail === "" ? "" : `(${decoded.detail})`
+  }`;
 }
 
 export function formatPackaging(packaging: Model.Packaging, short?: boolean) {
@@ -318,7 +322,7 @@ export function taskTypeToString(value: Model.Enum.TaskType) {
       return "컨버팅";
     case "GUILLOTINE":
       return "길로틴";
-    case "QUANTITY":
+    case "RELEASE":
       return "출고 수량";
   }
 }
@@ -438,45 +442,50 @@ export function convertQuantity(
   };
 }
 
-export function accountedSubject(accountedType: AccountedType, subject: Subject): string {
-  if (accountedType === 'PAID') {
+export function accountedSubject(
+  accountedType: AccountedType,
+  subject: Subject
+): string {
+  if (accountedType === "PAID") {
     switch (subject) {
-      case 'ACCOUNTS_RECEIVABLE':
-        return '외상 매출금';
-      case 'UNPAID':
-        return '미수금';
-      case 'ADVANCES':
-        return '선수금';
-      case 'MISCELLANEOUS_INCOME':
-        return '잡이익';
-      case 'PRODUCT_SALES':
-        return '상품 매출';
-      case 'ETC':
-        return '기타';
-      case 'All':
-        return '전체';
+      case "ACCOUNTS_RECEIVABLE":
+        return "외상 매출금";
+      case "UNPAID":
+        return "미수금";
+      case "ADVANCES":
+        return "선수금";
+      case "MISCELLANEOUS_INCOME":
+        return "잡이익";
+      case "PRODUCT_SALES":
+        return "상품 매출";
+      case "ETC":
+        return "기타";
+      case "All":
+        return "전체";
     }
   } else {
     switch (subject) {
-      case 'ACCOUNTS_RECEIVABLE':
-        return '외상 매입금';
-      case 'UNPAID':
-        return '미지급금';
-      case 'ADVANCES':
-        return '선지급금';
-      case 'MISCELLANEOUS_INCOME':
-        return '잡손실';
-      case 'PRODUCT_SALES':
-        return '상품 매입';
-      case 'ETC':
-        return '기타';
-      case 'All':
-        return '전체';
+      case "ACCOUNTS_RECEIVABLE":
+        return "외상 매입금";
+      case "UNPAID":
+        return "미지급금";
+      case "ADVANCES":
+        return "선지급금";
+      case "MISCELLANEOUS_INCOME":
+        return "잡손실";
+      case "PRODUCT_SALES":
+        return "상품 매입";
+      case "ETC":
+        return "기타";
+      case "All":
+        return "전체";
     }
   }
 }
 
-export function endorsementTypeToString(value?: Model.Enum.SecurityStatus | number | string) {
+export function endorsementTypeToString(
+  value?: Model.Enum.SecurityStatus | number | string
+) {
   switch (value) {
     case "NONE":
       return "선택안함";
@@ -485,20 +494,24 @@ export function endorsementTypeToString(value?: Model.Enum.SecurityStatus | numb
     case "OTHERS_NOTE":
       return "타수";
     default:
-      return ""
+      return "";
   }
 }
 
-export function bankAccountTypeToString(value?: Model.Enum.SecurityStatus | number | string) {
+export function bankAccountTypeToString(
+  value?: Model.Enum.SecurityStatus | number | string
+) {
   switch (value) {
     case "DEPOSIT":
       return "보통 예금";
     default:
-      return ""
+      return "";
   }
 }
 
-export function securityStatusToSTring(value?: Model.Enum.SecurityStatus | number | string) {
+export function securityStatusToSTring(
+  value?: Model.Enum.SecurityStatus | number | string
+) {
   switch (value) {
     case "NONE":
       return "기본";
@@ -515,22 +528,26 @@ export function securityStatusToSTring(value?: Model.Enum.SecurityStatus | numbe
     case "SAFEKEEPING":
       return "보관";
     default:
-      return ""
+      return "";
   }
 }
 
-export function drawedStatusToSTring(value?: Model.Enum.DrawedStatus | number | string) {
+export function drawedStatusToSTring(
+  value?: Model.Enum.DrawedStatus | number | string
+) {
   switch (value) {
     case "SELF":
       return "자사 발행";
     case "ACCOUNTED":
       return "수금";
     default:
-      return ""
+      return "";
   }
 }
 
-export function securityTypeToSTring(value?: Model.Enum.SecurityType | number | string) {
+export function securityTypeToSTring(
+  value?: Model.Enum.SecurityType | number | string
+) {
   switch (value) {
     case "PROMISSORY_NOTE":
       return "약속 어음";
@@ -549,7 +566,7 @@ export function securityTypeToSTring(value?: Model.Enum.SecurityType | number | 
     case "ETC":
       return "기타";
     default:
-      return ""
+      return "";
   }
 }
 export function nanToZero(value: number | null | undefined) {
@@ -570,3 +587,18 @@ export function padRightCJK(value: string, length: number) {
   const len = length - countCJKCharacters(value);
   return value.padEnd(len);
 }
+
+export function formatSerial(serial: string): string {
+  const header = serial[0];
+  return header === "P"
+    ? `P-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : header === "T"
+    ? `T-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : `${serial}`;
+}
+
+export const mine =
+  (x: { companyId: number } | undefined | null) =>
+  (y: { companyId: number } | undefined | null) => {
+    return x && y && x?.companyId === y?.companyId;
+  };

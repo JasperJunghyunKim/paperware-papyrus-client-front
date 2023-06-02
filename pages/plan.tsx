@@ -141,11 +141,11 @@ export default function Component() {
             ],
           },
           ...Table.Preset.columnStockGroup<Model.Plan>(
-            (record) => record.targetStockGroupEvent.stockGroup,
+            (record) => record.assignStockEvent?.stock,
             ["targetStockGroupEvent", "stockGroup"]
           ),
           ...Table.Preset.columnQuantity<Model.Plan>(
-            (record) => record.targetStockGroupEvent.stockGroup,
+            (record) => record.assignStockEvent?.stock,
             ["targetStockGroupEvent", "change"],
             { prefix: "사용 예정", negative: true }
           ),

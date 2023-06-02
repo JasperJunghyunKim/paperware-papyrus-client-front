@@ -6,7 +6,14 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function useGetList(params: { query: Partial<Api.OrderListQuery> }) {
   return useQuery(
-    ["order", "list", params.query.skip, params.query.take],
+    [
+      "order",
+      "list",
+      params.query.skip,
+      params.query.take,
+      params.query.dstCompanyId,
+      params.query.srcCompanyId,
+    ],
     async () => {
       const resp = await axios.get<Api.OrderListResponse>(`${API_HOST}/order`, {
         params: params.query,

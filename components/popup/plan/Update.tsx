@@ -138,46 +138,40 @@ export default function Component(props: Props) {
               />
               <OrderItemProperty
                 label="원지 창고"
-                content={
-                  data.data.targetStockGroupEvent.stockGroup.warehouse?.name
-                }
+                content={data.data.assignStockEvent?.stock.warehouse?.name}
               />
               <OrderItemProperty
                 label="제품 유형"
                 content={
-                  data.data.targetStockGroupEvent.stockGroup.product.paperDomain
-                    .name
+                  data.data.assignStockEvent?.stock.product.paperDomain.name
                 }
               />
               <OrderItemProperty
                 label="제지사"
                 content={
-                  data.data.targetStockGroupEvent.stockGroup.product
-                    .manufacturer.name
+                  data.data.assignStockEvent?.stock.product.manufacturer.name
                 }
               />
               <OrderItemProperty
                 label="지군"
                 content={
-                  data.data.targetStockGroupEvent.stockGroup.product.paperGroup
-                    .name
+                  data.data.assignStockEvent?.stock.product.paperGroup.name
                 }
               />
               <OrderItemProperty
                 label="지종"
                 content={
-                  data.data.targetStockGroupEvent.stockGroup.product.paperType
-                    .name
+                  data.data.assignStockEvent?.stock.product.paperType.name
                 }
               />
             </div>
             <div className="flex-[0_0_1px] bg-gray-300" />
             <div className="flex-[1_0_0px] flex flex-col bg-slate-200 h-0">
-              {data.data && (
+              {data.data && data.data.assignStockEvent && (
                 <TaskMap
                   plan={data.data}
                   packagingType={
-                    data.data.targetStockGroupEvent.stockGroup.packaging.type
+                    data.data.assignStockEvent?.stock.packaging.type
                   }
                 />
               )}
