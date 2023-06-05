@@ -4,7 +4,7 @@ import { ApiHook, PaperUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form, Input, Steps, Switch } from "antd";
+import { Alert, Form, Input, Select, Steps, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import _ from "lodash";
@@ -313,7 +313,8 @@ function DataForm(props: DataFormProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const [form] = useForm<
-    Api.OrderStockCreateRequest | Api.OrderStockUpdateRequest
+    | Api.OrderStockCreateRequest
+    | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
   >();
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
@@ -394,7 +395,7 @@ function DataForm(props: DataFormProps) {
         paperColorId: assignStock?.paperColor?.id,
         paperPatternId: assignStock?.paperPattern?.id,
         paperCertId: assignStock?.paperCert?.id,
-        quantity: assignStockEvent?.change,
+        quantity: -(assignStockEvent?.change ?? 0),
         memo: props.initialOrder.memo,
       });
       setWarehouse(assignStock?.warehouse ?? null);
@@ -412,21 +413,27 @@ function DataForm(props: DataFormProps) {
     }
 
     if (props.isOffer) {
-      return await apiCreate.mutateAsync({
+      const created = await apiCreate.mutateAsync({
         data: {
           ...values,
           warehouseId: warehouse?.id ?? null,
           dstCompanyId: me.data.companyId,
         },
       });
+      if (created) {
+        props.onCreated(created);
+      }
     } else {
-      return await apiCreate.mutateAsync({
+      const created = await apiCreate.mutateAsync({
         data: {
           ...values,
           warehouseId: warehouse?.id ?? null,
           srcCompanyId: me.data.companyId,
         },
       });
+      if (created) {
+        props.onCreated(created);
+      }
     }
   }, [form, apiCreate, me, props.isOffer, warehouse]);
 
@@ -446,27 +453,42 @@ function DataForm(props: DataFormProps) {
     });
   }, [form, apiUpdate, props.initialOrder]);
 
-  const submit = useCallback(async () => {
-    if (props.initialOrder) {
-      await cmdUpdate();
-    } else {
-      const created = await cmdCreate();
-      if (created) {
-        props.onCreated(created);
-      }
+  const apiUpdateAssign = ApiHook.Trade.OrderStock.useUpdateStock();
+  const cmdUpdateAssign = useCallback(async () => {
+    const values =
+      (await form.validateFields()) as Api.OrderStockAssignStockUpdateRequest;
+
+    if (props.initialOrder === null) {
+      return;
     }
-  }, [cmdCreate, cmdUpdate, props.initialOrder]);
+
+    await apiUpdateAssign.mutateAsync({
+      orderId: props.initialOrder.id,
+      data: {
+        ...values,
+      },
+    });
+  }, [form, apiUpdateAssign, props.initialOrder]);
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      rootClassName="w-full mb-32"
-      onFinish={submit}
-    >
+    <Form form={form} layout="vertical" rootClassName="w-full mb-32">
       <FormControl.Util.Split
         label={props.isSales ? "매출 정보" : "매입 정보"}
       />
+      <Form.Item label="거래 구분" required>
+        <Select
+          options={[
+            {
+              label: "정상 거래",
+              value: "NORMAL",
+            },
+            {
+              label: "보관 거래",
+              value: "DEPOSIT",
+            },
+          ]}
+        />
+      </Form.Item>
       {!props.isSales && (
         <Form.Item name="dstCompanyId" label="매입처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanyPurchase disabled={!editable} />
@@ -511,6 +533,19 @@ function DataForm(props: DataFormProps) {
       >
         <FormControl.DatePicker disabled={!editable} />
       </Form.Item>
+      <Form.Item name="memo" label="기타 요청사항">
+        <Input.TextArea maxLength={100} disabled={!editable} />
+      </Form.Item>
+      {props.initialOrder && editable && (
+        <div className="flex-initial flex justify-end">
+          <Button.Preset.Edit
+            label={`${props.isSales ? "수주" : "주문"} 정보 ${
+              props.initialOrder ? "수정" : "등록"
+            }`}
+            onClick={cmdUpdate}
+          />
+        </div>
+      )}
       {(srcCompanyId || dstCompanyId) && (
         <>
           <FormControl.Util.Split
@@ -714,16 +749,15 @@ function DataForm(props: DataFormProps) {
           </Form.Item>
         </>
       )}
-      <FormControl.Util.Split label="기타" />
-      <Form.Item name="memo" label="기타 요청사항">
-        <Input.TextArea maxLength={100} disabled={!editable} />
-      </Form.Item>
-      {editable && (
+      {packaging && editable && (
         <div className="flex-initial flex justify-end">
-          <Button.Preset.Submit
-            label={`${props.isSales ? "수주" : "주문"} 정보 ${
+          <Button.Preset.Edit
+            label={`${props.isSales ? "수주" : "주문"} 재고 ${
               props.initialOrder ? "수정" : "등록"
             }`}
+            onClick={async () =>
+              props.initialOrder ? await cmdUpdateAssign() : await cmdCreate()
+            }
           />
         </div>
       )}

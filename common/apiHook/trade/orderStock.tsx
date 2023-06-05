@@ -83,6 +83,35 @@ export function useUpdate() {
   );
 }
 
+export function useUpdateStock() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "stock", "update", "stock"],
+    async (params: {
+      orderId: number;
+      data: Api.OrderStockAssignStockUpdateRequest;
+    }) => {
+      const resp = await axios.put(
+        `${API_HOST}/order/stock/${params.orderId}/assign`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("수정사항이 저장되었습니다.");
+      },
+    }
+  );
+}
+
 export function useGetOrderStockArrivalList(params: {
   orderId: number | null;
   query: Partial<Api.OrderStockArrivalListQuery>;

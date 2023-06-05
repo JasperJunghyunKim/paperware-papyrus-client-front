@@ -32,7 +32,9 @@ import {
   TbVectorTriangle,
   TbCards,
   TbBuildingBank,
-  TbReportMoney
+  TbReportMoney,
+  TbBookDownload,
+  TbBookUpload,
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -69,26 +71,35 @@ export default function Component(props: PropsWithChildren<Props>) {
         path: "/stock-arrival",
       },
       {
+        label: "매입처 재고 조회",
+        icon: <TbInputSearch />,
+        path: "/stock-partner",
+      },
+      {
+        label: "매출 보관량 조회",
+        icon: <TbBookUpload />,
+        path: "/deposit-sales",
+      },
+      {
+        label: "매입 보관량 조회",
+        icon: <TbBookDownload />,
+        path: "/deposit-purchase",
+      },
+      {
         label: "창고 관리",
         icon: <TbBuildingWarehouse />,
         path: "/warehouse",
       },
       { path: null },
       {
-        label: "매입처 재고 조회",
-        icon: <TbInputSearch />,
-        path: "/stock-partner",
+        label: "매출 수주 목록",
+        icon: <TbSubtask />,
+        path: "/trade-sales",
       },
       {
         label: "매입 주문 목록",
         icon: <TbClipboardList />,
         path: "/trade-order",
-      },
-      { path: null },
-      {
-        label: "매출 수주 목록",
-        icon: <TbSubtask />,
-        path: "/trade-sales",
       },
       { path: null },
       {
