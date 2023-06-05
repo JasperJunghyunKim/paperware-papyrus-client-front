@@ -22,7 +22,7 @@ export default function Component() {
     { title: "매출처", fallback: (record) => record.srcCompany.businessName }
   );
   const [page, setPage] = usePage();
-  const list = ApiHook.Trade.OrderStock.useGetList({
+  const list = ApiHook.Trade.Common.useGetList({
     query: {
       ...page,
       dstCompanyId: info.data?.companyId,

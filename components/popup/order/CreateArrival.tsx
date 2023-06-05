@@ -25,7 +25,7 @@ export default function Component(props: Props) {
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
-  const api = ApiHook.Trade.OrderStock.useCreateArrival();
+  const api = ApiHook.Trade.Common.useCreateArrival();
   const cmd = useCallback(
     async (values: Api.OrderStockArrivalCreateRequest) => {
       if (!props.open) return;

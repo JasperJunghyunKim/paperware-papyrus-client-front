@@ -42,7 +42,7 @@ export interface Props {
 export default function Component(props: Props) {
   const me = ApiHook.Auth.useGetMe();
   const [initialOrderId, setInitialOrderId] = useState<OrderId | null>(null);
-  const order = ApiHook.Trade.OrderStock.useGetItem({
+  const order = ApiHook.Trade.Common.useGetItem({
     id: initialOrderId,
   });
 
@@ -58,7 +58,7 @@ export default function Component(props: Props) {
     }
   }, [props.open]);
 
-  const apiRequest = ApiHook.Trade.OrderStock.useRequest();
+  const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
     if (!order.data) return;
     if (!(await Util.confirm("주문을 요청하시겠습니까?"))) return;
@@ -67,7 +67,7 @@ export default function Component(props: Props) {
     });
   }, [apiRequest, order.data]);
 
-  const apiAccept = ApiHook.Trade.OrderStock.useAccept();
+  const apiAccept = ApiHook.Trade.Common.useAccept();
   const cmdAccept = useCallback(
     (virtual: boolean) => async () => {
       if (!order.data) return;
@@ -86,7 +86,7 @@ export default function Component(props: Props) {
     [apiAccept, order.data]
   );
 
-  const apiReject = ApiHook.Trade.OrderStock.useReject();
+  const apiReject = ApiHook.Trade.Common.useReject();
   const cmdReject = useCallback(async () => {
     if (!order.data) return;
     if (!(await Util.confirm("재고를 거절하시겠습니까?"))) return;
@@ -95,7 +95,7 @@ export default function Component(props: Props) {
     });
   }, [apiReject, order.data]);
 
-  const apiCancel = ApiHook.Trade.OrderStock.useCancel();
+  const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (!order.data) return;
     if (!(await Util.confirm("주문을 삭제하시겠습니까?"))) return;
@@ -104,7 +104,7 @@ export default function Component(props: Props) {
     });
   }, [apiCancel, order.data]);
 
-  const apiReset = ApiHook.Trade.OrderStock.useReset();
+  const apiReset = ApiHook.Trade.Common.useReset();
   const cmdReset = useCallback(async () => {
     if (!order.data) return;
     if (!(await Util.confirm("주문 내용을 재입력하시겠습니까?"))) return;
@@ -319,6 +319,7 @@ function DataForm(props: DataFormProps) {
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
   );
+  const orderType = useWatch<"NORMAL" | "DEPOSIT">(["orderType"], form);
   const dstCompanyId = useWatch<number | null | undefined>(
     ["dstCompanyId"],
     form
@@ -350,9 +351,10 @@ function DataForm(props: DataFormProps) {
     props.initialOrder.status === "OFFER_PREPARING" ||
     props.initialOrder.status === "ORDER_PREPARING";
   const manual =
-    !props.isSales &&
-    companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
-      ?.srcCompany.managedById !== null;
+    (!props.isSales &&
+      companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
+        ?.srcCompany.managedById !== null) ||
+    orderType === "DEPOSIT";
 
   const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetGroupQuantity({
     query: {
@@ -475,7 +477,7 @@ function DataForm(props: DataFormProps) {
       <FormControl.Util.Split
         label={props.isSales ? "매출 정보" : "매입 정보"}
       />
-      <Form.Item label="거래 구분" required>
+      <Form.Item name="orderType" label="거래 구분" required>
         <Select
           options={[
             {
@@ -487,6 +489,7 @@ function DataForm(props: DataFormProps) {
               value: "DEPOSIT",
             },
           ]}
+          placeholder="거래 구분 선택"
         />
       </Form.Item>
       {!props.isSales && (
@@ -501,6 +504,7 @@ function DataForm(props: DataFormProps) {
       )}
       {!props.isSales &&
         dstCompanyId &&
+        orderType == "NORMAL" &&
         (editable ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocation />
@@ -518,7 +522,7 @@ function DataForm(props: DataFormProps) {
             </div>
           </Form.Item>
         ))}
-      {props.isSales && srcCompanyId && (
+      {props.isSales && srcCompanyId && orderType == "NORMAL" && (
         <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
           <FormControl.SelectLocationForSales
             companyId={srcCompanyId}
@@ -526,13 +530,15 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      <Form.Item
-        name="wantedDate"
-        label={props.isSales ? "납품 요청일" : "도착 희망일"}
-        rules={REQUIRED_RULES}
-      >
-        <FormControl.DatePicker disabled={!editable} />
-      </Form.Item>
+      {orderType == "NORMAL" && (
+        <Form.Item
+          name="wantedDate"
+          label={props.isSales ? "납품 요청일" : "도착 희망일"}
+          rules={REQUIRED_RULES}
+        >
+          <FormControl.DatePicker disabled={!editable} />
+        </Form.Item>
+      )}
       <Form.Item name="memo" label="기타 요청사항">
         <Input.TextArea maxLength={100} disabled={!editable} />
       </Form.Item>
@@ -819,12 +825,12 @@ function RightSideOrder(props: RightSideOrderProps) {
     props.order && Util.inc<OrderStatus>(props.order.status, "ACCEPTED");
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Trade.OrderStock.useGetOrderStockArrivalList({
+  const list = ApiHook.Trade.Common.useGetOrderStockArrivalList({
     orderId: props.order?.id ?? null,
     query: page,
   });
 
-  const apiRequest = ApiHook.Trade.OrderStock.useRequest();
+  const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("주문을 요청하시겠습니까?"))) return;
@@ -833,7 +839,7 @@ function RightSideOrder(props: RightSideOrderProps) {
     });
   }, [apiRequest, props.order]);
 
-  const apiAccept = ApiHook.Trade.OrderStock.useAccept();
+  const apiAccept = ApiHook.Trade.Common.useAccept();
   const cmdAccept = useCallback(
     (virtual: boolean) => async () => {
       if (!props.order) return;
@@ -852,7 +858,7 @@ function RightSideOrder(props: RightSideOrderProps) {
     [apiAccept, props.order]
   );
 
-  const apiReject = ApiHook.Trade.OrderStock.useReject();
+  const apiReject = ApiHook.Trade.Common.useReject();
   const cmdReject = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("재고를 거절하시겠습니까?"))) return;
@@ -861,7 +867,7 @@ function RightSideOrder(props: RightSideOrderProps) {
     });
   }, [apiReject, props.order]);
 
-  const apiCancel = ApiHook.Trade.OrderStock.useCancel();
+  const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("주문을 삭제하시겠습니까?"))) return;
@@ -870,7 +876,7 @@ function RightSideOrder(props: RightSideOrderProps) {
     });
   }, [apiCancel, props.order]);
 
-  const apiReset = ApiHook.Trade.OrderStock.useReset();
+  const apiReset = ApiHook.Trade.Common.useReset();
   const cmdReset = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("주문 내용을 재입력하시겠습니까?"))) return;
@@ -1043,7 +1049,7 @@ interface RightSideSalesProps {
   order: Model.Order | null;
 }
 function RightSideSales(props: RightSideSalesProps) {
-  const apiRequest = ApiHook.Trade.OrderStock.useRequest();
+  const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("재고 승인을 요청하시겠습니까?"))) return;
@@ -1052,7 +1058,7 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiRequest, props.order]);
 
-  const apiAccept = ApiHook.Trade.OrderStock.useAccept();
+  const apiAccept = ApiHook.Trade.Common.useAccept();
   const cmdAccept = useCallback(
     (virtual: boolean) => async () => {
       if (!props.order) return;
@@ -1071,7 +1077,7 @@ function RightSideSales(props: RightSideSalesProps) {
     [apiAccept, props.order]
   );
 
-  const apiReject = ApiHook.Trade.OrderStock.useReject();
+  const apiReject = ApiHook.Trade.Common.useReject();
   const cmdReject = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("주문을 거절하시겠습니까?"))) return;
@@ -1080,7 +1086,7 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiReject, props.order]);
 
-  const apiCancel = ApiHook.Trade.OrderStock.useCancel();
+  const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("수주를 삭제하시겠습니까?"))) return;
@@ -1089,7 +1095,7 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiCancel, props.order]);
 
-  const apiReset = ApiHook.Trade.OrderStock.useReset();
+  const apiReset = ApiHook.Trade.Common.useReset();
   const cmdReset = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("수주 내용을 재입력하시겠습니까?"))) return;
@@ -1262,11 +1268,11 @@ function PricePanel(props: PricePanelProps) {
   const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
   const vatPrice = useWatch<number | null>(["vatPrice"], form);
 
-  const data = ApiHook.Trade.OrderStock.useGetTradePrice({
+  const data = ApiHook.Trade.Common.useGetTradePrice({
     orderId: props.order.id,
   });
 
-  const apiUpdate = ApiHook.Trade.OrderStock.useUpdateTradePrice();
+  const apiUpdate = ApiHook.Trade.Common.useUpdateTradePrice();
   const cmdUpdate = useCallback(async () => {
     if (!props.order || !me.data) return;
     await form.validateFields();

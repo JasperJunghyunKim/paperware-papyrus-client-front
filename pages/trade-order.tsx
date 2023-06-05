@@ -6,7 +6,7 @@ import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
 import { useState } from "react";
-import { TbHome2, TbHomeLink } from "react-icons/tb";
+import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
 
@@ -21,7 +21,7 @@ export default function Component() {
     { title: "매입처", fallback: (record) => record.dstCompany.businessName }
   );
   const [page, setPage] = usePage();
-  const list = ApiHook.Trade.OrderStock.useGetList({
+  const list = ApiHook.Trade.Common.useGetList({
     query: {
       ...page,
       srcCompanyId: info.data?.companyId,

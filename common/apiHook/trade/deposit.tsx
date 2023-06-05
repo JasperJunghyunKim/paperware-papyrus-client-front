@@ -8,10 +8,10 @@ export function useCreate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "stock", "create"],
-    async (params: { data: Api.OrderStockCreateRequest }) => {
+    ["order", "deposit", "create"],
+    async (params: { data: Api.OrderDepositCreateRequest }) => {
       const resp = await axios.post<Api.OrderCreateResponse>(
-        `${API_HOST}/order/stock`,
+        `${API_HOST}/order/deposit`,
         params.data
       );
       return resp.data;
@@ -19,7 +19,7 @@ export function useCreate() {
     {
       onSuccess: async (_data, _variables) => {
         await queryClient.invalidateQueries(["order", "list"]);
-        message.info("주문이 생성되었습니다.");
+        message.info("보관 주문이 생성되었습니다.");
       },
     }
   );
@@ -29,10 +29,10 @@ export function useUpdate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "stock", "update"],
+    ["order", "deposit", "update"],
     async (params: { orderId: number; data: Api.OrderStockUpdateRequest }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/stock/${params.orderId}`,
+        `${API_HOST}/order/deposit/${params.orderId}`,
         params.data
       );
       return resp.data;
@@ -55,13 +55,13 @@ export function useUpdateStock() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "stock", "update", "stock"],
+    ["order", "deposit", "update", "stock"],
     async (params: {
       orderId: number;
       data: Api.OrderStockAssignStockUpdateRequest;
     }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/stock/${params.orderId}/assign`,
+        `${API_HOST}/order/deposit/${params.orderId}/assign`,
         params.data
       );
       return resp.data;
