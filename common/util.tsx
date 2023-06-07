@@ -376,6 +376,16 @@ export function formatPhoneNo(phoneNo: string | null | undefined) {
   return phoneNo.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
 }
 
+export function formatCompanyRegistrationNo(
+  companyRegistrationNo: string | null | undefined
+) {
+  if (companyRegistrationNo === null || companyRegistrationNo === undefined) {
+    return "";
+  }
+
+  return companyRegistrationNo.replace(/(\d{3})(\d{2})(\d{5})/, "$1-$2-$3");
+}
+
 export interface PaperSize {
   sizeX: number;
   sizeY: number;

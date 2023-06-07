@@ -1,32 +1,26 @@
+import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { useCallback, useState } from "react";
-import { TbHome, TbHomeShield, TbMapPin, TbMapPinFilled } from "react-icons/tb";
+import { useState } from "react";
+import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
+
+type RecordType = Model.Deposit;
 
 export default function Component() {
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState<number | false>(false);
+  const [openCreate, setOpenCreate] = useState<"PURCHASE" | false>(false);
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Inhouse.Location.useGetList({ query: page });
-  const [selected, setSelected] = useState<Record.Location[]>([]);
+  const list = ApiHook.Trade.Deposit.useGetList({
+    query: {
+      ...page,
+      type: "PURCHASE",
+    },
+  });
+  const [selected, setSelected] = useState<RecordType[]>([]);
 
   const only = Util.only(selected);
-
-  const apiDelete = ApiHook.Inhouse.Location.useDelete();
-  const cmdDelete = useCallback(async () => {
-    if (
-      !only ||
-      !(await Util.confirm(`선택한 도착지(${only.name})를 삭제하시겠습니까?`))
-    ) {
-      return;
-    }
-
-    await apiDelete.mutateAsync(only.id);
-  }, [apiDelete, only]);
 
   return (
     <Page title="매입 보관량 조회">
@@ -45,24 +39,12 @@ export default function Component() {
       </StatBar.Container>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
-          label="도착지 추가"
-          onClick={() => setOpenCreate(true)}
+          label="보관량 등록"
+          onClick={() => setOpenCreate("PURCHASE")}
         />
         <div className="flex-1" />
-        {only && (
-          <Toolbar.ButtonPreset.Update
-            label="선택 도착지 상세"
-            onClick={() => setOpenUpdate(only.id)}
-          />
-        )}
-        {only && (
-          <Toolbar.ButtonPreset.Delete
-            label="선택 도착지 삭제"
-            onClick={async () => await cmdDelete()}
-          />
-        )}
       </Toolbar.Container>
-      <Table.Default<Record.Location>
+      <Table.Default<RecordType>
         data={list.data}
         page={page}
         setPage={setPage}
@@ -71,23 +53,17 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "도착지 이름",
-            dataIndex: "name",
+            title: "회사명",
+            dataIndex: "partnerNickName",
           },
-          {
-            title: "도착지 구분",
-            dataIndex: "isPublic",
-            render: (value) => (value ? "기타 도착지" : "자사 도착지"),
-          },
-          {
-            title: "주소",
-            dataIndex: "address",
-            render: (value) => <div>{Util.formatAddress(value)}</div>,
-          },
+          ...Table.Preset.columnStockGroup<RecordType>((record) => record, []),
+          ...Table.Preset.columnQuantity<RecordType>(
+            (record) => record,
+            ["quantity"]
+          ),
         ]}
       />
-      <Popup.Location.Create open={openCreate} onClose={setOpenCreate} />
-      <Popup.Location.Update open={openUpdate} onClose={setOpenUpdate} />
+      <Popup.Deposit.Create open={openCreate} onClose={setOpenCreate} />
     </Page>
   );
 }

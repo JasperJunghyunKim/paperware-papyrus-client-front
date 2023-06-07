@@ -1,4 +1,5 @@
 export * as Company from "./company";
+export * as Deposit from "./deposit";
 export * as Location from "./location";
 export * as Template from "./template";
 export * as Warehouse from "./warehouse";

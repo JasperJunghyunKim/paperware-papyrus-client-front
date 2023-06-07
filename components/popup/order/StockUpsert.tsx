@@ -373,7 +373,7 @@ function DataForm(props: DataFormProps) {
   });
 
   useEffect(() => {
-    if (props.initialOrder) {
+    if (props.initialOrder?.orderStock) {
       const assignStockEvent = props.initialOrder.orderStock.plan.find(
         (p) => p.companyId === props.initialOrder?.dstCompany.id
       )?.assignStockEvent;
@@ -406,7 +406,8 @@ function DataForm(props: DataFormProps) {
     }
   }, [form, props.initialOrder, me.data?.companyId]);
 
-  const apiCreate = ApiHook.Trade.OrderStock.useCreate();
+  const apiCreateNormal = ApiHook.Trade.OrderStock.useCreate();
+  const apiCreateDeposit = ApiHook.Trade.OrderDeposit.useCreate();
   const cmdCreate = useCallback(async () => {
     const values = (await form.validateFields()) as Api.OrderStockCreateRequest;
 
@@ -414,30 +415,26 @@ function DataForm(props: DataFormProps) {
       return;
     }
 
-    if (props.isOffer) {
-      const created = await apiCreate.mutateAsync({
-        data: {
-          ...values,
-          warehouseId: warehouse?.id ?? null,
-          dstCompanyId: me.data.companyId,
-        },
-      });
-      if (created) {
-        props.onCreated(created);
-      }
-    } else {
-      const created = await apiCreate.mutateAsync({
-        data: {
-          ...values,
-          warehouseId: warehouse?.id ?? null,
-          srcCompanyId: me.data.companyId,
-        },
-      });
-      if (created) {
-        props.onCreated(created);
-      }
-    }
-  }, [form, apiCreate, me, props.isOffer, warehouse]);
+    const api = orderType === "DEPOSIT" ? apiCreateDeposit : apiCreateNormal;
+    const payload: Api.OrderStockCreateRequest | Api.OrderDepositCreateRequest =
+      props.isOffer
+        ? {
+            ...values,
+            dstCompanyId: me.data.companyId,
+            warehouseId: warehouse?.id ?? null,
+          }
+        : {
+            ...values,
+            srcCompanyId: me.data.companyId,
+            warehouseId: warehouse?.id ?? null,
+          };
+
+    const created = await api.mutateAsync({
+      data: payload,
+    });
+
+    return created;
+  }, [form, apiCreateNormal, apiCreateDeposit, me, props.isOffer, warehouse]);
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
   const cmdUpdate = useCallback(async () => {
@@ -505,6 +502,7 @@ function DataForm(props: DataFormProps) {
       {!props.isSales &&
         dstCompanyId &&
         orderType == "NORMAL" &&
+        props.initialOrder?.orderStock &&
         (editable ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocation />
@@ -1139,7 +1137,7 @@ function RightSideSales(props: RightSideSalesProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const plan = ApiHook.Working.Plan.useGetItem({
-    id: props.order?.orderStock.plan.find(mine(me.data))?.id ?? null,
+    id: props.order?.orderStock?.plan.find(mine(me.data))?.id ?? null,
   });
 
   return (
@@ -1238,7 +1236,8 @@ function PricePanel(props: PricePanelProps) {
 
   const me = ApiHook.Auth.useGetMe();
 
-  const assignStockEvent = props.order.orderStock.plan.find(
+  // TODO: orderDeposit
+  const assignStockEvent = props.order.orderStock!.plan.find(
     (p) => p.companyId === props.order.dstCompany.id
   )!.assignStockEvent;
 

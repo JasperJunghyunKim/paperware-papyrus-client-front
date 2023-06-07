@@ -15,7 +15,7 @@ export function useGetItem(params: { id: number | false }) {
   });
 }
 
-export function useGetList(params: { query: Partial<Api.LocationListQuery> }) {
+export function useGetList(params: { query: Partial<Api.CompanyListQuery> }) {
   return useQuery(
     ["inhouse", "company", params.query.skip, params.query.take],
     async () => {
