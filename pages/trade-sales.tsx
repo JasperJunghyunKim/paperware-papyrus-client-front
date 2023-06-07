@@ -59,7 +59,13 @@ export default function Component() {
           {
             title: "매출 유형",
             render: (_value, record) => (
-              <div>{record.orderStock ? "정상 매출" : ""}</div>
+              <div>
+                {record.orderStock
+                  ? "정상 매출"
+                  : record.orderDeposit
+                  ? "보관 매출"
+                  : ""}
+              </div>
             ),
           },
           {
@@ -85,7 +91,7 @@ export default function Component() {
             dataIndex: ["orderStock", "dstLocation", "name"],
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
-            (record) => record.orderStock.plan.at(0)?.assignStockEvent?.stock,
+            (record) => record.orderStock?.plan.at(0)?.assignStockEvent?.stock,
             ["orderStock"]
           ),
           {
@@ -122,7 +128,7 @@ export default function Component() {
             ),
           },
           ...Table.Preset.columnQuantity<Model.Order>(
-            (record) => record.orderStock.plan.at(0)?.assignStockEvent?.stock,
+            (record) => record.orderStock?.plan.at(0)?.assignStockEvent?.stock,
             ["orderStock", "quantity"],
             { prefix: "매출" }
           ),

@@ -5,7 +5,7 @@ import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
@@ -29,6 +29,17 @@ export default function Component() {
   });
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
+
+  const getStock = useCallback(
+    (record: RecordType) => {
+      return (
+        record.orderStock?.plan.find(
+          (p) => p.companyId === info.data?.companyId
+        )?.assignStockEvent?.stock ?? record.orderDeposit
+      );
+    },
+    [info.data?.companyId]
+  );
 
   return (
     <Page title="매입 주문 목록">
@@ -55,6 +66,18 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
+          {
+            title: "매출 유형",
+            render: (_value, record) => (
+              <div>
+                {record.orderStock
+                  ? "정상 매입"
+                  : record.orderDeposit
+                  ? "보관 매입"
+                  : ""}
+              </div>
+            ),
+          },
           ...partnerColumn,
           {
             title: "사업자등록번호",
@@ -124,54 +147,52 @@ export default function Component() {
           },
           {
             title: "제품 유형",
-            dataIndex: ["orderStock", "product", "paperDomain", "name"],
+            render: (_, record: RecordType) =>
+              getStock(record)?.product.paperDomain.name,
           },
           {
             title: "제지사",
-            dataIndex: ["orderStock", "product", "manufacturer", "name"],
+            render: (_, record: RecordType) =>
+              getStock(record)?.product.manufacturer.name,
           },
           {
             title: "지군",
-            dataIndex: ["orderStock", "product", "paperGroup", "name"],
+            render: (_, record: RecordType) =>
+              getStock(record)?.product.paperGroup.name,
           },
           {
             title: "지종",
-            dataIndex: ["orderStock", "product", "paperType", "name"],
+            render: (_, record: RecordType) =>
+              getStock(record)?.product.paperType.name,
           },
           {
             title: "포장",
-            dataIndex: ["orderStock", "packaging", "type"],
-            render: (value, record) => (
+            render: (_, record) => (
               <div className="font-fixed flex gap-x-1">
                 <div className="flex-initial flex flex-col justify-center text-lg">
                   <Icon.PackagingType
-                    packagingType={
-                      record.orderStock?.plan.at(0)?.assignStockEvent?.stock
-                        .packaging.type
-                    }
+                    packagingType={getStock(record)?.packaging.type}
                   />
                 </div>
                 <div className="flex-initial flex flex-col justify-center">
-                  {value}
+                  {getStock(record)?.packaging.type}
                 </div>
               </div>
             ),
           },
           {
             title: "평량",
-            dataIndex: ["orderStock", "grammage"],
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)} ${
-                Util.UNIT_GPM
-              }`}</div>
+            render: (_, record) => (
+              <div className="text-right font-fixed">{`${Util.comma(
+                getStock(record)?.grammage
+              )} ${Util.UNIT_GPM}`}</div>
             ),
           },
           {
             title: "지폭",
-            dataIndex: ["orderStock", "sizeX"],
-            render: (value) => (
+            render: (value, record) => (
               <div className="text-right font-fixed">{`${Util.comma(
-                value
+                getStock(record)?.sizeX
               )} mm`}</div>
             ),
           },
@@ -179,28 +200,27 @@ export default function Component() {
             title: "지장",
             dataIndex: ["orderStock", "sizeY"],
             render: (value, record) =>
-              record.orderStock?.plan.at(0)?.assignStockEvent?.stock.packaging
-                .type !== "ROLL" ? (
+              getStock(record)?.packaging.type !== "ROLL" ? (
                 <div className="text-right font-fixed">{`${Util.comma(
-                  value
+                  getStock(record)?.sizeY
                 )} mm`}</div>
               ) : null,
           },
           {
             title: "색군",
-            dataIndex: ["orderStock", "paperColorGroup", "name"],
+            render: (_, record) => getStock(record)?.paperColorGroup?.name,
           },
           {
             title: "색상",
-            dataIndex: ["orderStock", "paperColor", "name"],
+            render: (_, record) => getStock(record)?.paperColor?.name,
           },
           {
             title: "무늬",
-            dataIndex: ["orderStock", "paperPattern", "name"],
+            render: (_, record) => getStock(record)?.paperPattern?.name,
           },
           {
             title: "인증",
-            dataIndex: ["orderStock", "paperCert", "name"],
+            render: (_, record) => getStock(record)?.paperCert?.name,
           },
           {
             title: "주문 수량",

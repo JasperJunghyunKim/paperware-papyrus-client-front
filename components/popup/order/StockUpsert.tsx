@@ -12,6 +12,7 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   TbAB,
   TbBrandMixpanel,
+  TbCheck,
   TbHandStop,
   TbInfoCircle,
   TbRubberStamp,
@@ -313,8 +314,10 @@ function DataForm(props: DataFormProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const [form] = useForm<
-    | Api.OrderStockCreateRequest
-    | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
+    (
+      | Api.OrderStockCreateRequest
+      | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
+    ) & { orderType: "NORMAL" | "DEPOSIT" }
   >();
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
@@ -373,18 +376,19 @@ function DataForm(props: DataFormProps) {
   });
 
   useEffect(() => {
-    if (props.initialOrder?.orderStock) {
-      const assignStockEvent = props.initialOrder.orderStock.plan.find(
+    if (props.initialOrder) {
+      const assignStockEvent = props.initialOrder.orderStock?.plan.find(
         (p) => p.companyId === props.initialOrder?.dstCompany.id
       )?.assignStockEvent;
-      const assignStock = assignStockEvent?.stock;
-
-      console.log(assignStockEvent);
+      const assignStock: any =
+        assignStockEvent?.stock ?? props.initialOrder.orderDeposit;
+      const quantityMultiply = props.initialOrder.orderStock ? -1 : 1;
 
       form.setFieldsValue({
+        orderType: props.initialOrder.orderType,
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
-        locationId: props.initialOrder.orderStock.dstLocation.id,
+        locationId: props.initialOrder.orderStock?.dstLocation.id,
         wantedDate: props.initialOrder.wantedDate,
         warehouseId: assignStock?.warehouse?.id,
         planId: assignStock?.planId,
@@ -397,7 +401,11 @@ function DataForm(props: DataFormProps) {
         paperColorId: assignStock?.paperColor?.id,
         paperPatternId: assignStock?.paperPattern?.id,
         paperCertId: assignStock?.paperCert?.id,
-        quantity: -(assignStockEvent?.change ?? 0),
+        quantity:
+          quantityMultiply *
+          (assignStockEvent?.change ??
+            props.initialOrder.orderDeposit?.quantity ??
+            0),
         memo: props.initialOrder.memo,
       });
       setWarehouse(assignStock?.warehouse ?? null);
@@ -487,6 +495,7 @@ function DataForm(props: DataFormProps) {
             },
           ]}
           placeholder="거래 구분 선택"
+          disabled={!editable}
         />
       </Form.Item>
       {!props.isSales && (
@@ -707,7 +716,7 @@ function DataForm(props: DataFormProps) {
       )}
       {packaging && (
         <>
-          {(props.isSales || !manual) && (
+          {(props.isSales || !manual) && orderType === "NORMAL" && (
             <>
               <Form.Item label={"실물 수량"}>
                 <FormControl.Quantity
@@ -918,119 +927,132 @@ function RightSideOrder(props: RightSideOrderProps) {
   return (
     <div className="flex-1 w-0 flex">
       <div className="flex-1 flex flex-col w-0">
-        <Toolbar.Container rootClassName="p-4">
-          <Toolbar.ButtonPreset.Create
-            label="입고 정보 추가"
-            disabled={!accepted}
-            tooltip={
-              !accepted
-                ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
-                : undefined
-            }
-            onClick={() => props.order && setOpen(props.order.id)}
-          />
-          <div className="flex-1 flex flex-col justify-center select-none mx-8">
-            <Steps items={steps} current={status} />
-          </div>
-          {props.order?.status === "ORDER_PREPARING" && (
-            <Toolbar.ButtonPreset.Delete
-              label="주문 삭제"
-              onClick={cmdCancel}
-            />
-          )}
-          {!isVirtual && props.order?.status === "ORDER_PREPARING" && (
-            <Toolbar.ButtonPreset.Send label="발주 요청" onClick={cmdRequest} />
-          )}
-          {isVirtual && props.order?.status === "ORDER_PREPARING" && (
-            <Toolbar.ButtonPreset.Continue
-              label="매입 등록"
-              onClick={cmdAccept(isVirtual)}
-            />
-          )}
-          {props.order?.status === "OFFER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Reject
-              label="재고 거절"
-              onClick={cmdReject}
-            />
-          )}
-          {props.order?.status === "OFFER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Continue
-              label="재고 승인"
-              onClick={cmdAccept(isVirtual)}
-            />
-          )}
-          {props.order?.status === "ORDER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Send label="발주 요청" disabled />
-          )}
-          {props.order?.status === "ORDER_REJECTED" && (
-            <Toolbar.ButtonPreset.Continue
-              label="주문 재입력"
-              onClick={cmdReset}
-            />
-          )}
-        </Toolbar.Container>
-        <div className="flex-1 overflow-y-scroll px-4 pb-4">
-          <div className="flex-1">
-            <Table.Default<Model.StockGroup>
-              data={list.data ?? undefined}
-              page={page}
-              setPage={setPage}
-              keySelector={(record) => `${record.plan?.id}`}
-              selection="none"
-              columns={[
-                {
-                  title: "작업 구분",
-                  render: (value: Model.StockGroup) => (
-                    <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
-                  ),
-                },
-                {
-                  title: "작업 번호",
-                  dataIndex: ["stock", "initialOrder", "orderNo"],
-                  render: (value) => (
-                    <div className="flex">
-                      <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                        {value}
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  title: "거래처",
-                  dataIndex: ["orderCompanyInfo", "businessName"],
-                },
-                {
-                  title: "도착 예정일",
-                  dataIndex: ["orderInfo", "wantedDate"],
-                  render: (value) => Util.formatIso8601ToLocalDate(value),
-                },
-                {
-                  title: "도착지",
-                  dataIndex: ["orderStock", "dstLocation", "name"],
-                },
-                ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                  (p) => p, // TODO
-                  []
-                ),
-                ...Table.Preset.columnQuantity<Model.StockGroup>(
-                  (p) => p, // TODO
-                  ["nonStoringQuantity"],
-                  { prefix: "배정" }
-                ),
-                ...Table.Preset.columnQuantity<Model.StockGroup>(
-                  (p) => p, // TODO
-                  ["storingQuantity"],
-                  { prefix: "입고" }
-                ),
-                ...Table.Preset.columnQuantity<Model.StockGroup>(
-                  (p) => p, // TODO
-                  ["totalQuantity"],
-                  { prefix: "전체" }
-                ),
-              ]}
-            />
-          </div>
-        </div>
+        {props.order?.orderType === "NORMAL" ? (
+          <>
+            <Toolbar.Container rootClassName="p-4">
+              <Toolbar.ButtonPreset.Create
+                label="입고 정보 추가"
+                disabled={!accepted}
+                tooltip={
+                  !accepted
+                    ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
+                    : undefined
+                }
+                onClick={() => props.order && setOpen(props.order.id)}
+              />
+              <div className="flex-1 flex flex-col justify-center select-none mx-8">
+                <Steps items={steps} current={status} />
+              </div>
+              {props.order?.status === "ORDER_PREPARING" && (
+                <Toolbar.ButtonPreset.Delete
+                  label="주문 삭제"
+                  onClick={cmdCancel}
+                />
+              )}
+              {!isVirtual && props.order?.status === "ORDER_PREPARING" && (
+                <Toolbar.ButtonPreset.Send
+                  label="발주 요청"
+                  onClick={cmdRequest}
+                />
+              )}
+              {isVirtual && props.order?.status === "ORDER_PREPARING" && (
+                <Toolbar.ButtonPreset.Continue
+                  label="매입 등록"
+                  onClick={cmdAccept(isVirtual)}
+                />
+              )}
+              {props.order?.status === "OFFER_REQUESTED" && (
+                <Toolbar.ButtonPreset.Reject
+                  label="재고 거절"
+                  onClick={cmdReject}
+                />
+              )}
+              {props.order?.status === "OFFER_REQUESTED" && (
+                <Toolbar.ButtonPreset.Continue
+                  label="재고 승인"
+                  onClick={cmdAccept(isVirtual)}
+                />
+              )}
+              {props.order?.status === "ORDER_REQUESTED" && (
+                <Toolbar.ButtonPreset.Send label="발주 요청" disabled />
+              )}
+              {props.order?.status === "ORDER_REJECTED" && (
+                <Toolbar.ButtonPreset.Continue
+                  label="주문 재입력"
+                  onClick={cmdReset}
+                />
+              )}
+            </Toolbar.Container>
+            <div className="flex-1 overflow-y-scroll px-4 pb-4">
+              <div className="flex-1">
+                <Table.Default<Model.StockGroup>
+                  data={list.data ?? undefined}
+                  page={page}
+                  setPage={setPage}
+                  keySelector={(record) => `${record.plan?.id}`}
+                  selection="none"
+                  columns={[
+                    {
+                      title: "작업 구분",
+                      render: (value: Model.StockGroup) => (
+                        <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
+                      ),
+                    },
+                    {
+                      title: "작업 번호",
+                      dataIndex: ["stock", "initialOrder", "orderNo"],
+                      render: (value) => (
+                        <div className="flex">
+                          <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                            {value}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "거래처",
+                      dataIndex: ["orderCompanyInfo", "businessName"],
+                    },
+                    {
+                      title: "도착 예정일",
+                      dataIndex: ["orderInfo", "wantedDate"],
+                      render: (value) => Util.formatIso8601ToLocalDate(value),
+                    },
+                    {
+                      title: "도착지",
+                      dataIndex: ["orderStock", "dstLocation", "name"],
+                    },
+                    ...Table.Preset.columnStockGroup<Model.StockGroup>(
+                      (p) => p, // TODO
+                      []
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      ["nonStoringQuantity"],
+                      { prefix: "배정" }
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      ["storingQuantity"],
+                      { prefix: "입고" }
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      ["totalQuantity"],
+                      { prefix: "전체" }
+                    ),
+                  ]}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 flex">
+              <RightSideSkeleton title="보관품 거래입니다." />
+            </div>
+          </>
+        )}
       </div>
       {props.order && (
         <>
@@ -1236,20 +1258,53 @@ function PricePanel(props: PricePanelProps) {
 
   const me = ApiHook.Auth.useGetMe();
 
-  // TODO: orderDeposit
-  const assignStockEvent = props.order.orderStock!.plan.find(
-    (p) => p.companyId === props.order.dstCompany.id
-  )!.assignStockEvent;
+  const assignSpec: {
+    product: Model.Product;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    packaging: Model.Packaging;
+    paperColorGroup: Model.PaperColorGroup | null;
+    paperColor: Model.PaperColor | null;
+    paperPattern: Model.PaperPattern | null;
+    paperCert: Model.PaperCert | null;
+    quantity: number;
+  } = useMemo(() => {
+    const assignStockEvent = props.order.orderStock?.plan.find(
+      (p) => p.companyId === props.order.dstCompany.id
+    )?.assignStockEvent;
+    const deposit = props.order.orderDeposit;
+
+    const spec = assignStockEvent?.stock ?? deposit!;
+    const m = assignStockEvent ? -1 : 1;
+    const quantity =
+      altQuantity ?? assignStockEvent?.change ?? deposit?.quantity;
+
+    return {
+      ...spec,
+      quantity: quantity * m,
+    };
+  }, [props.order.orderStock, props.order.orderDeposit, altQuantity]);
 
   const stockSuppliedPrice = useMemo(() => {
-    const quantity = altQuantity ?? assignStockEvent.change;
+    const spec = {
+      grammage: assignSpec.grammage ?? props.order.orderDeposit?.grammage ?? 1,
+      sizeX: assignSpec.sizeX ?? props.order.orderDeposit?.sizeX ?? 1,
+      sizeY: assignSpec.sizeY ?? props.order.orderDeposit?.sizeY ?? 1,
+      packaging: assignSpec.packaging ?? props.order.orderDeposit?.packaging,
+    };
+
+    if (!spec.packaging) {
+      return 0;
+    }
+
     const convert = (unit: "T" | "BOX" | "매") =>
-      PaperUtil.convertQuantityWith(assignStockEvent.stock, unit, quantity);
+      PaperUtil.convertQuantityWith(spec, unit, assignSpec.quantity);
 
     const converted =
-      assignStockEvent.stock.packaging.type === "ROLL"
+      assignSpec.packaging.type === "ROLL"
         ? convert("T")
-        : assignStockEvent.stock.packaging.type === "BOX"
+        : assignSpec.packaging.type === "BOX"
         ? convert("BOX")
         : convert("매");
 
@@ -1261,7 +1316,13 @@ function PricePanel(props: PricePanelProps) {
             : unitPriceUnit === "WON_PER_BOX"
             ? converted.quantity
             : converted.packed?.value ?? 0);
-  }, [props.order?.orderStock, unitPrice, unitPriceUnit, altQuantity]);
+  }, [
+    props.order?.orderStock,
+    unitPrice,
+    unitPriceUnit,
+    altQuantity,
+    assignSpec,
+  ]);
 
   const processPrice = useWatch<number | null>(["processPrice"], form);
   const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
@@ -1314,10 +1375,10 @@ function PricePanel(props: PricePanelProps) {
           ? "SKID"
           : altSizeX
           ? "ROLL"
-          : assignStockEvent.stock.packaging.type
+          : assignSpec.packaging.type
       )
     );
-  }, [altSizeX, altSizeY, assignStockEvent.stock.packaging.type]);
+  }, [altSizeX, altSizeY, assignSpec.packaging.type]);
 
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)
@@ -1344,14 +1405,14 @@ function PricePanel(props: PricePanelProps) {
     } else {
       form.setFieldsValue({
         stockPrice: FormControl.Util.Price.initialStockPrice(
-          assignStockEvent.stock.packaging.type
+          assignSpec.packaging.type
         ),
         processPrice: 0,
         suppliedPrice: 0,
         vatPrice: 0,
       });
     }
-  }, [props.orderId, data.data, form, assignStockEvent.stock.packaging.type]);
+  }, [props.orderId, data.data, form, assignSpec.packaging.type]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -1361,7 +1422,7 @@ function PricePanel(props: PricePanelProps) {
         rootClassName="flex-initial basis-[500px]"
         initialValues={{
           price: FormControl.Util.Price.initialStockPrice(
-            assignStockEvent.stock.packaging.type
+            assignSpec.packaging.type
           ),
         }}
       >
@@ -1378,7 +1439,7 @@ function PricePanel(props: PricePanelProps) {
           {positiveCompany && (
             <FormControl.StockPrice
               spec={{
-                grammage: assignStockEvent.stock.grammage,
+                grammage: assignSpec.grammage,
                 packaging:
                   altSizeX && altSizeY
                     ? {
@@ -1392,26 +1453,26 @@ function PricePanel(props: PricePanelProps) {
                         packB: 0,
                         type: "ROLL",
                       }
-                    : assignStockEvent.stock.packaging,
-                sizeX: altSizeX ?? assignStockEvent.stock.sizeX,
-                sizeY: altSizeY ?? assignStockEvent.stock.sizeY,
+                    : assignSpec.packaging,
+                sizeX: altSizeX ?? assignSpec.sizeX,
+                sizeY: altSizeY ?? assignSpec.sizeY,
               }}
               officialSpec={{
-                productId: assignStockEvent.stock.product.id,
-                paperColorGroupId: assignStockEvent.stock.paperColorGroup?.id,
-                paperColorId: assignStockEvent.stock.paperColor?.id,
-                paperPatternId: assignStockEvent.stock.paperPattern?.id,
-                paperCertId: assignStockEvent.stock.paperCert?.id,
+                productId: assignSpec.product.id,
+                paperColorGroupId: assignSpec.paperColorGroup?.id,
+                paperColorId: assignSpec.paperColor?.id,
+                paperPatternId: assignSpec.paperPattern?.id,
+                paperCertId: assignSpec.paperCert?.id,
               }}
               discountSpec={{
                 companyRegistrationNumber:
                   positiveCompany?.companyRegistrationNumber,
-                productId: assignStockEvent.stock.product.id,
+                productId: assignSpec.product.id,
                 discountRateType: isSales ? "SALES" : "PURCHASE",
-                paperColorGroupId: assignStockEvent.stock.paperColorGroup?.id,
-                paperColorId: assignStockEvent.stock.paperColor?.id,
-                paperPatternId: assignStockEvent.stock.paperPattern?.id,
-                paperCertId: assignStockEvent.stock.paperCert?.id,
+                paperColorGroupId: assignSpec.paperColorGroup?.id,
+                paperColorId: assignSpec.paperColor?.id,
+                paperPatternId: assignSpec.paperPattern?.id,
+                paperCertId: assignSpec.paperCert?.id,
               }}
             />
           )}
