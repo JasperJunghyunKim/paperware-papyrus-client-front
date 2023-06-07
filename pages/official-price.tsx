@@ -89,7 +89,7 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          ...Table.Preset.columnStockGroup<RecordType>((record) => record, [], {
+          ...Table.Preset.columnStockGroup<RecordType>((record) => record, {
             excludePackaging: true,
           }),
           {

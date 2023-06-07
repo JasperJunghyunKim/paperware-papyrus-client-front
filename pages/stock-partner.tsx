@@ -52,8 +52,7 @@ export default function Component() {
           },
 
           ...Table.Preset.columnStockGroup<Model.StockGroup>(
-            (record) => record,
-            []
+            (record) => record
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,

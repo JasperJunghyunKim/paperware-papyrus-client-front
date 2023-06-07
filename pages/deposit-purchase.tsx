@@ -56,7 +56,7 @@ export default function Component() {
             title: "회사명",
             dataIndex: "partnerNickName",
           },
-          ...Table.Preset.columnStockGroup<RecordType>((record) => record, []),
+          ...Table.Preset.columnStockGroup<RecordType>((record) => record),
           ...Table.Preset.columnQuantity<RecordType>(
             (record) => record,
             ["quantity"]

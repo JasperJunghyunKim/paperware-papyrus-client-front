@@ -145,83 +145,11 @@ export default function Component() {
               </div>
             ),
           },
-          {
-            title: "제품 유형",
-            render: (_, record: RecordType) =>
-              getStock(record)?.product.paperDomain.name,
-          },
-          {
-            title: "제지사",
-            render: (_, record: RecordType) =>
-              getStock(record)?.product.manufacturer.name,
-          },
-          {
-            title: "지군",
-            render: (_, record: RecordType) =>
-              getStock(record)?.product.paperGroup.name,
-          },
-          {
-            title: "지종",
-            render: (_, record: RecordType) =>
-              getStock(record)?.product.paperType.name,
-          },
-          {
-            title: "포장",
-            render: (_, record) => (
-              <div className="font-fixed flex gap-x-1">
-                <div className="flex-initial flex flex-col justify-center text-lg">
-                  <Icon.PackagingType
-                    packagingType={getStock(record)?.packaging.type}
-                  />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {getStock(record)?.packaging.type}
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: "평량",
-            render: (_, record) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                getStock(record)?.grammage
-              )} ${Util.UNIT_GPM}`}</div>
-            ),
-          },
-          {
-            title: "지폭",
-            render: (value, record) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                getStock(record)?.sizeX
-              )} mm`}</div>
-            ),
-          },
-          {
-            title: "지장",
-            dataIndex: ["orderStock", "sizeY"],
-            render: (value, record) =>
-              getStock(record)?.packaging.type !== "ROLL" ? (
-                <div className="text-right font-fixed">{`${Util.comma(
-                  getStock(record)?.sizeY
-                )} mm`}</div>
-              ) : null,
-          },
-          {
-            title: "색군",
-            render: (_, record) => getStock(record)?.paperColorGroup?.name,
-          },
-          {
-            title: "색상",
-            render: (_, record) => getStock(record)?.paperColor?.name,
-          },
-          {
-            title: "무늬",
-            render: (_, record) => getStock(record)?.paperPattern?.name,
-          },
-          {
-            title: "인증",
-            render: (_, record) => getStock(record)?.paperCert?.name,
-          },
+          ...Table.Preset.columnStockGroup<Model.Order>(
+            (record) =>
+              record.orderStock?.plan.at(0)?.assignStockEvent?.stock ??
+              record.orderDeposit
+          ),
           {
             title: "주문 수량",
             dataIndex: ["orderStock", "quantity"],

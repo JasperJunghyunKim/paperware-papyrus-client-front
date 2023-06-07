@@ -1023,8 +1023,7 @@ function RightSideOrder(props: RightSideOrderProps) {
                       dataIndex: ["orderStock", "dstLocation", "name"],
                     },
                     ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                      (p) => p, // TODO
-                      []
+                      (p) => p // TODO
                     ),
                     ...Table.Preset.columnQuantity<Model.StockGroup>(
                       (p) => p, // TODO
@@ -1341,9 +1340,22 @@ function PricePanel(props: PricePanelProps) {
     await apiUpdate.mutateAsync({
       orderId: props.order.id,
       data: {
-        companyId: me.data.companyId,
-        orderId: props.order.id,
         orderStockTradePrice: {
+          officialPriceType: values.stockPrice.officialPriceType,
+          officialPrice: values.stockPrice.officialPrice,
+          officialPriceUnit: values.stockPrice.officialPriceUnit,
+          discountType: values.stockPrice.discountType,
+          discountPrice: _.isFinite(values.stockPrice.discountPrice)
+            ? values.stockPrice.discountPrice
+            : 0,
+          unitPrice: _.isFinite(values.stockPrice.unitPrice)
+            ? values.stockPrice.unitPrice
+            : 0,
+          unitPriceUnit: values.stockPrice.unitPriceUnit,
+          processPrice: values.processPrice ?? 0,
+          orderStockTradeAltBundle: values.orderStockTradeAltBundle,
+        },
+        orderDepositTradePrice: {
           officialPriceType: values.stockPrice.officialPriceType,
           officialPrice: values.stockPrice.officialPrice,
           officialPriceUnit: values.stockPrice.officialPriceUnit,

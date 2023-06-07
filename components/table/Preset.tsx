@@ -26,7 +26,6 @@ export function columnStockGroup<T>(
         paperPattern: Model.PaperPattern | null;
         paperCert: Model.PaperCert | null;
       },
-  path: string[],
   options?: {
     excludePackaging?: boolean;
   }
@@ -34,30 +33,33 @@ export function columnStockGroup<T>(
   return [
     ...(options?.excludePackaging
       ? []
-      : [...columnPackagingType<T>([...path, "packaging"])]),
+      : [...columnPackagingType<T>((p) => getStock(p)?.packaging)]),
     {
       title: "제품 유형",
-      dataIndex: [...path, "product", "paperDomain", "name"],
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.paperDomain.name,
     },
     {
       title: "지군",
-      dataIndex: [...path, "product", "paperGroup", "name"],
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.paperGroup.name,
     },
     {
       title: "지종",
-      dataIndex: [...path, "product", "paperType", "name"],
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.paperType.name,
     },
     {
       title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.manufacturer.name,
     },
     {
       title: "평량",
-      dataIndex: [...path, "grammage"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} ${
-          Util.UNIT_GPM
-        }`}</div>
+      render: (_value: any, record: T) => (
+        <div className="text-right font-fixed">{`${Util.comma(
+          getStock(record)?.grammage
+        )} ${Util.UNIT_GPM}`}</div>
       ),
     },
     {
@@ -75,36 +77,37 @@ export function columnStockGroup<T>(
     },
     {
       title: "지폭",
-      dataIndex: [...path, "sizeX"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} mm`}</div>
+      render: (_value: any, record: T) => (
+        <div className="text-right font-fixed">{`${Util.comma(
+          getStock(record)?.sizeX
+        )} mm`}</div>
       ),
     },
     {
       title: "지장",
-      dataIndex: [...path, "sizeY"],
-      render: (value: number, record: T) =>
+      render: (_value: any, record: T) =>
         getStock(record)?.packaging?.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
-            value
+            getStock(record)?.sizeY
           )} mm`}</div>
         ) : null,
     },
     {
       title: "색군",
-      dataIndex: [...path, "paperColorGroup", "name"],
+      render: (_value: any, record: T) =>
+        getStock(record)?.paperColorGroup?.name,
     },
     {
       title: "색상",
-      dataIndex: [...path, "paperColor", "name"],
+      render: (_value: any, record: T) => getStock(record)?.paperColor?.name,
     },
     {
       title: "무늬",
-      dataIndex: [...path, "paperPattern", "name"],
+      render: (_value: any, record: T) => getStock(record)?.paperPattern?.name,
     },
     {
       title: "인증",
-      dataIndex: [...path, "paperCert", "name"],
+      render: (_value: any, record: T) => getStock(record)?.paperCert?.name,
     },
   ];
 }
@@ -135,7 +138,7 @@ export function columnStock<T>(
       title: "제지사",
       dataIndex: [...path, "product", "manufacturer", "name"],
     },
-    ...columnPackagingType<T>([...path, "packaging"]),
+    ...columnPackagingType<T>((p: any) => p.packaging),
     {
       title: "평량",
       dataIndex: [...path, "grammage"],
@@ -397,27 +400,31 @@ export function columnDiscountRate<T>(
   ];
 }
 
-export function columnPackagingType<T>(path: string[]): ColumnType<T>[] {
+export function columnPackagingType<T>(
+  getPackaging: (record: T) => Model.Packaging | null | undefined
+): ColumnType<T>[] {
   return [
     {
       title: "포장",
-      dataIndex: [...path],
-      render: (value: Model.Packaging, record: T) => (
-        <div className="font-fixed flex gap-x-1">
-          <div className="flex-initial flex flex-col justify-center text-lg">
-            <Icon.PackagingType packagingType={value?.type} />
+      render: (_value: any, record: T) => {
+        const value = getPackaging(record);
+        return (
+          <div className="font-fixed flex gap-x-1">
+            <div className="flex-initial flex flex-col justify-center text-lg">
+              <Icon.PackagingType packagingType={value?.type} />
+            </div>
+            <div className="flex-initial flex flex-col justify-center whitespace-pre">
+              {value?.type.padEnd(4)}
+            </div>
+            {value?.type !== "SKID" && (
+              <div className="flex-initial text-gray-400 mx-1">─</div>
+            )}
+            <div className="flex-initial flex flex-col justify-center text-gray-500">
+              {value ? Util.formatPackaging(value, true) : ""}
+            </div>
           </div>
-          <div className="flex-initial flex flex-col justify-center whitespace-pre">
-            {value?.type.padEnd(4)}
-          </div>
-          {value?.type !== "SKID" && (
-            <div className="flex-initial text-gray-400 mx-1">─</div>
-          )}
-          <div className="flex-initial flex flex-col justify-center text-gray-500">
-            {value ? Util.formatPackaging(value, true) : ""}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
   ];
 }

@@ -59,8 +59,7 @@ export default function Component(props: Props) {
                 dataIndex: ["warehouse", "name"],
               },
               ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                (p) => p, // TODO
-                []
+                (p) => p // TODO
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO

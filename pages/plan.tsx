@@ -141,8 +141,7 @@ export default function Component() {
             ],
           },
           ...Table.Preset.columnStockGroup<Model.Plan>(
-            (record) => record.assignStockEvent?.stock,
-            ["targetStockGroupEvent", "stockGroup"]
+            (record) => record.assignStockEvent?.stock
           ),
           ...Table.Preset.columnQuantity<Model.Plan>(
             (record) => record.assignStockEvent?.stock,

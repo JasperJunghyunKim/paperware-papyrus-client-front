@@ -102,8 +102,7 @@ export default function Component() {
             ),
           },
           ...Table.Preset.columnStockGroup<RecordType>(
-            (p) => p, // TODO
-            []
+            (p) => p // TODO
           ),
           ...Table.Preset.columnQuantity<RecordType>(
             (p) => p, // TODO
