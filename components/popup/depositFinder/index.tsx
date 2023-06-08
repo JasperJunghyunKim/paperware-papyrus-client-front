@@ -60,7 +60,7 @@ export default function Component(props: Props) {
               ),
               ...Table.Preset.columnQuantity<Model.Deposit>(
                 (record) => record,
-                ["totalQuantity"],
+                (record) => record.quantity,
                 { prefix: "실물" }
               ),
             ]}

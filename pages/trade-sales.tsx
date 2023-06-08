@@ -92,8 +92,9 @@ export default function Component() {
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
             (record) =>
-              record.orderStock?.plan.at(0)?.assignStockEvent?.stock ??
-              record.orderDeposit
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.stock ?? record.orderDeposit
           ),
           {
             title: "매출 상태",
@@ -129,8 +130,14 @@ export default function Component() {
             ),
           },
           ...Table.Preset.columnQuantity<Model.Order>(
-            (record) => record.orderStock?.plan.at(0)?.assignStockEvent?.stock,
-            ["orderStock", "quantity"],
+            (record) =>
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.stock ?? record.orderDeposit,
+            (record) =>
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.change ?? record.orderDeposit?.quantity,
             { prefix: "매출" }
           ),
         ]}

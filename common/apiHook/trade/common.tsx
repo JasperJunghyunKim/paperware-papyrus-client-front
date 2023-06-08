@@ -1,4 +1,4 @@
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
@@ -256,6 +256,102 @@ export function useUpdateTradePrice() {
           variables.orderId,
         ]);
         message.info("거래가격을 저장했습니다.");
+      },
+    }
+  );
+}
+
+export function useGetDeposit(params: { orderId: number | null }) {
+  return useQuery(["order", "deposit", params.orderId], async () => {
+    if (!params.orderId) {
+      return null;
+    }
+
+    const resp = await axios.get<Model.Deposit>(
+      `${API_HOST}/order/${params.orderId}/deposit`
+    );
+    return resp.data;
+  });
+}
+
+export function useCreateDeposit() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "deposit", "create"],
+    async (params: {
+      orderId: number;
+      data: Api.OrderDepositAssignDepositCreateRequest;
+    }) => {
+      const resp = await axios.post(
+        `${API_HOST}/order/${params.orderId}/deposit`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("보관품 정보를 저장했습니다.");
+      },
+    }
+  );
+}
+
+export function useUpdateDeposit() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "deposit", "update"],
+    async (params: {
+      orderId: number;
+      data: Api.OrderDepositAssignDepositUpdateRequest;
+    }) => {
+      const resp = await axios.put(
+        `${API_HOST}/order/${params.orderId}/deposit`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("보관품 정보를 저장했습니다.");
+      },
+    }
+  );
+}
+
+export function useDeleteDeposit() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "deposit", "delete"],
+    async (params: { orderId: number }) => {
+      const resp = await axios.delete(
+        `${API_HOST}/order/${params.orderId}/deposit`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("보관품 정보를 삭제했습니다.");
       },
     }
   );

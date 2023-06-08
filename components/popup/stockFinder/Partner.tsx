@@ -63,12 +63,12 @@ export default function Component(props: Props) {
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
-                ["availableQuantity"],
+                (p) => p.availableQuantity,
                 { prefix: "가용" }
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
-                ["totalQuantity"],
+                (p) => p.totalQuantity,
                 { prefix: "실물" }
               ),
             ]}

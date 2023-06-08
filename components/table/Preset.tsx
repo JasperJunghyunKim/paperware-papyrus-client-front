@@ -218,7 +218,7 @@ export function columnStock<T>(
 
 export function columnQuantity<T>(
   getStock: (record: T) => null | undefined | PaperUtil.QuantitySpec,
-  path: string[],
+  getValue: (record: T) => null | undefined | number,
   options?: {
     prefix?: string;
     negative?: boolean;
@@ -251,21 +251,21 @@ export function columnQuantity<T>(
         case "packed":
           return quantity.packed
             ? `${Util.comma(
-                quantity.packed.value,
+                Math.abs(quantity.packed.value),
                 PaperUtil.recommendedPrecision(quantity.packed.unit)
               )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
             : null;
         case "unpacked":
           return quantity.unpacked
             ? `${Util.comma(
-                quantity.unpacked.value,
+                Math.abs(quantity.unpacked.value),
                 PaperUtil.recommendedPrecision(quantity.unpacked.unit)
               )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
             : null;
         case "weight":
           return _.isFinite(quantity.grams)
             ? `${Util.comma(
-                quantity.grams * 0.000001,
+                Math.abs(quantity.grams * 0.000001),
                 PaperUtil.recommendedPrecision("T")
               )} ${"T"}`
             : null;
@@ -275,33 +275,30 @@ export function columnQuantity<T>(
   return [
     {
       title: `${options?.prefix ?? ""} 수량`.trim(),
-      dataIndex: [...path],
-      render: (value: number, record: T) => (
+      render: (_value: any, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(value) && record
-            ? format("packed")(getQuantity(value, record))
+          {_.isFinite(getValue(record)) && record
+            ? format("packed")(getQuantity(getValue(record) ?? 0, record))
             : ""}
         </div>
       ),
     },
     {
       title: ``,
-      dataIndex: [...path],
-      render: (value: number, record: T) => (
+      render: (_value: any, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(value) && record
-            ? format("unpacked")(getQuantity(value, record))
+          {_.isFinite(getValue(record)) && record
+            ? format("unpacked")(getQuantity(getValue(record) ?? 0, record))
             : ""}
         </div>
       ),
     },
     {
       title: `${options?.prefix ?? ""} 중량`.trim(),
-      dataIndex: [...path],
-      render: (value: number, record: T) => (
+      render: (_value: any, record: T) => (
         <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(value) && record
-            ? format("weight")(getQuantity(value, record))
+          {_.isFinite(getValue(record)) && record
+            ? format("weight")(getQuantity(getValue(record) ?? 0, record))
             : ""}
         </div>
       ),

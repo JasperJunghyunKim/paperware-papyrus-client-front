@@ -1,10 +1,10 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, StatBar, Table } from "@/components";
 import { Page } from "@/components/layout";
 import { useState } from "react";
-import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
+import { TbMapPinFilled } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -56,12 +56,12 @@ export default function Component() {
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            ["totalQuantity"],
+            (record) => record.totalQuantity,
             { prefix: "실물" }
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            ["availableQuantity"],
+            (record) => record.availableQuantity,
             { prefix: "가용" }
           ),
         ]}

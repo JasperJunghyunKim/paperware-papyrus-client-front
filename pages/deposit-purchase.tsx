@@ -59,7 +59,7 @@ export default function Component() {
           ...Table.Preset.columnStockGroup<RecordType>((record) => record),
           ...Table.Preset.columnQuantity<RecordType>(
             (record) => record,
-            ["quantity"]
+            (record) => record.quantity
           ),
         ]}
       />

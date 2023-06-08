@@ -98,12 +98,12 @@ export default function Component() {
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            ["totalQuantity"],
+            (p) => p.totalQuantity,
             { prefix: "실물" }
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            ["availableQuantity"],
+            (p) => p.availableQuantity,
             { prefix: "가용" }
           ),
         ]}
@@ -143,12 +143,12 @@ export default function Component() {
           },
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,
-            ["cachedQuantity"],
+            (p) => p.cachedQuantity,
             { prefix: "실물" }
           ),
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,
-            ["cachedQuantityAvailable"],
+            (p) => p.cachedQuantityAvailable,
             { prefix: "가용" }
           ),
         ]}

@@ -106,17 +106,17 @@ export default function Component() {
           ),
           ...Table.Preset.columnQuantity<RecordType>(
             (p) => p, // TODO
-            ["nonStoringQuantity"],
+            (p) => p.nonStoringQuantity,
             { prefix: "배정" }
           ),
           ...Table.Preset.columnQuantity<RecordType>(
             (p) => p, // TODO
-            ["storingQuantity"],
+            (p) => p.storingQuantity,
             { prefix: "입고" }
           ),
           ...Table.Preset.columnQuantity<RecordType>(
             (p) => p, // TODO
-            ["totalQuantity"],
+            (p) => p.totalQuantity,
             { prefix: "전체" }
           ),
         ]}

@@ -100,7 +100,7 @@ export default function Component() {
           },
           {
             title: "도착 희망일",
-            dataIndex: "arrivalDate",
+            dataIndex: "wantedDate",
             render: (value) => Util.formatIso8601ToLocalDate(value),
           },
           {
@@ -147,18 +147,21 @@ export default function Component() {
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
             (record) =>
-              record.orderStock?.plan.at(0)?.assignStockEvent?.stock ??
-              record.orderDeposit
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.stock ?? record.orderDeposit
           ),
-          {
-            title: "주문 수량",
-            dataIndex: ["orderStock", "quantity"],
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
+          ...Table.Preset.columnQuantity<Model.Order>(
+            (record) =>
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.stock ?? record.orderDeposit,
+            (record) =>
+              record.orderStock?.plan.find(
+                (p) => p.companyId === record.dstCompany.id
+              )?.assignStockEvent?.change ?? record.orderDeposit?.quantity,
+            { prefix: "매입" }
+          ),
         ]}
       />
       <Popup.Order.StockUpsert

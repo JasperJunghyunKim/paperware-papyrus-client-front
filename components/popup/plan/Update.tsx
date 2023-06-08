@@ -201,12 +201,12 @@ export default function Component(props: Props) {
                         },
                         ...Table.Preset.columnQuantity<Model.StockEvent>(
                           (record) => record.stock,
-                          ["change"],
+                          (record) => record.change,
                           { prefix: "사용", negative: true }
                         ),
                         ...Table.Preset.columnQuantity<Model.StockEvent>(
                           (record) => record.stock,
-                          ["stock", "cachedQuantity"],
+                          (record) => record.stock.cachedQuantity,
                           { prefix: "총" }
                         ),
                       ]}
