@@ -98,3 +98,34 @@ export function SelectPartnerStockGroup(props: SelectPartnerStockGroupProps) {
     </>
   );
 }
+
+interface SelectDepositProps {
+  type: "SALES" | "PURCHASE";
+  onSelect: (stockGroup: Model.Deposit) => void;
+  rootClassName?: string;
+}
+export function SelectDeposit(props: SelectDepositProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button.Default
+        icon={<TbPencil />}
+        label="보관 재고 선택"
+        type="primary"
+        rootClassName={props.rootClassName}
+        onClick={() => {
+          setOpen(true);
+        }}
+      />
+      <Popup.DepositFinder.default
+        open={open && props.type}
+        onClose={() => setOpen(false)}
+        onSelect={(deposit: Model.Deposit) => {
+          props.onSelect(deposit);
+          setOpen(false);
+        }}
+      />
+    </>
+  );
+}
