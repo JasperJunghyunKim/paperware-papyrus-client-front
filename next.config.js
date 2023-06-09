@@ -5,6 +5,15 @@ const nextConfig = {
   images: {
     domains: ["images.unsplash.com"],
   },
+  rewrites: async () => {
+    return [
+      {
+        source: '/health',
+        destination: 'https://example.com/api/health',
+        basePath: false
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
