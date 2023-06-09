@@ -71,9 +71,11 @@ export default function Component() {
             render: (_value, record) => (
               <div>
                 {record.orderStock
-                  ? "정상 매입"
+                  ? record.srcDepositEvent
+                    ? "보관 입고"
+                    : "정상 매입"
                   : record.orderDeposit
-                  ? "보관 매입"
+                  ? "매입 보관"
                   : ""}
               </div>
             ),

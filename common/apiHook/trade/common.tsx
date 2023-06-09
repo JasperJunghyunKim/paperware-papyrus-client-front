@@ -267,7 +267,7 @@ export function useGetDeposit(params: { orderId: number | null }) {
       return null;
     }
 
-    const resp = await axios.get<Model.Deposit>(
+    const resp = await axios.get<Api.OrderDepositResponse>(
       `${API_HOST}/order/${params.orderId}/deposit`
     );
     return resp.data;

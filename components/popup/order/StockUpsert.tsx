@@ -565,29 +565,31 @@ function DataForm(props: DataFormProps) {
           <FormControl.Util.Split
             label={props.isSales ? "수주 원지 정보" : "주문 원지 정보"}
           />
-          {editable && props.isSales && (
-            <div className="flex-initial flex mb-4">
-              <Button.Preset.SelectStockGroupInhouse
-                onSelect={(stockGroup) => {
-                  setWarehouse(stockGroup.warehouse);
-                  form.setFieldsValue({
-                    warehouseId: stockGroup.warehouse?.id,
-                    planId: stockGroup.plan?.id,
-                    productId: stockGroup.product.id,
-                    packagingId: stockGroup.packaging.id,
-                    grammage: stockGroup.grammage,
-                    sizeX: stockGroup.sizeX,
-                    sizeY: stockGroup.sizeY,
-                    paperColorGroupId: stockGroup.paperColorGroup?.id,
-                    paperColorId: stockGroup.paperColor?.id,
-                    paperPatternId: stockGroup.paperPattern?.id,
-                    paperCertId: stockGroup.paperCert?.id,
-                  });
-                }}
-                rootClassName="flex-1"
-              />
-            </div>
-          )}
+          {editable &&
+            props.isSales &&
+            props.initialOrder?.orderType === "NORMAL" && (
+              <div className="flex-initial flex mb-4">
+                <Button.Preset.SelectStockGroupInhouse
+                  onSelect={(stockGroup) => {
+                    setWarehouse(stockGroup.warehouse);
+                    form.setFieldsValue({
+                      warehouseId: stockGroup.warehouse?.id,
+                      planId: stockGroup.plan?.id,
+                      productId: stockGroup.product.id,
+                      packagingId: stockGroup.packaging.id,
+                      grammage: stockGroup.grammage,
+                      sizeX: stockGroup.sizeX,
+                      sizeY: stockGroup.sizeY,
+                      paperColorGroupId: stockGroup.paperColorGroup?.id,
+                      paperColorId: stockGroup.paperColor?.id,
+                      paperPatternId: stockGroup.paperPattern?.id,
+                      paperCertId: stockGroup.paperCert?.id,
+                    });
+                  }}
+                  rootClassName="flex-1"
+                />
+              </div>
+            )}
           {editable && !props.isSales && !manual && (
             <div className="flex-initial flex mb-4">
               <Button.Preset.SelectPartnerStockGroup
@@ -1352,6 +1354,9 @@ function PricePanel(props: PricePanelProps) {
   const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
   const vatPrice = useWatch<number | null>(["vatPrice"], form);
 
+  const deposit = ApiHook.Trade.Common.useGetDeposit({
+    orderId: props.order.id,
+  });
   const tradePrice = ApiHook.Trade.Common.useGetTradePrice({
     orderId: props.order.id,
   });
@@ -1401,31 +1406,20 @@ function PricePanel(props: PricePanelProps) {
     });
   }, [props.order, form, apiUpdate]);
 
-  const apiCreateDeposit = ApiHook.Trade.Common.useCreateDeposit();
   const apiUpdateDeposit = ApiHook.Trade.Common.useUpdateDeposit();
   const cmdUpsertDeposit = useCallback(async () => {
     if (!props.order || !me.data) return;
     await form.validateFields();
     const values = await form.getFieldsValue();
 
-    if (props.order.orderDeposit) {
-      await apiUpdateDeposit.mutateAsync({
-        orderId: props.order.id,
-        data: {
-          depositId: depositId,
-          quantity: depositQuantity,
-        },
-      });
-    } else {
-      await apiCreateDeposit.mutateAsync({
-        orderId: props.order.id,
-        data: {
-          depositId: depositId,
-          quantity: depositQuantity,
-        },
-      });
-    }
-  }, [props.order, form, apiCreateDeposit, apiUpdateDeposit, depositId]);
+    await apiUpdateDeposit.mutateAsync({
+      orderId: props.order.id,
+      data: {
+        depositId: depositId,
+        quantity: depositQuantity,
+      },
+    });
+  }, [props.order, form, apiUpdateDeposit, depositId]);
   const apiDeleteDeposit = ApiHook.Trade.Common.useDeleteDeposit();
   const cmdDeleteDeposit = useCallback(async () => {
     if (!props.order || !me.data) return;
@@ -1459,6 +1453,28 @@ function PricePanel(props: PricePanelProps) {
   const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   useEffect(() => {
+    if (deposit.data?.depositEvent) {
+      form.setFieldsValue({
+        deposit: {
+          depositId: deposit.data.depositEvent.deposit.id,
+          productId: deposit.data.depositEvent.deposit.product.id,
+          grammage: deposit.data.depositEvent.deposit.grammage,
+          sizeX: deposit.data.depositEvent.deposit.sizeX,
+          sizeY: deposit.data.depositEvent.deposit.sizeY,
+          packaging: deposit.data.depositEvent.deposit.packaging,
+          paperColorGroupId:
+            deposit.data.depositEvent.deposit.paperColorGroup?.id,
+          paperColorId: deposit.data.depositEvent.deposit.paperColor?.id,
+          paperPatternId: deposit.data.depositEvent.deposit.paperPattern?.id,
+          paperCertId: deposit.data.depositEvent.deposit.paperCert?.id,
+          quantity: -deposit.data.depositEvent.change,
+        },
+      });
+    } else {
+      form.setFieldsValue({
+        deposit: undefined,
+      });
+    }
     if (tradePrice.data && tradePrice.data.orderStockTradePrice) {
       form.setFieldsValue({
         stockPrice: {
@@ -1486,7 +1502,13 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: 0,
       });
     }
-  }, [props.orderId, tradePrice.data, form, assignSpec.packaging.type]);
+  }, [
+    props.orderId,
+    deposit.data,
+    tradePrice.data,
+    form,
+    assignSpec.packaging.type,
+  ]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -1610,13 +1632,6 @@ function PricePanel(props: PricePanelProps) {
                 </Form.Item>
                 {depositSpec && (
                   <>
-                    <Form.Item label="보관 수량">
-                      <FormControl.Quantity
-                        spec={depositSpec}
-                        value={depositTotalQuantity - depositQuantity}
-                        disabled
-                      />
-                    </Form.Item>
                     <Form.Item
                       name={["deposit", "quantity"]}
                       label="출고 수량"
