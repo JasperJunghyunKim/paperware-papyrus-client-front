@@ -120,6 +120,15 @@ export default function Component(props: Props) {
       <Select
         value={props.value}
         onChange={props.onChange}
+        filterOption={(input, option) => {
+          if (!option) {
+            return false;
+          }
+          return option.label.toLowerCase().includes(input.toLowerCase());
+        }}
+        showSearch
+        allowClear
+        dropdownMatchSelectWidth={false}
         disabled={props.disabled}
         options={BANK_OPTIONS}
         placeholder="은행 목록"

@@ -157,8 +157,8 @@ export default function Component(props: Props) {
           accountedSubject: resByBankAccount.data?.accountedSubject,
           memo: resByBankAccount.data?.memo,
           amount: resByBankAccount.data?.amount,
-          bankAccountId: resByBankAccount.data?.bankAccountId,
-        });
+          accountName: resByBankAccount.data?.accountName,
+        } as any);
         break;
       case 'CARD_PAYMENT':
         form.setFieldsValue({
@@ -168,12 +168,12 @@ export default function Component(props: Props) {
           accountedSubject: resByCard.data?.accountedSubject,
           memo: resByCard.data?.memo,
           amount: resByCard.data?.amount,
-          cardId: resByCard.data?.cardId,
+          cardName: resByCard.data?.cardName,
           approvalNumber: resByCard.data?.approvalNumber,
           chargeAmount: resByCard.data?.chargeAmount,
           totalAmount: resByCard.data?.totalAmount,
           isCharge: resByCard.data?.isCharge,
-        });
+        } as any);
         break;
       case 'PROMISSORY_NOTE':
         if (props.accountedType === 'COLLECTED') {

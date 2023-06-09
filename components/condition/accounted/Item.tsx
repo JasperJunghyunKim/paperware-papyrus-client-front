@@ -4,8 +4,12 @@ import { AccountedType } from "@/@shared/models/enum";
 import { ApiHook } from "@/common";
 import { FormControl } from "@/components";
 import { Form, message } from "antd";
-import { useRecoilState } from "recoil";
+import { useRouter } from "next/router";
+import { useCallback, useLayoutEffect } from "react";
+import { useRecoilState, useResetRecoilState } from "recoil";
 import { accountedAtom } from "./accounted.state";
+import { useForm } from "antd/lib/form/Form";
+import dayjs from "dayjs";
 
 type NamePath = 'companyRegistrationNumber' | 'accountedFromDate' | 'accountedToDate' | 'accountedSubject' | 'accountedMethod';
 
@@ -15,10 +19,27 @@ interface Props {
 
 export default function Component(props: Props) {
   const [condtiuon, setCondtiuon] = useRecoilState(accountedAtom);
+  const reset = useResetRecoilState(accountedAtom);
   const [messageApi, contextHolder] = message.useMessage();
-  const partnerList = ApiHook.Partner.Partner.useGetList()
+  const partnerList = ApiHook.Partner.Partner.useGetList();
+  const router = useRouter();
+  const [form] = useForm();
 
-  const onChange = (name: NamePath, value: string | number | undefined) => {
+  useLayoutEffect(() => {
+    if (router.route === '/collected-history' || router.route === '/paid-history') {
+      const startDate = dayjs().startOf('month').toISOString();
+      const endDate = dayjs().endOf('month').toISOString();
+      reset();
+      form.setFieldValue("companyRegistrationNumber", 0)
+      form.setFieldValue("accountedFromDate", startDate)
+      form.setFieldValue("accountedToDate", endDate)
+      form.setFieldValue("accountedSubject", 'All')
+      form.setFieldValue("accountedMethod", 'All')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const onChange = useCallback((name: NamePath, value: string | number | undefined) => {
     switch (name) {
       case 'companyRegistrationNumber':
         if (value !== 0) {
@@ -79,7 +100,7 @@ export default function Component(props: Props) {
         }));
         break;
     }
-  };
+  }, [condtiuon, messageApi, partnerList, setCondtiuon]);
 
   return (
     <div
@@ -89,12 +110,13 @@ export default function Component(props: Props) {
     >
       {contextHolder}
       <Form
+        form={form}
         layout={"vertical"}
         className={"flex flex-row gap-4 w-full"}
-        initialValues={{
-          ...condtiuon
-        }}>
-        <Form.Item name="companyRegistrationNumber" label="거래처" className={"w-1/5"}>
+        initialValues={condtiuon}>
+        <Form.Item name="companyRegistrationNumber"
+          label="거래처"
+          className={"w-1/5"}>
           <FormControl.SelectPartner isAll={true} value={condtiuon.companyRegistrationNumber} onChange={(value) => onChange('companyRegistrationNumber', value)} />
         </Form.Item>
         <Form.Item
@@ -122,6 +144,7 @@ export default function Component(props: Props) {
           <FormControl.SelectSubject
             isAll={true}
             accountedType={props.accountedType}
+            value={condtiuon.accountedSubject as any}
             onChange={(value) => onChange("accountedSubject", value)}
           />
         </Form.Item>
@@ -133,6 +156,7 @@ export default function Component(props: Props) {
           <FormControl.SelectMethod
             accountedType={props.accountedType}
             isAll={true}
+            value={condtiuon.accountedMethod as any}
             onChange={(value) => onChange("accountedMethod", value)}
           />
         </Form.Item>

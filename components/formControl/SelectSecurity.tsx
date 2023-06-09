@@ -40,11 +40,13 @@ export default function Component(props: Props) {
     if (props.isFilter) {
       return staticData.data?.items.filter(item => item.securityStatus === 'NONE').map((item) => ({
         label: <Item item={item} />,
+        text: `${item.securitySerial}`,
         value: item.securityId,
       }));
     } else {
       return staticData.data?.items.filter(item => item.securityStatus === 'NONE' || item.securityId === props.value).map((item) => ({
         label: <Item item={item} />,
+        text: `${item.securitySerial}`,
         value: item.securityId,
       }));
     }
@@ -63,6 +65,15 @@ export default function Component(props: Props) {
       <Select
         value={props.value}
         onChange={onChange}
+        filterOption={(input, option) => {
+          if (!option) {
+            return false;
+          }
+          return option.text.toLowerCase().includes(input.toLowerCase());
+        }}
+        showSearch
+        allowClear
+        dropdownMatchSelectWidth={false}
         placeholder="유가증권 목록"
         options={options}
       />

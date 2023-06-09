@@ -27,7 +27,17 @@ export default function Component(props: Props) {
       <Form.Item
         name="cardNumber"
         label="카드 번호"
-        rules={[{ required: true }]}
+        rules={[{
+          required: true,
+          message: '카드번호 4자리만 입력하세요',
+          validator: async (rule, value: string) => {
+            if (value.toString().length > 4) {
+              return Promise.reject(rule.message);
+            } else {
+              return Promise.resolve();
+            }
+          }
+        }]}
       >
         <Input />
       </Form.Item>

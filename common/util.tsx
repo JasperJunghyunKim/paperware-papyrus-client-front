@@ -459,23 +459,6 @@ export function accountedSubject(
   if (accountedType === "PAID") {
     switch (subject) {
       case "ACCOUNTS_RECEIVABLE":
-        return "외상 매출금";
-      case "UNPAID":
-        return "미수금";
-      case "ADVANCES":
-        return "선수금";
-      case "MISCELLANEOUS_INCOME":
-        return "잡이익";
-      case "PRODUCT_SALES":
-        return "상품 매출";
-      case "ETC":
-        return "기타";
-      case "All":
-        return "전체";
-    }
-  } else {
-    switch (subject) {
-      case "ACCOUNTS_RECEIVABLE":
         return "외상 매입금";
       case "UNPAID":
         return "미지급금";
@@ -485,6 +468,23 @@ export function accountedSubject(
         return "잡손실";
       case "PRODUCT_SALES":
         return "상품 매입";
+      case "ETC":
+        return "기타";
+      case "All":
+        return "전체";
+    }
+  } else {
+    switch (subject) {
+      case "ACCOUNTS_RECEIVABLE":
+        return "외상 매출금";
+      case "UNPAID":
+        return "미수금";
+      case "ADVANCES":
+        return "선수금";
+      case "MISCELLANEOUS_INCOME":
+        return "잡이익";
+      case "PRODUCT_SALES":
+        return "상품 매출";
       case "ETC":
         return "기타";
       case "All":

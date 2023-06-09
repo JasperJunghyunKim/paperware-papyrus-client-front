@@ -42,6 +42,7 @@ export default function Component(props: Props) {
       props.form.setFieldValue("payer", securityAtom.payer);
       props.form.setFieldValue("securityMemo", securityAtom.memo);
     }
+    props.form.setFieldValue("endorsementType", "NONE");
   }, [securityAtom, props])
 
   useEffect(() => {
@@ -173,7 +174,7 @@ export default function Component(props: Props) {
       >
         {({ getFieldValue }) =>
           getFieldValue('accountedMethod') === 'CARD_PAYMENT' as Model.Enum.Method && (
-            <Form.Item name="cardId" label="카드 목록" rules={[{ required: true }]}>
+            <Form.Item name="cardId" label={`${props.accountedType === 'COLLECTED' ? '계좌 목록' : '카드 목록'}`} rules={[{ required: true }]}>
               <FormControl.SelectApiCard />
             </Form.Item>
           )
@@ -191,7 +192,7 @@ export default function Component(props: Props) {
             <>
               <Form.Item
                 name="amount"
-                label="금액"
+                label={`${props.accountedType === 'COLLECTED' ? '카드 입금 금액' : '금액'}`}
                 shouldUpdate={(prevValues, currentValues) => {
                   return prevValues.amount !== currentValues.amount || prevValues.chargeAmount !== currentValues.chargeAmount
                 }}>

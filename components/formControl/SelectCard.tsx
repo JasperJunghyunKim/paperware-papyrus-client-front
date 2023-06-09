@@ -52,6 +52,15 @@ export default function Component(props: Props) {
       <Select
         value={props.value}
         onChange={props.onChange}
+        filterOption={(input, option) => {
+          if (!option) {
+            return false;
+          }
+          return option.label.toLowerCase().includes(input.toLowerCase());
+        }}
+        showSearch
+        allowClear
+        dropdownMatchSelectWidth={false}
         disabled={props.isDisabled}
         options={CARD_OPTIONS}
         placeholder="카드 목록"

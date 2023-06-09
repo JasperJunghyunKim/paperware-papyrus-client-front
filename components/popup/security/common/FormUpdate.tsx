@@ -23,22 +23,26 @@ export default function Component(props: Props) {
       rootClassName="flex flex-col gap-y-4">
       {contextHolder}
       <div className="flex flex-row justify-end gap-x-2">
-        <Button.Preset.Edit
-          label="기본정보 수정"
-          onClick={() => {
-            const condition: Model.Enum.SecurityStatus = props.form.getFieldValue("securityStatus");
+        {
+          props.form.getFieldValue("drawedStatus") === 'SELF' && (
+            <Button.Preset.Edit
+              label="기본정보 수정"
+              onClick={() => {
+                const condition: Model.Enum.SecurityStatus = props.form.getFieldValue("securityStatus");
 
-            if (condition !== 'NONE') {
-              return messageApi.open({
-                type: 'error',
-                content: '유가증권의 상태가 기본이 아닙니다. 기본으로 변경후 사용하세요'
-              })
-            } else {
-              props.onEditChange(true);
-            }
-          }}
-          hidden={props.edit || props.statusEdit}
-        />
+                if (condition !== 'NONE') {
+                  return messageApi.open({
+                    type: 'error',
+                    content: '유가증권의 상태가 기본이 아닙니다. 기본으로 변경후 사용하세요'
+                  })
+                } else {
+                  props.onEditChange(true);
+                }
+              }}
+              hidden={props.edit || props.statusEdit}
+            />
+          )
+        }
         <Button.Preset.Edit
           label="상태정보 수정"
           onClick={() => props.onStatusEditChange(true)}

@@ -111,7 +111,7 @@ export const BANK_OPTIONS = [
 ];
 
 interface Props {
-  isDisabled?: boolean;
+  disabled?: boolean;
   value?: number;
   onChange?: (value: number) => void;
 }
@@ -122,6 +122,7 @@ export default function Component(props: Props) {
   const options = useMemo(() => {
     return staticData.data?.items.map((el) => ({
       label: <Item item={el} />,
+      text: `${el.accountName} ${el.accountNumber} ${el.bankComapny}`,
       value: el.accountId,
     }));
   }, [staticData]);
@@ -130,8 +131,17 @@ export default function Component(props: Props) {
     <div className="flex flex-col gap-y-1">
       <Select
         value={props.value}
+        filterOption={(input, option) => {
+          if (!option) {
+            return false;
+          }
+          return option.text.toLowerCase().includes(input.toLowerCase());
+        }}
+        showSearch
+        allowClear
+        dropdownMatchSelectWidth={false}
         onChange={props.onChange}
-        disabled={props.isDisabled}
+        disabled={props.disabled}
         options={options}
         placeholder="계좌 목록"
       />

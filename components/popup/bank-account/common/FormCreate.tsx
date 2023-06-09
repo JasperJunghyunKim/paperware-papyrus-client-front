@@ -34,7 +34,17 @@ export default function Component(props: Props) {
       <Form.Item
         name="accountNumber"
         label={"계좌 번호"}
-        rules={[{ required: true }]}
+        rules={[{
+          required: true,
+          message: '계좌번호 3자리만 입력하세요',
+          validator: async (rule, value: string) => {
+            if (value.toString().length > 3) {
+              return Promise.reject(rule.message);
+            } else {
+              return Promise.resolve();
+            }
+          }
+        }]}
       >
         <Input />
       </Form.Item>
