@@ -2,9 +2,10 @@ import { Api, Model } from "@/@shared";
 import { OrderStatus } from "@/@shared/models/enum";
 import { ApiHook, PaperUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
+import { mine } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form, Input, Select, Steps, Switch } from "antd";
+import { Alert, Form, Input, Select, Steps } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import _ from "lodash";
@@ -12,7 +13,6 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   TbAB,
   TbBrandMixpanel,
-  TbCheck,
   TbHandStop,
   TbInfoCircle,
   TbRubberStamp,
@@ -22,7 +22,6 @@ import {
 } from "react-icons/tb";
 import { CreateArrival } from ".";
 import { TaskMap } from "../plan/common";
-import { mine } from "@/common/util";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -350,6 +349,21 @@ function DataForm(props: DataFormProps) {
   const paperCertId = useWatch(["paperCertId"], form);
   const quantity = useWatch(["quantity"], form);
 
+  type Spec = {
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    packaging: Model.Packaging;
+  };
+  const spec: Spec | null = packaging
+    ? {
+        grammage,
+        sizeX,
+        sizeY,
+        packaging,
+      }
+    : null;
+
   const editable =
     props.initialOrder === null ||
     props.initialOrder.status === "OFFER_PREPARING" ||
@@ -486,14 +500,8 @@ function DataForm(props: DataFormProps) {
       <Form.Item name="orderType" label="거래 구분" required>
         <Select
           options={[
-            {
-              label: "정상 거래",
-              value: "NORMAL",
-            },
-            {
-              label: "보관 거래",
-              value: "DEPOSIT",
-            },
+            { label: "정상 거래", value: "NORMAL" },
+            { label: "보관 거래", value: "DEPOSIT" },
           ]}
           placeholder="거래 구분 선택"
           disabled={!editable}
@@ -749,20 +757,14 @@ function DataForm(props: DataFormProps) {
               </Form.Item>
             </>
           )}
-          <Form.Item
-            name="quantity"
-            label={props.isSales ? "매출 수량" : "매입 수량"}
-          >
-            <FormControl.Quantity
-              spec={{
-                grammage,
-                sizeX,
-                sizeY,
-                packaging,
-              }}
-              disabled={!editable}
-            />
-          </Form.Item>
+          {spec && (
+            <Form.Item
+              name="quantity"
+              label={props.isSales ? "매출 수량" : "매입 수량"}
+            >
+              <FormControl.Quantity spec={spec} disabled={!editable} />
+            </Form.Item>
+          )}
         </>
       )}
       {packaging && editable && (
@@ -907,24 +909,11 @@ function RightSideOrder(props: RightSideOrderProps) {
     : 0;
 
   const steps = isVirtual
-    ? [
-        {
-          title: "주문 작성중",
-        },
-        {
-          title: "매입정보 입력",
-        },
-      ]
+    ? [{ title: "주문 작성중" }, { title: "매입정보 입력" }]
     : [
-        {
-          title: "주문 작성",
-        },
-        {
-          title: "주문 승인 대기",
-        },
-        {
-          title: "매입정보 입력",
-        },
+        { title: "주문 작성" },
+        { title: "주문 승인 대기" },
+        { title: "매입정보 입력" },
       ];
 
   return (
@@ -1150,24 +1139,11 @@ function RightSideSales(props: RightSideSalesProps) {
     : 0;
 
   const steps = isVirtual
-    ? [
-        {
-          title: "수주 내용 작성중",
-        },
-        {
-          title: "매출정보 입력",
-        },
-      ]
+    ? [{ title: "수주 내용 작성중" }, { title: "매출정보 입력" }]
     : [
-        {
-          title: "주문 작성",
-        },
-        {
-          title: "주문 승인 대기",
-        },
-        {
-          title: "매출정보 입력",
-        },
+        { title: "주문 작성" },
+        { title: "주문 승인 대기" },
+        { title: "매출정보 입력" },
       ];
 
   const me = ApiHook.Auth.useGetMe();
