@@ -477,6 +477,7 @@ function DataForm(props: DataFormProps) {
       },
     });
   }, [form, apiUpdateAssign, props.initialOrder]);
+  console.log(orderType);
 
   return (
     <Form form={form} layout="vertical" rootClassName="w-full mb-32">
@@ -509,10 +510,9 @@ function DataForm(props: DataFormProps) {
           <FormControl.SelectCompanySales disabled={!editable} />
         </Form.Item>
       )}
-      {!props.isSales &&
+      {orderType == "NORMAL" &&
+        !props.isSales &&
         dstCompanyId &&
-        orderType == "NORMAL" &&
-        props.initialOrder?.orderStock &&
         (editable ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocation />
@@ -520,12 +520,12 @@ function DataForm(props: DataFormProps) {
         ) : (
           <Form.Item label="도착지" required>
             <Input
-              value={props.initialOrder?.orderStock.dstLocation.name}
+              value={props.initialOrder?.orderStock?.dstLocation.name}
               disabled={!editable}
             />
             <div className="text-gray-400 text-sm mt-2">
               {`주소: ${Util.formatAddress(
-                props.initialOrder?.orderStock.dstLocation.address
+                props.initialOrder?.orderStock?.dstLocation.address
               )}`}
             </div>
           </Form.Item>
