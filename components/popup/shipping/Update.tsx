@@ -4,6 +4,8 @@ import { usePage } from "@/common/hook";
 import { Icon, Popup, Table, Toolbar } from "@/components";
 import { useCallback, useEffect, useState } from "react";
 import { InvoiceConnection } from ".";
+import _ from "lodash";
+import { match } from "ts-pattern";
 
 type OpenType = number | false;
 
@@ -40,11 +42,49 @@ export default function Component(props: Props) {
     setSelected([]);
   }, [apiDisconnect]);
 
+  const apiForward = ApiHook.Shipping.Invoice.useForward();
+  const cmdForward = useCallback(async () => {
+    if (!(await Util.confirm("작업을 계속하시겠습니까?"))) {
+      return;
+    }
+
+    await apiForward.mutateAsync({
+      data: { invoiceIds: selected.map((x) => x.id) },
+    });
+
+    setSelected([]);
+  }, [apiForward, selected]);
+
+  const apiBackward = ApiHook.Shipping.Invoice.useBackward();
+  const cmdBackward = useCallback(async () => {
+    if (!(await Util.confirm("작업을 취소하시겠습니까?"))) {
+      return;
+    }
+
+    await apiBackward.mutateAsync({
+      data: { invoiceIds: selected.map((x) => x.id) },
+    });
+
+    setSelected([]);
+  }, [apiBackward, selected]);
+
   useEffect(() => {
     if (!props.open) {
       setSelected([]);
     }
   }, [props.open]);
+
+  const selectedStatusUnique = _.uniq(selected.map((x) => x.invoiceStatus));
+  const selectedStatusUniqueOnly = Util.only(selectedStatusUnique);
+  const invoiceForwardLabel = match(selectedStatusUniqueOnly)
+    .with("WAIT_LOADING", () => "상차 대기")
+    .with("WAIT_SHIPPING", () => "상차 시작")
+    .with("ON_SHIPPING", () => "상차 완료")
+    .otherwise(() => null);
+  const invoiceBackwardLabel = match(selectedStatusUniqueOnly)
+    .with("WAIT_SHIPPING", () => "상차 취소")
+    .with("ON_SHIPPING", () => "상차 중지")
+    .otherwise(() => null);
 
   return (
     <Popup.Template.Property
@@ -63,6 +103,18 @@ export default function Component(props: Props) {
             />
           </Toolbar.Container>
           <Toolbar.Container>
+            {invoiceBackwardLabel && (
+              <Toolbar.ButtonPreset.Continue
+                label={invoiceBackwardLabel}
+                onClick={cmdBackward}
+              />
+            )}
+            {invoiceForwardLabel && (
+              <Toolbar.ButtonPreset.Continue
+                label={invoiceForwardLabel}
+                onClick={cmdForward}
+              />
+            )}
             {only && (
               <Toolbar.ButtonPreset.Delete
                 label="송장 연결 해제"
@@ -172,6 +224,11 @@ export default function Component(props: Props) {
                     value
                   )}`}</div>
                 ),
+              },
+              {
+                title: "상태",
+                dataIndex: "invoiceStatus",
+                render: (value) => Util.formatInvoiceStatus(value),
               },
             ]}
           />

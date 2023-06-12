@@ -1,9 +1,10 @@
 import { Model } from "@/@shared";
+import { Process } from "@/@shared/task";
 import { ApiHook, PaperUtil, Util } from "@/common";
 import { Button, Icon } from "@/components";
 import { ConfigProvider, InputNumber } from "antd";
 import classNames from "classnames";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { TbCirclePlus, TbX } from "react-icons/tb";
 
 interface TempDataType {
@@ -655,17 +656,42 @@ function QuantityNode(props: QuantityProps) {
             sizeX:
               parent?.value.taskConverting?.sizeX ??
               parent?.value.taskGuillotine?.sizeX ??
-              0,
+              1,
             sizeY:
               parent?.value.taskConverting?.sizeY ??
               parent?.value.taskGuillotine?.sizeY ??
-              0,
+              1,
           },
           "매",
-          props.data.quantity
+          q
         )?.grams ?? 0) * 0.000001
       : 0;
-  }, [props.current, props.parent]);
+  }, [props.current, props.parent, q]);
+
+  const getMeters = useCallback(() => {
+    let parent = props.parent;
+    return props.plan.assignStockEvent
+      ? PaperUtil.convertQuantityWith(
+          {
+            ...props.plan.assignStockEvent.stock,
+            sizeX:
+              parent?.value.taskConverting?.sizeX ??
+              parent?.value.taskGuillotine?.sizeX ??
+              1,
+            sizeY:
+              parent?.value.taskConverting?.sizeY ??
+              parent?.value.taskGuillotine?.sizeY ??
+              1,
+          },
+          "T",
+          q
+        )?.packed?.value ?? 0
+      : 0;
+  }, [props.current, props.parent, q]);
+
+  const isRootRoll =
+    props.current.value.parentTaskId === null &&
+    props.plan.assignStockEvent?.stock.packaging.type === "ROLL";
 
   return (
     <div className="flex-initial flex flex-col gap-y-2">
@@ -673,20 +699,42 @@ function QuantityNode(props: QuantityProps) {
         <ConfigProvider
           theme={{ token: { borderRadius: 999, colorTextDisabled: "black" } }}
         >
-          <MiniFormNumber
-            label="출고 수량"
-            value={q}
-            onChange={(p) => setQ(p ?? 0)}
-            unit="매"
-            disabled={props.plan.status !== "PREPARING"}
-          />
-          <MiniFormNumber
-            label="중량"
-            value={getWeight()}
-            unit="톤"
-            disabled
-            precision={3}
-          />
+          {isRootRoll ? (
+            <>
+              <MiniFormNumber
+                label="중량"
+                value={Util.gramsToTon(q ?? 0)}
+                unit="톤"
+                disabled={props.plan.status !== "PREPARING"}
+                onChange={(p) => setQ(Util.tonToGrams(p ?? 0))}
+                precision={3}
+              />
+              <MiniFormNumber
+                label="권취미터"
+                value={getMeters()}
+                unit="m"
+                disabled
+                precision={1}
+              />
+            </>
+          ) : (
+            <>
+              <MiniFormNumber
+                label="출고 수량"
+                value={q}
+                onChange={(p) => setQ(p ?? 0)}
+                unit="매"
+                disabled={props.plan.status !== "PREPARING"}
+              />
+              <MiniFormNumber
+                label="중량"
+                value={getWeight()}
+                unit="톤"
+                disabled
+                precision={3}
+              />
+            </>
+          )}
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
           )}

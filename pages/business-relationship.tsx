@@ -22,6 +22,7 @@ export default function Component() {
     ["companyRegistrationNumber"],
     {
       title: "거래처명",
+      fallback: (record) => record.businessName,
     }
   );
   const [page, setPage] = usePage();

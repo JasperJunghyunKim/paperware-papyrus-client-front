@@ -196,6 +196,19 @@ export function formatPriceUnit(packagingType: Model.Enum.PackagingType) {
   }
 }
 
+export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
+  switch (status) {
+    case "WAIT_LOADING":
+      return "출고 대기";
+    case "WAIT_SHIPPING":
+      return "상차 대기";
+    case "ON_SHIPPING":
+      return "상차 진행중";
+    case "DONE_SHIPPING":
+      return "상차 완료";
+  }
+}
+
 export const reamToSheets = (ream: number) => Math.round(ream * 500);
 export const sheetsToReam = (sheets: number) => Math.round(sheets) / 500;
 export type PriceUnit = "wpt" | "wpb" | "wpr";

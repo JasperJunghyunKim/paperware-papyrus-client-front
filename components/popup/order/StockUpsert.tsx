@@ -477,7 +477,6 @@ function DataForm(props: DataFormProps) {
       },
     });
   }, [form, apiUpdateAssign, props.initialOrder]);
-  console.log(orderType);
 
   return (
     <Form form={form} layout="vertical" rootClassName="w-full mb-32">
@@ -1127,6 +1126,18 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiReset, props.order]);
 
+  const apiPlanStart = ApiHook.Working.Plan.useStart();
+  const cmdPlanStart = useCallback(async () => {
+    const plan = props.order?.orderStock?.plan.find(
+      (p) => p.companyId === props.order?.dstCompany.id
+    );
+    if (!plan) return;
+    if (!(await Util.confirm("작업을 지시하시겠습니까?"))) return;
+    await apiPlanStart.mutateAsync({
+      id: plan.id,
+    });
+  }, [apiPlanStart, props.order]);
+
   const isVirtual = !!props.order?.srcCompany.managedById;
   const status = !props.order
     ? 0
@@ -1211,6 +1222,16 @@ function RightSideSales(props: RightSideSalesProps) {
               onClick={cmdReset}
             />
           )}
+          {props.order?.status === "ACCEPTED" &&
+            props.order.orderStock?.plan.find(
+              (p) => p.companyId === props.order?.dstCompany.id
+            )?.status === "PREPARING" &&
+            props.order.orderType === "NORMAL" && (
+              <Toolbar.ButtonPreset.Continue
+                label="작업 지시"
+                onClick={cmdPlanStart}
+              />
+            )}
         </Toolbar.Container>
         <div className="basis-px bg-gray-200" />
         <div className="flex-1 flex h-0">
