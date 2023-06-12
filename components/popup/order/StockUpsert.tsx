@@ -567,7 +567,8 @@ function DataForm(props: DataFormProps) {
           />
           {editable &&
             props.isSales &&
-            props.initialOrder?.orderType === "NORMAL" && (
+            (props.initialOrder?.orderType === "NORMAL" ||
+              orderType === "NORMAL") && (
               <div className="flex-initial flex mb-4">
                 <Button.Preset.SelectStockGroupInhouse
                   onSelect={(stockGroup) => {
