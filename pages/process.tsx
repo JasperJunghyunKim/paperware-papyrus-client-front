@@ -12,7 +12,12 @@ export default function Component() {
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Working.Plan.useGetList({ query: page });
+  const list = ApiHook.Working.Plan.useGetList({
+    query: {
+      ...page,
+      type: "INHOUSE",
+    },
+  });
   const [selected, setSelected] = useState<Model.Plan[]>([]);
 
   const only = Util.only(selected);
@@ -22,7 +27,7 @@ export default function Component() {
     if (
       !only ||
       !(await Util.confirm(
-        `선택한 작업 계획(${only.planNo})을 삭제하시겠습니까?`
+        `선택한 내부 공정(${only.planNo})을 삭제하시겠습니까?`
       ))
     ) {
       return;
@@ -32,7 +37,7 @@ export default function Component() {
   }, [apiDelete, only]);
 
   return (
-    <Page title="작업 계획 목록">
+    <Page title="내부 공정 목록">
       <StatBar.Container>
         <StatBar.Item icon={<TbHome />} label="작업 계획" value={"-"} />
         <StatBar.Item
@@ -43,6 +48,10 @@ export default function Component() {
         />
       </StatBar.Container>
       <Toolbar.Container>
+        <Toolbar.ButtonPreset.Create
+          label="내부 공정 등록"
+          onClick={() => setOpenCreate(true)}
+        />
         <div className="flex-1" />
         {only && (
           <Toolbar.ButtonPreset.Update
@@ -60,11 +69,11 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "주문 번호",
-            dataIndex: ["orderStock", "order", "orderNo"],
+            title: "작업 번호",
+            dataIndex: ["planNo"],
             render: (value, record) => (
               <div className="flex">
-                <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                <div className="font-fixed bg-amber-100 px-1 text-amber-800 rounded-md">
                   {value}
                 </div>
               </div>
@@ -99,46 +108,8 @@ export default function Component() {
             ),
           },
           {
-            title: "납품처",
-            dataIndex: ["orderStock", "order", "srcCompany", "businessName"],
-          },
-          {
-            title: "납품 요청일시",
-            dataIndex: ["orderStock", "order", "wantedDate"],
-            render: (value) => Util.formatIso8601ToLocalDate(value),
-          },
-          {
-            title: "납품 도착지",
-            dataIndex: [
-              "orderStock",
-              "order",
-              "orderStock",
-              "dstLocation",
-              "name",
-            ],
-          },
-          {
-            title: "납품 도착지 주소",
-            dataIndex: [
-              "orderStock",
-              "order",
-              "orderStock",
-              "dstLocation",
-              "address",
-            ],
-            render: (value) => Util.formatAddress(value),
-          },
-          {
-            title: "수급처",
-          },
-          {
             title: "창고",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "warehouse",
-              "name",
-            ],
+            dataIndex: ["assignStockEvent", "stock", "warehouse", "name"],
           },
           ...Table.Preset.columnStockGroup<Model.Plan>(
             (record) => record.assignStockEvent?.stock

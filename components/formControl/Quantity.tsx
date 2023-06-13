@@ -74,6 +74,7 @@ export default function Component(props: Props) {
                 ?.value ?? 0
             }
             onChange={(p) => change("매")(p)}
+            precision={0}
             disabled={props.disabled || props.spec.packaging.type === "BOX"}
           />
           <InputNumber
@@ -86,6 +87,7 @@ export default function Component(props: Props) {
             onChange={(p) =>
               change(props.spec.packaging.type === "BOX" ? "BOX" : "R")(p)
             }
+            precision={props.spec.packaging.type === "BOX" ? 0 : 3}
             disabled={props.disabled}
           />
         </>

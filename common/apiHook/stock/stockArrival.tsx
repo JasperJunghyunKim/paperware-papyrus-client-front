@@ -23,12 +23,9 @@ export function useApply() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (params: {
-      stockEventId: number;
-      body: Api.StockArrivalApplyRequest;
-    }) => {
+    async (params: { planId: number; body: Api.StockArrivalApplyRequest }) => {
       const { data } = await axios.post<Api.StockArrivalResponse>(
-        `${API_HOST}/stock-arrival/${params.stockEventId}/apply`,
+        `${API_HOST}/stock-arrival/${params.planId}/apply`,
         params.body
       );
 

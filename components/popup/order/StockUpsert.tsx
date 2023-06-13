@@ -1,6 +1,6 @@
 import { Api, Model } from "@/@shared";
 import { OrderStatus } from "@/@shared/models/enum";
-import { ApiHook, PaperUtil, Util } from "@/common";
+import { ApiHook, PaperUtil, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { mine } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
@@ -314,10 +314,8 @@ function DataForm(props: DataFormProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const [form] = useForm<
-    (
-      | Api.OrderStockCreateRequest
-      | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
-    ) & { orderType: "NORMAL" | "DEPOSIT" }
+    | Api.OrderStockCreateRequest
+    | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
   >();
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
@@ -337,6 +335,7 @@ function DataForm(props: DataFormProps) {
     },
   });
 
+  const planId = useWatch<number | null | undefined>(["planId"], form);
   const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const grammage = useWatch(["grammage"], form);
@@ -374,9 +373,9 @@ function DataForm(props: DataFormProps) {
         ?.srcCompany.managedById !== null) ||
     orderType === "DEPOSIT";
 
-  const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetGroupQuantity({
+  const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetStockGroup({
     query: {
-      initialOrderId: null, // TODO
+      planId: planId ?? null,
       warehouseId: warehouse?.id ?? null,
       productId: productId ?? null,
       packagingId: packagingId ?? null,
@@ -400,11 +399,10 @@ function DataForm(props: DataFormProps) {
       const quantityMultiply = props.initialOrder.orderStock ? -1 : 1;
 
       form.setFieldsValue({
-        orderType: props.initialOrder.orderType,
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
         locationId: props.initialOrder.orderStock?.dstLocation.id,
-        wantedDate: props.initialOrder.wantedDate,
+        wantedDate: props.initialOrder.orderStock?.wantedDate,
         warehouseId: assignStock?.warehouse?.id,
         planId: assignStock?.planId,
         productId: assignStock?.product.id,
@@ -491,6 +489,10 @@ function DataForm(props: DataFormProps) {
       },
     });
   }, [form, apiUpdateAssign, props.initialOrder]);
+
+  const compactQuantity = stockGroupQuantity.data
+    ? QuantityUtil.compact(stockGroupQuantity.data, stockGroupQuantity.data)
+    : null;
 
   return (
     <Form form={form} layout="vertical" rootClassName="w-full mb-32">
@@ -638,6 +640,7 @@ function DataForm(props: DataFormProps) {
               )}
             </>
           )}
+          <Form.Item name="planId" label="계획" hidden />
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
             <FormControl.SelectProduct disabled={!editable || !manual} />
           </Form.Item>
@@ -737,7 +740,7 @@ function DataForm(props: DataFormProps) {
                     sizeY,
                     packaging,
                   }}
-                  value={stockGroupQuantity.data?.totalQuantity ?? 0}
+                  value={compactQuantity?.totalQuantity}
                   disabled
                 />
               </Form.Item>
@@ -749,9 +752,7 @@ function DataForm(props: DataFormProps) {
                     sizeY,
                     packaging,
                   }}
-                  value={
-                    (stockGroupQuantity.data?.availableQuantity ?? 0) - quantity
-                  }
+                  value={(compactQuantity?.availableQuantity ?? 0) - quantity}
                   disabled
                 />
               </Form.Item>

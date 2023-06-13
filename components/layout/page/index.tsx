@@ -35,6 +35,7 @@ import {
   TbReportMoney,
   TbBookDownload,
   TbBookUpload,
+  TbFunction,
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -66,7 +67,7 @@ export default function Component(props: PropsWithChildren<Props>) {
         path: "/stock-inhouse",
       },
       {
-        label: "도착 예정 목록",
+        label: "예정 목록",
         icon: <TbServerBolt />,
         path: "/stock-arrival",
       },
@@ -100,6 +101,11 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "매입 주문 목록",
         icon: <TbClipboardList />,
         path: "/trade-order",
+      },
+      {
+        label: "내부 공정 목록",
+        icon: <TbFunction />,
+        path: "/process",
       },
       { path: null },
       {

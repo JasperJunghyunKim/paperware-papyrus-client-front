@@ -1,4 +1,5 @@
 import Create from "./Create";
 import ApplyArrival from "./ApplyArrival";
+import Modify from "./Modify";
 
-export { Create, ApplyArrival };
+export { Create, ApplyArrival, Modify };

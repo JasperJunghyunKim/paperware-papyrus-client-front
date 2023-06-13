@@ -28,7 +28,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="도착 예정 목록">
+    <Page title="예정 목록">
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

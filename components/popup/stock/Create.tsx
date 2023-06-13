@@ -8,14 +8,17 @@ import _ from "lodash";
 import { useCallback, useEffect } from "react";
 
 export interface Props {
+  arrival?: boolean;
   open: boolean;
   onClose: (unit: boolean) => void;
 }
 
+type FormValues = Api.StockCreateRequest & Api.ArrivalStockCreateRequest;
+
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
-  const [form] = useForm<Api.StockCreateRequest>();
+  const [form] = useForm<FormValues>();
   const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const sizeX = useWatch<number>(["sizeX"], form);
@@ -31,31 +34,35 @@ export default function Component(props: Props) {
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
-  const api = ApiHook.Stock.StockInhouse.useCreate();
+  const apiDefault = ApiHook.Stock.StockInhouse.useCreate();
+  const apiArrival = ApiHook.Stock.StockInhouse.useCreateArrival();
   const cmd = useCallback(
-    async (values: Api.StockCreateRequest) => {
-      await api.mutateAsync({
-        data: {
-          ...values,
-          stockPrice: {
-            ...values.stockPrice,
+    async (values: FormValues) => {
+      const api = props.arrival ? apiArrival : apiDefault;
+      const data: FormValues = {
+        ...values,
+        stockPrice: {
+          ...values.stockPrice,
 
-            officialPrice: _.isFinite(values.stockPrice?.officialPrice)
-              ? values.stockPrice?.officialPrice
-              : 0,
-            discountPrice: _.isFinite(values.stockPrice?.discountPrice)
-              ? values.stockPrice?.discountPrice
-              : 0,
-            unitPrice: _.isFinite(values.stockPrice?.unitPrice)
-              ? values.stockPrice?.unitPrice
-              : 0,
-          },
+          officialPrice: _.isFinite(values.stockPrice?.officialPrice)
+            ? values.stockPrice?.officialPrice
+            : 0,
+          discountPrice: _.isFinite(values.stockPrice?.discountPrice)
+            ? values.stockPrice?.discountPrice
+            : 0,
+          unitPrice: _.isFinite(values.stockPrice?.unitPrice)
+            ? values.stockPrice?.unitPrice
+            : 0,
         },
+      };
+
+      await api.mutateAsync({
+        data,
       });
       form.resetFields();
       props.onClose(false);
     },
-    [api, form, props]
+    [apiDefault, form, props]
   );
 
   useEffect(() => {
@@ -73,13 +80,15 @@ export default function Component(props: Props) {
     <Popup.Template.Property title="재고 추가" {...props}>
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
-          <Form.Item
-            name="warehouseId"
-            label="창고"
-            rules={[{ required: true }]}
-          >
-            <FormControl.SelectWarehouse />
-          </Form.Item>
+          {!props.arrival && (
+            <Form.Item
+              name="warehouseId"
+              label="창고"
+              rules={[{ required: true }]}
+            >
+              <FormControl.SelectWarehouse />
+            </Form.Item>
+          )}
           <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
             <FormControl.SelectProduct />
           </Form.Item>
@@ -177,7 +186,10 @@ export default function Component(props: Props) {
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="재고 추가" disabled={api.isLoading} />
+            <Button.Preset.Submit
+              label="재고 추가"
+              disabled={apiDefault.isLoading}
+            />
           </Form.Item>
         </Form>
       </div>

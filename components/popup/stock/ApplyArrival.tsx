@@ -32,7 +32,7 @@ export default function Component(props: Props) {
       }
 
       await api.mutateAsync({
-        stockEventId: props.open,
+        planId: props.open,
         body: {
           warehouseId: values.warehouseId,
         },

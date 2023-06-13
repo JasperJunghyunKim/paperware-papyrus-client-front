@@ -44,7 +44,7 @@ export default function Component(props: Props) {
                 record.paperColor?.id ?? "_"
               } ${record.paperPattern?.id ?? "_"} ${
                 record.paperCert?.id ?? "_"
-              } ${record.warehouse?.id ?? "_"}`
+              } ${record.warehouse?.id ?? "_"} ${record.plan?.id}`
             }
             selected={selectedGroup}
             onSelectedChange={setSelectedGroup}
@@ -52,15 +52,21 @@ export default function Component(props: Props) {
             columns={[
               {
                 title: "거래처",
-                dataIndex: ["orderCompanyInfo", "businessName"],
+                dataIndex: [
+                  "plan",
+                  "orderStock",
+                  "order",
+                  "partnerCompany",
+                  "businessName",
+                ],
               },
               {
                 title: "도착지",
-                dataIndex: ["orderStock", "dstLocation", "name"],
+                dataIndex: ["plan", "orderStock", "dstLocation", "name"],
               },
               {
                 title: "예정일",
-                dataIndex: ["orderInfo", "wantedDate"],
+                dataIndex: ["plan", "orderStock", "order", "wantedDate"],
                 render: (value) => (
                   <div className="font-fixed">
                     {Util.formatIso8601ToLocalDate(value)}

@@ -1,6 +1,6 @@
 import { Api } from "@/@shared";
-import { StockGroupQuantityQuery } from "@/@shared/api";
 import { API_HOST } from "@/common/const";
+import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
@@ -33,6 +33,7 @@ export function useGetList(params: { query?: Partial<Api.StockListQuery> }) {
       "stockInhouse",
       "list",
       params.query?.warehouseId,
+      params.query?.planId,
       params.query?.productId,
       params.query?.packagingId,
       params.query?.grammage,
@@ -87,20 +88,68 @@ export function useCreate() {
       onSuccess: async () => {
         await queryClient.invalidateQueries(["stockInhouse", "groupList"]);
         await queryClient.invalidateQueries(["stockInhouse", "list"]);
+
+        message.info("신규 재고를 등록하였습니다.");
       },
     }
   );
 }
 
-export function useGetGroupQuantity(params: {
-  query: StockGroupQuantityQuery;
+export function useCreateArrival() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["stockInhouse", "createArrival"],
+    async (params: { data: Api.ArrivalStockCreateRequest }) => {
+      const resp = await axios.post(`${API_HOST}/stock/arrival`, params.data);
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(["stockInhouse", "groupList"]);
+        await queryClient.invalidateQueries(["stockInhouse", "list"]);
+
+        message.info("예정 재고를 등록하였습니다.");
+      },
+    }
+  );
+}
+
+export function useUpdateQuantity() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["stockInhouse", "updateQuantity"],
+    async (params: {
+      stockId: number;
+      data: Api.StockQuantityChangeRequest;
+    }) => {
+      const resp = await axios.post(
+        `${API_HOST}/stock/${params.stockId}`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(["stockInhouse", "groupList"]);
+        await queryClient.invalidateQueries(["stockInhouse", "list"]);
+
+        message.info("재고 수량을 수정하였습니다.");
+      },
+    }
+  );
+}
+
+export function useGetStockGroup(params: {
+  query: Partial<Api.StockGroupDetailQuery>;
 }) {
   return useQuery(
     [
       "stockInhouse",
-      "groupQuantity",
+      "stockGroup",
       params.query.warehouseId,
-      params.query.initialOrderId,
+      params.query.planId,
       params.query.productId,
       params.query.packagingId,
       params.query.grammage,
@@ -112,8 +161,11 @@ export function useGetGroupQuantity(params: {
       params.query.paperCertId,
     ],
     async () => {
-      const resp = await axios.get<Api.StockGroupQuantityResponse>(
-        `${API_HOST}/stock/group/quantity`,
+      if (!params.query.productId) {
+        return null;
+      }
+      const resp = await axios.get<Api.StockGroupDetailResponse>(
+        `${API_HOST}/stock/group/detail`,
         {
           params: params.query,
         }

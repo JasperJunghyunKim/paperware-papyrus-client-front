@@ -3,11 +3,13 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
+  const [openCreateArrival, setOpenCreateArrival] = useState(false);
+  const [openModify, setOpenModify] = useState<number | false>(false);
 
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.StockInhouse.useGetGroupList({
@@ -29,9 +31,15 @@ export default function Component() {
       paperPatternId: onlyGroup?.paperPattern?.id,
       paperCertId: onlyGroup?.paperCert?.id,
       warehouseId: onlyGroup?.warehouse?.id,
+      planId: onlyGroup?.plan?.id,
     },
   });
   const [selected, setSelected] = useState<Model.Stock[]>([]);
+  const only = Util.only(selected);
+
+  useEffect(() => {
+    setSelected([]);
+  }, [selectedGroup]);
 
   return (
     <Page title="자사 재고 관리">
@@ -49,7 +57,16 @@ export default function Component() {
           label="자사 재고 추가"
           onClick={() => setOpenCreate(true)}
         />
+        <Toolbar.ButtonPreset.Create
+          label="예정 재고 추가"
+          onClick={() => setOpenCreateArrival(true)}
+        />
         <div className="flex-1" />
+        <Toolbar.ButtonPreset.Update
+          label="재고 수량 수정"
+          onClick={() => only && setOpenModify(only.id)}
+          disabled={!only}
+        />
       </Toolbar.Container>
       <Table.Default<Model.StockGroup>
         data={groupList.data}
@@ -98,12 +115,15 @@ export default function Component() {
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            (p) => p.totalQuantity,
+            (record) => (record.warehouse ? record.totalQuantity : 0),
             { prefix: "실물" }
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            (p) => p.availableQuantity,
+            (record) =>
+              record.warehouse
+                ? record.availableQuantity
+                : record.storingQuantity,
             { prefix: "가용" }
           ),
         ]}
@@ -143,17 +163,23 @@ export default function Component() {
           },
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,
-            (p) => p.cachedQuantity,
+            (record) => record.cachedQuantity,
             { prefix: "실물" }
           ),
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,
-            (p) => p.cachedQuantityAvailable,
+            (record) => record.cachedQuantityAvailable,
             { prefix: "가용" }
           ),
         ]}
       />
       <Popup.Stock.Create open={openCreate} onClose={setOpenCreate} />
+      <Popup.Stock.Create
+        open={openCreateArrival}
+        onClose={setOpenCreateArrival}
+        arrival
+      />
+      <Popup.Stock.Modify open={openModify} onClose={setOpenModify} />
     </Page>
   );
 }

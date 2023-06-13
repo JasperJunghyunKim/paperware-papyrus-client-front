@@ -36,8 +36,8 @@ export function useCreate() {
 
   return useMutation(
     ["plan", "create"],
-    async (params: { data: Api.PlanCreateRequest }) => {
-      const resp = await axios.post(`${API_HOST}/working/plan`, params.data);
+    async (params: { data: Api.InhouseProcessCreateRequest }) => {
+      const resp = await axios.post(`${API_HOST}/inhouse/process`, params.data);
       return resp.data;
     },
     {
