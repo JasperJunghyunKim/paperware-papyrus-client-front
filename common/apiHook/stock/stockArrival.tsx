@@ -23,9 +23,9 @@ export function useApply() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (params: { planId: number; body: Api.StockArrivalApplyRequest }) => {
+    async (params: { body: Api.StockArrivalApplyRequest }) => {
       const { data } = await axios.post<Api.StockArrivalResponse>(
-        `${API_HOST}/stock-arrival/${params.planId}/apply`,
+        `${API_HOST}/stock-arrival/apply`,
         params.body
       );
 
@@ -33,6 +33,8 @@ export function useApply() {
     },
     {
       onSuccess: async () => {
+        await queryClient.invalidateQueries(["stockInhouse", "groupList"]);
+        await queryClient.invalidateQueries(["stockInhouse", "list"]);
         await queryClient.invalidateQueries(["stock-arrival", "list"]);
         message.info("재고 입고가 완료되었습니다.");
       },

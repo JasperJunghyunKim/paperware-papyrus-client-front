@@ -5,8 +5,9 @@ import { Form } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { useCallback, useEffect } from "react";
 
-type StockEventId = number;
-type Open = StockEventId | false;
+type ValuesType = Omit<Api.StockArrivalApplyRequest, "warehouseId">;
+type FormType = { warehouseId: number };
+type Open = ValuesType | false;
 
 export interface Props {
   open: Open;
@@ -14,11 +15,11 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm<Api.StockArrivalApplyRequest>();
+  const [form] = useForm<FormType>();
 
   const api = ApiHook.Stock.StockArrival.useApply();
   const cmd = useCallback(
-    async (values: Api.StockArrivalApplyRequest) => {
+    async (values: FormType) => {
       if (!props.open) {
         return;
       }
@@ -32,8 +33,8 @@ export default function Component(props: Props) {
       }
 
       await api.mutateAsync({
-        planId: props.open,
         body: {
+          ...props.open,
           warehouseId: values.warehouseId,
         },
       });

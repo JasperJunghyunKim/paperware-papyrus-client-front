@@ -1,4 +1,4 @@
-import { Model } from "@/@shared";
+import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
@@ -19,7 +19,9 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
-  const [openApply, setOpenApply] = useState<number | false>(false);
+  const [openApply, setOpenApply] = useState<
+    Omit<Api.StockArrivalApplyRequest, "warehouseId"> | false
+  >(false);
 
   useEffect(() => {
     if (list.data) {
@@ -41,7 +43,21 @@ export default function Component() {
         <Toolbar.ButtonPreset.Continue
           label="재고 입고"
           disabled={!only}
-          onClick={() => only?.plan && setOpenApply(only.plan.id)}
+          onClick={() =>
+            only?.plan &&
+            setOpenApply({
+              planId: only.plan.id,
+              productId: only.product.id,
+              packagingId: only.packaging.id,
+              grammage: only.grammage,
+              sizeX: only.sizeX,
+              sizeY: only.sizeY,
+              paperColorGroupId: only.paperColorGroup?.id ?? null,
+              paperColorId: only.paperColor?.id ?? null,
+              paperPatternId: only.paperPattern?.id ?? null,
+              paperCertId: only.paperCert?.id ?? null,
+            })
+          }
         />
       </Toolbar.Container>
       <Table.Default<RecordType>
