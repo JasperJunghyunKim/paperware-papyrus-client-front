@@ -76,6 +76,7 @@ export function useStart() {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
         await queryClient.invalidateQueries(["plan", "list"]);
+        await queryClient.invalidateQueries(["stockInhouse"]);
       },
     }
   );

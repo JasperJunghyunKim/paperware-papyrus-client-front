@@ -33,19 +33,11 @@ export default function Component(props: Props) {
       width="calc(100vw - 200px)"
       height="600px"
     >
-      <div className="flex flex-col w-full h-full">
+      <div className="flex flex-col w-full h-full overflow-y-scroll">
         <div className="flex-1">
           <Table.Default<Model.StockGroup>
             data={groupList.data}
-            keySelector={(record) =>
-              `${record.product.id} ${record.sizeX} ${record.sizeY} ${
-                record.grammage
-              } ${record.paperColorGroup?.id ?? "_"} ${
-                record.paperColor?.id ?? "_"
-              } ${record.paperPattern?.id ?? "_"} ${
-                record.paperCert?.id ?? "_"
-              } ${record.warehouse?.id ?? "_"} ${record.plan?.id}`
-            }
+            keySelector={Util.keyOfStockGroup}
             selected={selectedGroup}
             onSelectedChange={setSelectedGroup}
             selection="single"

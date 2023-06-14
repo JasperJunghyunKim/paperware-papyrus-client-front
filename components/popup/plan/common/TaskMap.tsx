@@ -473,7 +473,7 @@ function ConvertingNode(props: ConvertingProps) {
   }, [initialW, initialH, w, h]);
 
   return (
-    <div className="flex-initial flex flex-col gap-y-2">
+    <div className="flex-1 flex flex-col gap-y-2">
       <div className="flex-1 flex flex-col gap-y-2 p-4">
         <ConfigProvider
           theme={{ token: { borderRadius: 999, colorTextDisabled: "black" } }}
@@ -499,18 +499,20 @@ function ConvertingNode(props: ConvertingProps) {
       </div>
       {props.plan.status === "PROGRESSING" &&
         props.current.value.status !== "PROGRESSED" && (
-          <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+          <>
             {props.current.value.status === "PREPARING" &&
               (!props.parent || props.parent.value.status === "PROGRESSED") && (
-                <TaskCommandButton label="작업 시작" onClick={cmdStart} />
+                <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+                  <TaskCommandButton label="작업 시작" onClick={cmdStart} />
+                </div>
               )}
             {props.current.value.status === "PROGRESSING" && (
-              <TaskCommandButton label="작업 역행" onClick={cmdReset} />
+              <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+                <TaskCommandButton label="작업 역행" onClick={cmdReset} />
+                <TaskCommandButton label="작업 완료" onClick={cmdFinish} />
+              </div>
             )}
-            {props.current.value.status === "PROGRESSING" && (
-              <TaskCommandButton label="작업 완료" onClick={cmdFinish} />
-            )}
-          </div>
+          </>
         )}
     </div>
   );
@@ -578,7 +580,7 @@ function GuillotineNode(props: GuillotineProps) {
   }, [initialW, initialH, w, h]);
 
   return (
-    <div className="flex-initial flex flex-col gap-y-2">
+    <div className="flex-1 flex flex-col gap-y-2">
       <div className="flex-1 flex flex-col gap-y-2 p-4">
         <ConfigProvider
           theme={{ token: { borderRadius: 999, colorTextDisabled: "black" } }}
@@ -604,18 +606,20 @@ function GuillotineNode(props: GuillotineProps) {
       </div>
       {props.plan.status === "PROGRESSING" &&
         props.current.value.status !== "PROGRESSED" && (
-          <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+          <>
             {props.current.value.status === "PREPARING" &&
               (!props.parent || props.parent.value.status === "PROGRESSED") && (
-                <TaskCommandButton label="작업 시작" onClick={cmdStart} />
+                <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+                  <TaskCommandButton label="작업 시작" onClick={cmdStart} />
+                </div>
               )}
             {props.current.value.status === "PROGRESSING" && (
-              <TaskCommandButton label="작업 역행" onClick={cmdReset} />
+              <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
+                <TaskCommandButton label="작업 역행" onClick={cmdReset} />
+                <TaskCommandButton label="작업 완료" onClick={cmdFinish} />
+              </div>
             )}
-            {props.current.value.status === "PROGRESSING" && (
-              <TaskCommandButton label="작업 완료" onClick={cmdFinish} />
-            )}
-          </div>
+          </>
         )}
     </div>
   );

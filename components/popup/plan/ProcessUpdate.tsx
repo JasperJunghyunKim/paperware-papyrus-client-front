@@ -4,9 +4,10 @@ import { Button, FormControl, Icon, Popup, Toolbar } from "@/components";
 import { Form } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import classNames from "classnames";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Collapsible from "react-collapsible";
 import { TaskMap } from "./common";
+import { TbCircleCheck } from "react-icons/tb";
 
 export interface Props {
   open: number | false;
@@ -37,7 +38,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title="작업 계획 상세"
+      title="내부 공정 상세"
       {...props}
       open={!!props.open}
       width="calc(100vw - 80px)"
@@ -103,12 +104,22 @@ export default function Component(props: Props) {
           </>
         )}
       </div>
-      <div className="basis-px bg-gray-300" />
-      <div className="flex-[0_0_460px] flex flex-col overflow-y-scroll">
-        {arrivals.data?.items.map((item, index) => (
-          <Collapse key={index} stock={item} />
-        ))}
-      </div>
+      {data.data?.status === "PROGRESSING" && (
+        <>
+          <div className="basis-px bg-gray-300" />
+          <div className="flex-[0_0_460px] flex flex-col overflow-y-scroll">
+            {arrivals.data?.items.map(
+              (item, index) =>
+                props.open && (
+                  <Collapse
+                    key={index}
+                    data={{ planId: props.open, stock: item }}
+                  />
+                )
+            )}
+          </div>
+        </>
+      )}
     </Popup.Template.Full>
   );
 }
@@ -145,45 +156,100 @@ function OrderItemProperty(props: OrderItemPropertyProps) {
 }
 
 interface CollapseProps {
-  stock: Model.StockGroup;
+  data: {
+    planId: number;
+    stock: Model.StockGroup;
+  };
 }
 function Collapse(props: CollapseProps) {
-  const [form] = useForm<Model.StockPrice>();
+  const [form] = useForm<{ price: Model.StockPrice }>();
+
+  const stock = props.data.stock;
+  const planId = props.data.planId;
+
+  const data = ApiHook.Stock.StockInhouse.useGetStockArrival({
+    query: {
+      planId: planId,
+      productId: stock.product.id,
+      grammage: stock.grammage,
+      sizeX: stock.sizeX,
+      sizeY: stock.sizeY,
+      packagingId: stock.packaging.id,
+      paperColorGroupId: stock.paperColorGroup?.id,
+      paperColorId: stock.paperColor?.id,
+      paperPatternId: stock.paperPattern?.id,
+      paperCertId: stock.paperCert?.id,
+    },
+  });
+
+  useEffect(() => {
+    if (data.data?.stockPrice) {
+      form.setFieldsValue({
+        price: data.data.stockPrice,
+      });
+    } else {
+      form.resetFields();
+    }
+  }, [data.data]);
 
   const quantity = useMemo(() => {
     return PaperUtil.convertQuantity(
       {
-        grammage: props.stock.grammage,
-        sizeX: props.stock.sizeX,
-        sizeY: props.stock.sizeY,
-        packaging: props.stock.packaging,
+        grammage: stock.grammage,
+        sizeX: stock.sizeX,
+        sizeY: stock.sizeY,
+        packaging: stock.packaging,
       },
-      QuantityUtil.compact(props.stock, props.stock).availableQuantity
+      QuantityUtil.compact(stock, stock).availableQuantity
     );
-  }, [props.stock]);
+  }, [stock]);
 
   const spec = {
-    grammage: props.stock.grammage,
-    sizeX: props.stock.sizeX,
-    sizeY: props.stock.sizeY,
-    packaging: props.stock.packaging,
+    grammage: stock.grammage,
+    sizeX: stock.sizeX,
+    sizeY: stock.sizeY,
+    packaging: stock.packaging,
   };
+
+  const apiUpdate = ApiHook.Stock.StockInhouse.useUpdateStockArrivalPrice();
+  const cmdUpdate = useCallback(async () => {
+    const values = await form.validateFields();
+
+    console.log(values);
+
+    await apiUpdate.mutateAsync({
+      data: {
+        isSyncPrice: false,
+        planId: planId,
+        productId: stock.product.id,
+        grammage: stock.grammage,
+        sizeX: stock.sizeX,
+        sizeY: stock.sizeY,
+        packagingId: stock.packaging.id,
+        paperColorGroupId: stock.paperColorGroup?.id ?? null,
+        paperColorId: stock.paperColor?.id ?? null,
+        paperPatternId: stock.paperPattern?.id ?? null,
+        paperCertId: stock.paperCert?.id ?? null,
+        stockPrice: values.price,
+      },
+    });
+  }, [apiUpdate, form, planId, stock]);
 
   return (
     <div className="flex-initial flex flex-col">
       <Collapsible
         transitionTime={50}
         trigger={
-          <div className="p-2 bg-slate-200 select-none cursor-pointer flex gap-x-2 items-center">
+          <div className="px-4 py-2 bg-slate-200 select-none cursor-pointer flex gap-x-2 items-center">
             <div className="flex-initial text-xl flex flex-col justify-center">
-              <Icon.PackagingType packagingType={props.stock.packaging.type} />
+              <Icon.PackagingType packagingType={stock.packaging.type} />
             </div>
             <div className="flex-initial font-fixed">
-              {props.stock.packaging.type}
+              {stock.packaging.type}
             </div>
             ─
             <div className="flex-initial font-fixed">
-              {`${props.stock.sizeX} × ${props.stock.sizeY}`}
+              {`${stock.sizeX} × ${stock.sizeY}`}
             </div>
             <div className="flex-1" />
             {quantity.unpacked && (
@@ -207,9 +273,9 @@ function Collapse(props: CollapseProps) {
         }
         contentOuterClassName="bg-slate-50"
       >
-        <div className="p-2 flex flex-col">
+        <div className="p-4 flex flex-col">
           <Form form={form} layout="vertical">
-            <Form.Item label="재고 금액 입력">
+            <Form.Item name={"price"} label="예정 재고 금액">
               <FormControl.StockPrice spec={spec} />
             </Form.Item>
             <Form.Item label="공급가">
@@ -217,7 +283,12 @@ function Collapse(props: CollapseProps) {
             </Form.Item>
           </Form>
           <div className="flex-initial flex justify-end">
-            <Button.Preset.Submit label="금액 저장" />
+            <Button.Default
+              label="금액 저장"
+              icon={<TbCircleCheck />}
+              type="secondary"
+              onClick={cmdUpdate}
+            />
           </div>
         </div>
       </Collapsible>

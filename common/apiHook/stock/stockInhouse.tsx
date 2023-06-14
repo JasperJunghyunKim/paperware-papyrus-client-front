@@ -174,3 +174,58 @@ export function useGetStockGroup(params: {
     }
   );
 }
+
+export function useGetStockArrival(params: {
+  query: Partial<Api.StockArrivalDetailQuery>;
+}) {
+  return useQuery(
+    [
+      "stockInhouse",
+      "stockArrival",
+      params.query.planId,
+      params.query.productId,
+      params.query.packagingId,
+      params.query.grammage,
+      params.query.sizeX,
+      params.query.sizeY,
+      params.query.paperColorGroupId,
+      params.query.paperColorId,
+      params.query.paperPatternId,
+      params.query.paperCertId,
+    ],
+    async () => {
+      if (!params.query.productId) {
+        return null;
+      }
+      const resp = await axios.get<Api.StockArrivalDetail>(
+        `${API_HOST}/stock-arrival/detail`,
+        {
+          params: params.query,
+        }
+      );
+      return resp.data;
+    }
+  );
+}
+
+export function useUpdateStockArrivalPrice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["stockInhouse", "updateStockArrivalPrice"],
+    async (params: { data: Api.StockArrivalPriceUpdateRequest }) => {
+      const resp = await axios.put(
+        `${API_HOST}/stock-arrival/price`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(["stockInhouse"]);
+
+        message.info("재고 금액을 수정하였습니다.");
+      },
+    }
+  );
+}

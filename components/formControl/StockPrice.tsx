@@ -118,7 +118,7 @@ export default function Component(props: Props) {
         origPrice: p.unitPrice ?? 0,
         spec: props.spec,
       });
-      return (1 - tempPrice / p.officialPrice) * 100;
+      return p.officialPrice == 0 ? 0 : (1 - tempPrice / p.officialPrice) * 100;
     },
     [props.spec]
   );

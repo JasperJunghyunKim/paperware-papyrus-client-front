@@ -625,3 +625,13 @@ export const mine =
   (y: { companyId: number } | undefined | null) => {
     return x && y && x?.companyId === y?.companyId;
   };
+
+export const keyOfStockGroup = (record: Model.StockGroup) => {
+  return `${record.product.id} ${record.sizeX} ${record.sizeY} ${
+    record.grammage
+  } ${record.packaging.id} ${record.paperColorGroup?.id ?? "_"} ${
+    record.paperColor?.id ?? "_"
+  } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
+    record.warehouse?.id ?? "_"
+  } ${record.plan?.id}`;
+};

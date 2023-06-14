@@ -24,8 +24,9 @@ export const convertPrice = (p: {
     packtype() === "BOX" ? p.spec.packaging.packA * p.spec.packaging.packB : 1;
   const calcRect = () => p.spec.sizeX * (p.spec.sizeY || 1);
 
-  const gpr = p.spec.grammage * calcRect() * 500 * 0.001 * 0.001;
-  const gpb = p.spec.grammage * calcRect() * calcPackUnit() * 0.001 * 0.001;
+  const gpr = p.spec.grammage * calcRect() * 500 * 0.000001 * 0.000001;
+  const gpb =
+    p.spec.grammage * calcRect() * calcPackUnit() * 0.000001 * 0.000001;
   const rpb = calcPackUnit() / 500;
 
   switch (p.srcUnit) {
