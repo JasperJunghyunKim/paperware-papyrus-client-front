@@ -122,7 +122,7 @@ export default function Component() {
         ]}
       />
       <Popup.Plan.Create open={openCreate} onClose={setOpenCreate} />
-      <Popup.Plan.Update open={openUpdate} onClose={setOpenUpdate} />
+      <Popup.Plan.ProcessUpdate open={openUpdate} onClose={setOpenUpdate} />
     </Page>
   );
 }

@@ -138,7 +138,17 @@ function Item(props: ItemProps) {
               </div>
             )}
             {props.plan.status === "PROGRESSING" && (
-              <div className="flex-initial flex gap-x-2 text-yellow-300">
+              <div
+                className={classNames(
+                  "flex-initial flex gap-x-2 text-gray-400",
+                  {
+                    "text-gray-400": props.data.value.status === "PREPARING",
+                    "text-yellow-300":
+                      props.data.value.status === "PROGRESSING",
+                    "text-white": props.data.value.status === "PROGRESSED",
+                  }
+                )}
+              >
                 <div className="flex-initial flex flex-col justify-center">
                   {Util.taskStatusToString(props.data.value.status)}
                 </div>
@@ -741,16 +751,10 @@ function QuantityNode(props: QuantityProps) {
         </ConfigProvider>
       </div>
       {props.plan.status === "PROGRESSING" &&
-        props.current.value.status !== "PROGRESSED" && (
+        props.current.value.status !== "PROGRESSED" &&
+        (!props.parent || props.parent.value.status === "PROGRESSED") && (
           <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">
-            {props.current.value.status === "PREPARING" &&
-              (!props.parent || props.parent.value.status === "PROGRESSED") && (
-                <TaskCommandButton
-                  label="출고"
-                  onClick={cmdFinish}
-                  type="danger"
-                />
-              )}
+            <TaskCommandButton label="출고" onClick={cmdFinish} type="danger" />
           </div>
         )}
     </div>

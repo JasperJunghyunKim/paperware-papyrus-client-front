@@ -36,7 +36,7 @@ export default function Component(props: PropsWithChildren<PropertyProps>) {
             <TbX />
           </div>
         </div>
-        <div className="flex-1 rounded-md flex overflow-hidden">
+        <div className="flex-1 rounded-b-md flex overflow-hidden">
           {props.children}
         </div>
       </div>
