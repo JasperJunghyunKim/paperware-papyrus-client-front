@@ -83,7 +83,7 @@ jobs:
       - name: 배포를 위한 AWS CodeDeploy 설정
         run: |
           aws deploy create-deployment \
-            --application-name AppECS-paperware-client-develop-paperware-clinet-front \
-            --deployment-group-name DgpECS-paperware-client-develop-paperware-clinet-front \
+            --application-name AppECS-paperware-client-develop-paperware-client-front \
+            --deployment-group-name DgpECS-paperware-client-develop-paperware-client-front \
             --s3-location bucket=paperware-client-develop-front,bundleType=YAML,key=${{ env.s3_key }}
         shell: bash
