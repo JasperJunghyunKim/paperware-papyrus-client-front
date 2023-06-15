@@ -1,0 +1,81 @@
+name: develop deploy
+on:
+  push:
+    branches:
+      - feature/account
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: 소스코드 전환
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          submodules: true
+
+      - name: AWS 설정
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Amazon ECR 등록(Build, tag, and push image)
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: paperware-client-develop-front
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: taskdef ARN 가져오기
+        id: taskdefdetails
+        run: |
+          TASKDEF_ARN=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.taskDefinitionArn' --output text)
+          NAME=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].name' --output text)
+          PORT=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
+          echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
+          echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
+          echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
+
+      - name: appspec.yml 생성
+        run: |
+          echo "version: 0.0" >> appspec.yml
+          echo "Resources:" >> appspec.yml
+          echo "  - myApp:" >> appspec.yml
+          echo "    Type: AWS::ECS::Service" >> appspec.yml
+          echo "    Properties:" >> appspec.yml
+          echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yml
+          echo "      LoadBalancerInfo:" >> appspec.yml
+          echo "        ContainerName: ${{ env.CONTAINER_NAME }}" >> appspec.yml
+          echo "        ContainerPort: ${{ env.CONTAINER_PORT }}" >> appspec.yml
+          # 날짜 및 시간 가져오기 (한국 시간)
+          current_date_time=$(TZ=Asia/Seoul date '+%Y%m%d-%H%M%S')
+
+          # appspec.yml 파일의 S3 키 생성
+          s3_key="${current_date_time}/appspec.yml"
+
+          # S3에 appspec.yml 파일 업로드
+          aws s3 cp ./appspec.yml "s3://paperware-client-develop-front/${s3_key}"
+          echo "s3_key=${s3_key}" >> $GITHUB_ENV
+
+      - name: 배포를 위한 AWS CodeDeploy 설정
+        run: |
+          aws deploy create-deployment \
+            --application-name AppECS-paperware-client-develop-paperware-clinet-front \
+            --deployment-group-name DgpECS-paperware-client-develop-paperware-clinet-front \
+            --s3-location bucket=paperware-client-develop-front,bundleType=YAML,key=${{ env.s3_key }}
+        shell: bash

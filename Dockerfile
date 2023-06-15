@@ -15,6 +15,10 @@ RUN \
 
 FROM base AS builder
 WORKDIR /app
+
+ARG DEVELOP_ENV
+RUN echo $DEVELOP_ENV > .env.development
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 COPY .env.development .env.development
@@ -29,14 +33,13 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 COPY --from=builder /app/public ./public
-
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 4000
 
-ENV PORT 3000
+ENV PORT 4000
 
 CMD ["node", "server.js"]
