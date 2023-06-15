@@ -21,7 +21,6 @@ RUN echo $DEVELOP_ENV > .env.development
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY .env.development .env.development
 RUN yarn build
 
 FROM base AS runner
