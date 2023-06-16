@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN NEXT_PUBLIC_API_HOST=$NEXT_PUBLIC_API_HOST yarn build
+RUN yarn build
 
 FROM base AS runner
 WORKDIR /app
@@ -35,6 +35,5 @@ USER nextjs
 EXPOSE 4000
 
 ENV PORT 4000
-ENV NEXT_PUBLIC_API_HOST $NEXT_PUBLIC_API_HOST
 
 CMD ["node", "server.js"]
