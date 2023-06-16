@@ -311,6 +311,8 @@ interface MiniFormProps {
   unit?: string;
   disabled?: boolean;
   precision?: number;
+  min?: number;
+  max?: number;
 }
 function MiniFormNumber(props: MiniFormProps) {
   return (
@@ -320,8 +322,8 @@ function MiniFormNumber(props: MiniFormProps) {
         <InputNumber
           value={props.value}
           onChange={(p) => props.onChange?.(p ?? 0)}
-          min={0}
-          max={9999}
+          min={props.min ?? 0}
+          max={props.max ?? 9999}
           precision={props.precision ?? 0}
           rootClassName="w-full"
           addonAfter={props.unit}
@@ -739,6 +741,7 @@ function QuantityNode(props: QuantityProps) {
                 onChange={(p) => setQ(p ?? 0)}
                 unit="매"
                 disabled={props.plan.status !== "PREPARING"}
+                max={999999999}
               />
               <MiniFormNumber
                 label="중량"
@@ -746,6 +749,7 @@ function QuantityNode(props: QuantityProps) {
                 unit="톤"
                 disabled
                 precision={3}
+                max={999999999}
               />
             </>
           )}

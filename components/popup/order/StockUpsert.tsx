@@ -22,6 +22,7 @@ import {
 } from "react-icons/tb";
 import { CreateArrival } from ".";
 import { TaskMap } from "../plan/common";
+import { Enum } from "@/@shared/models";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -314,8 +315,10 @@ function DataForm(props: DataFormProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const [form] = useForm<
-    | Api.OrderStockCreateRequest
-    | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
+    (
+      | Api.OrderStockCreateRequest
+      | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
+    ) & { orderType: Enum.OrderType }
   >();
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
@@ -399,6 +402,7 @@ function DataForm(props: DataFormProps) {
       const quantityMultiply = props.initialOrder.orderStock ? -1 : 1;
 
       form.setFieldsValue({
+        orderType: props.initialOrder.orderType,
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
         locationId: props.initialOrder.orderStock?.dstLocation.id,
@@ -771,9 +775,7 @@ function DataForm(props: DataFormProps) {
       {packaging && editable && (
         <div className="flex-initial flex justify-end">
           <Button.Preset.Edit
-            label={`${props.isSales ? "수주" : "주문"} 재고 ${
-              props.initialOrder ? "수정" : "등록"
-            }`}
+            label={`다음`}
             onClick={async () =>
               props.initialOrder ? await cmdUpdateAssign() : await cmdCreate()
             }

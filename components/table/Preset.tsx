@@ -251,21 +251,21 @@ export function columnQuantity<T>(
         case "packed":
           return quantity.packed
             ? `${Util.comma(
-                Math.abs(quantity.packed.value),
+                quantity.packed.value,
                 PaperUtil.recommendedPrecision(quantity.packed.unit)
               )} ${Util.padRightCJK(quantity.packed.unit, 3)}`
             : null;
         case "unpacked":
           return quantity.unpacked
             ? `${Util.comma(
-                Math.abs(quantity.unpacked.value),
+                quantity.unpacked.value,
                 PaperUtil.recommendedPrecision(quantity.unpacked.unit)
               )} ${Util.padRightCJK(quantity.unpacked.unit, 2)}`
             : null;
         case "weight":
           return _.isFinite(quantity.grams)
             ? `${Util.comma(
-                Math.abs(quantity.grams * 0.000001),
+                quantity.grams * 0.000001,
                 PaperUtil.recommendedPrecision("T")
               )} ${"T"}`
             : null;
