@@ -58,9 +58,9 @@ jobs:
       - name: Amazon ECS task-definition 변수 생성
         id: taskdef-details
         run: |
-          TASKDEF_ARN=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinitionArn')
-          NAME=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.containerDefinitions[0].name')
-          PORT=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.containerDefinitions[0].portMappings[0].containerPort')
+          TASKDEF_ARN=$(cat "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinition.taskDefinitionArn')
+          NAME=$(cat "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinition.containerDefinitions[0].name')
+          PORT=$(cat "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinition.containerDefinitions[0].portMappings[0].containerPort')
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
           echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
           echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
