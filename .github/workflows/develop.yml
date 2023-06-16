@@ -41,25 +41,21 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-      
-      - name: Download current task definition
-        run: |
-            aws ecs describe-task-definition --task-definition paperware-client-develop-front > task-definition.json
 
-      - name: Update task definition
-        run: |
-          jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.build-image.outputs.image }}"' task-definition.json > task-definition-updated.json
-      
-      - name: Register new task definition
-        run: |
-          aws ecs register-task-definition --cli-input-json file://task-definition-updated.json
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: paperware-client-develop-front
+          image: ${{ steps.build-image.outputs.image }}
 
-      - name: taskdef ARN 가져오기
-        id: taskdefdetails
+      - name: Get task definition details
+        id: taskdef-details
         run: |
-          TASKDEF_ARN=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.taskDefinitionArn' --output text)
-          NAME=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].name' --output text)
-          PORT=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
+          TASKDEF_ARN=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.taskDefinitionArn')
+          NAME=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.containerDefinitions[0].name')
+          PORT=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.containerDefinitions[0].portMappings[0].containerPort')
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
           echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
           echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
