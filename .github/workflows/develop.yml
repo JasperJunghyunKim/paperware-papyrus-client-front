@@ -55,7 +55,7 @@ jobs:
           container-name: paperware-client-develop-front
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Amazon ECS task-definition 등록
+      - name: Amazon ECS task-definition 변수 생성
         id: taskdef-details
         run: |
           TASKDEF_ARN=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinitionArn')
