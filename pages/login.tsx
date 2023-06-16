@@ -7,6 +7,10 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 
+(function () {
+  console.log(process.env);
+})();
+
 export default function Home() {
   const router = useRouter();
 
@@ -23,15 +27,15 @@ export default function Home() {
     await router.replace("/");
   }, [apiSignIn, form, router]);
 
-  console.log(process.env)
+  console.log(process.env.NEXT_PUBLIC_API_HOST)
 
   return (
     <div className="component w-screen h-screen bg-no-repeat bg-center bg-cover">
       {
-        <div>
-          {process.env.NEXT_PUBLIC_API_HOST}
-          {process.env as any}
-        </div>
+        // <div>
+        //   {process.env.NEXT_PUBLIC_API_HOST}
+        //   {process.env as any}
+        // </div>
       }
       <div className="relative w-full h-full bg-gray-800/[.6] backdrop-blur-md">
         <div className="w-full h-full flex justify-center">
