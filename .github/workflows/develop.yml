@@ -35,37 +35,23 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: paperware-client-develop-front
-          IMAGE_TAG: ${{ github.sha }}
           DEVELOP_ENV: ${{ secrets.DEVELOP_ENV }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
-      - name: 다운로드 ecs task-definition
-        run: |
-          aws ecs describe-task-definition --task-definition paperware-client-develop-front \
-          --query taskDefinition > task-definition.json
-
-      - name: 새로운 이미지 ID로 Amazon ECS task-definition 채우기
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: paperware-client-develop-front
-          image: ${{ steps.build-image.outputs.image }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
       - name: Amazon ECS task-definition 변수 생성
         id: taskdef-details
         run: |
-          TASKDEF_ARN=$(jq -r '.taskDefinition.taskDefinitionArn' ${{ steps.task-def.outputs.task-definition }})
-          NAME=$(jq -r '.taskDefinition.containerDefinitions[0].name' ${{ steps.task-def.outputs.task-definition }})
-          PORT=$(jq -r '.taskDefinition.containerDefinitions[0].portMappings[0].containerPort' ${{ steps.task-def.outputs.task-definition }})
+          TASKDEF_ARN=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.taskDefinitionArn' --output text)
+          NAME=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].name' --output text)
+          PORT=$(aws ecs describe-task-definition --task-definition paperware-client-develop-front --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
           echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
           echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
 
-      - name: appspec.yaml 생성
+      - name: appspec.json 생성
         run: |
           echo '{
               "version": 0.0,
