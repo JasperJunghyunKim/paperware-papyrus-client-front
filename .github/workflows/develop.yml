@@ -42,12 +42,12 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: Download task definition
+      - name: 다운로드 ecs task-definition
         run: |
           aws ecs describe-task-definition --task-definition paperware-client-develop-front \
           --query taskDefinition > task-definition.json
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
+      - name: 새로운 이미지 ID로 Amazon ECS task-definition 채우기
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -55,12 +55,12 @@ jobs:
           container-name: paperware-client-develop-front
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Get task definition details
+      - name: Amazon ECS task-definition 등록
         id: taskdef-details
         run: |
-          TASKDEF_ARN=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.taskDefinitionArn')
-          NAME=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.containerDefinitions[0].name')
-          PORT=$(echo '${{ steps.task-def.outputs.task-definition }}' | jq -r '.containerDefinitions[0].portMappings[0].containerPort')
+          TASKDEF_ARN=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.taskDefinitionArn')
+          NAME=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.containerDefinitions[0].name')
+          PORT=$(echo "${{ steps.task-def.outputs.task-definition }}" | jq -r '.containerDefinitions[0].portMappings[0].containerPort')
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
           echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
           echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
