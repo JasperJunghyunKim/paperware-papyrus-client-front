@@ -16,17 +16,12 @@ RUN \
 FROM base AS builder
 WORKDIR /app
 
-ARG DEVELOP_ENV
-RUN echo $DEVELOP_ENV > .env.development
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN yarn build
+RUN NEXT_PUBLIC_API_HOST=$NEXT_PUBLIC_API_HOST yarn build
 
 FROM base AS runner
 WORKDIR /app
-
-ENV NODE_ENV=development
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
