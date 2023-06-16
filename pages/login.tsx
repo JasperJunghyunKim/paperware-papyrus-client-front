@@ -23,8 +23,16 @@ export default function Home() {
     await router.replace("/");
   }, [apiSignIn, form, router]);
 
+  console.log(process.env)
+
   return (
     <div className="component w-screen h-screen bg-no-repeat bg-center bg-cover">
+      {
+        <div>
+          {process.env.NEXT_PUBLIC_API_HOST}
+          {process.env as any}
+        </div>
+      }
       <div className="relative w-full h-full bg-gray-800/[.6] backdrop-blur-md">
         <div className="w-full h-full flex justify-center">
           <div className="flex flex-col justify-center container-outer">
