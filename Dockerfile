@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN yarn build
+RUN NEXT_PUBLIC_API_HOST=$NEXT_PUBLIC_API_HOST yarn build
 
 FROM base AS runner
 WORKDIR /app
