@@ -32,8 +32,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-ARG NEXT_PUBLIC_API_HOST
-ENV NEXT_PUBLIC_API_HOST=$NEXT_PUBLIC_API_HOST
 EXPOSE 4000
 ENV PORT 4000
 
