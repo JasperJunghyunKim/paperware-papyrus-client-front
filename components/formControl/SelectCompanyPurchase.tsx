@@ -10,6 +10,7 @@ interface Props {
   value?: number;
   onChange?: (value: number) => void;
   disabled?: boolean;
+  virtual?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -22,12 +23,18 @@ export default function Component(props: Props) {
   });
 
   const options = useMemo(() => {
-    return list.data?.items.map((x) => ({
-      label: <Item item={x} />,
-      text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
-      value: x.srcCompany.id,
-    }));
-  }, [list]);
+    return list.data?.items
+      .filter(
+        (x) =>
+          props.virtual === undefined ||
+          (x.srcCompany.managedById !== undefined) === props.virtual
+      )
+      .map((x) => ({
+        label: <Item item={x} />,
+        text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
+        value: x.srcCompany.id,
+      }));
+  }, [list.data?.items, props.virtual]);
 
   return (
     <div className="flex flex-col gap-y-1">

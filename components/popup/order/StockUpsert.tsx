@@ -58,7 +58,7 @@ export default function Component(props: Props) {
       setInitialOrderId(null);
       order.remove();
     }
-  }, [props.open]);
+  }, [order, props.open]);
 
   const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
@@ -268,7 +268,7 @@ export default function Component(props: Props) {
       default:
         return null;
     }
-  }, [order, isOffer, isSales]);
+  }, [isSales, order.data, cmdAccept, cmdRequest, cmdReject, cmdReset]);
 
   return (
     <Popup.Template.Full
@@ -323,7 +323,7 @@ function DataForm(props: DataFormProps) {
   const [warehouse, setWarehouse] = useState<Partial<Model.Warehouse> | null>(
     null
   );
-  const orderType = useWatch<"NORMAL" | "DEPOSIT">(["orderType"], form);
+  const orderType = useWatch<Enum.OrderType>(["orderType"], form);
   const dstCompanyId = useWatch<number | null | undefined>(
     ["dstCompanyId"],
     form
@@ -459,7 +459,15 @@ function DataForm(props: DataFormProps) {
     });
 
     return created;
-  }, [form, apiCreateNormal, apiCreateDeposit, me, props.isOffer, warehouse]);
+  }, [
+    form,
+    me.data,
+    orderType,
+    apiCreateDeposit,
+    apiCreateNormal,
+    props.isOffer,
+    warehouse?.id,
+  ]);
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
   const cmdUpdate = useCallback(async () => {
@@ -505,12 +513,20 @@ function DataForm(props: DataFormProps) {
       />
       <Form.Item name="orderType" label="거래 구분" required>
         <Select
-          options={[
+          options={Array.from<{ label: string; value: Enum.OrderType }>([
             { label: "정상 거래", value: "NORMAL" },
             { label: "보관 거래", value: "DEPOSIT" },
-          ]}
+            { label: "외주 재단", value: "OUTSOURCE_PROCESS" },
+            { label: "기타 거래", value: "ETC" },
+          ])}
           placeholder="거래 구분 선택"
           disabled={!editable}
+          onChange={(_) =>
+            form.setFieldsValue({
+              srcCompanyId: undefined,
+              dstCompanyId: undefined,
+            })
+          }
         />
       </Form.Item>
       {!props.isSales && (
@@ -520,7 +536,10 @@ function DataForm(props: DataFormProps) {
       )}
       {props.isSales && (
         <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
-          <FormControl.SelectCompanySales disabled={!editable} />
+          <FormControl.SelectCompanySales
+            disabled={!editable}
+            virtual={orderType === "OUTSOURCE_PROCESS" ? true : undefined}
+          />
         </Form.Item>
       )}
       {orderType == "NORMAL" &&
@@ -1311,7 +1330,12 @@ function PricePanel(props: PricePanelProps) {
       ...spec,
       quantity: quantity * m,
     };
-  }, [props.order.orderStock, props.order.orderDeposit, altQuantity]);
+  }, [
+    props.order.orderStock?.plan,
+    props.order.orderDeposit,
+    props.order.dstCompany.id,
+    altQuantity,
+  ]);
 
   const stockSuppliedPrice = useMemo(() => {
     const spec = {
@@ -1344,11 +1368,17 @@ function PricePanel(props: PricePanelProps) {
             ? converted.quantity
             : converted.packed?.value ?? 0);
   }, [
-    props.order?.orderStock,
+    assignSpec.grammage,
+    assignSpec.sizeX,
+    assignSpec.sizeY,
+    assignSpec.packaging,
+    assignSpec.quantity,
+    props.order.orderDeposit?.grammage,
+    props.order.orderDeposit?.sizeX,
+    props.order.orderDeposit?.sizeY,
+    props.order.orderDeposit?.packaging,
     unitPrice,
     unitPriceUnit,
-    altQuantity,
-    assignSpec,
   ]);
 
   const processPrice = useWatch<number | null>(["processPrice"], form);
@@ -1405,7 +1435,7 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: values.vatPrice ?? 0,
       },
     });
-  }, [props.order, form, apiUpdate]);
+  }, [props.order, me.data, form, apiUpdate]);
 
   const apiUpdateDeposit = ApiHook.Trade.Common.useUpdateDeposit();
   const cmdUpsertDeposit = useCallback(async () => {
@@ -1420,7 +1450,14 @@ function PricePanel(props: PricePanelProps) {
         quantity: depositQuantity,
       },
     });
-  }, [props.order, form, apiUpdateDeposit, depositId]);
+  }, [
+    props.order,
+    me.data,
+    form,
+    apiUpdateDeposit,
+    depositId,
+    depositQuantity,
+  ]);
   const apiDeleteDeposit = ApiHook.Trade.Common.useDeleteDeposit();
   const cmdDeleteDeposit = useCallback(async () => {
     if (!props.order || !me.data) return;
@@ -1429,7 +1466,7 @@ function PricePanel(props: PricePanelProps) {
     });
 
     form.setFieldValue("deposit", undefined);
-  }, [props.order, apiDeleteDeposit, depositId]);
+  }, [props.order, me.data, apiDeleteDeposit, form]);
 
   const defaultSuppliedPrice = stockSuppliedPrice + (processPrice ?? 0);
   const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
@@ -1445,7 +1482,7 @@ function PricePanel(props: PricePanelProps) {
           : assignSpec.packaging.type
       )
     );
-  }, [altSizeX, altSizeY, assignSpec.packaging.type]);
+  }, [altSizeX, altSizeY, assignSpec.packaging.type, form]);
 
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)
