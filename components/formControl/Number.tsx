@@ -23,10 +23,12 @@ export default forwardRef(function Component(props: Props, ref: any) {
       value={props.value}
       onChange={(x) => props.onChange?.(x ?? null)}
       formatter={(x, state) =>
-        (state.userTyping
-          ? x
-          : Util.comma(x, props.precision ?? 0)
-        )?.toString() ?? ""
+        x
+          ? (state.userTyping
+              ? x
+              : Util.comma(x, props.precision ?? 0)
+            )?.toString() ?? ""
+          : ""
       }
       precision={props.precision}
       min={props.min}

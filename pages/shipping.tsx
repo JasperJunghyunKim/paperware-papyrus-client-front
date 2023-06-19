@@ -26,22 +26,6 @@ export default function Component() {
     [apiCreate]
   );
 
-  const apiForaward = ApiHook.Shipping.Shipping.useForward();
-  const cmdForward = useCallback(async () => {
-    if (!only) {
-      return;
-    }
-    await apiForaward.mutateAsync({ shippingId: only.id });
-  }, [only, selected, apiForaward]);
-
-  const apiBackward = ApiHook.Shipping.Shipping.useBackward();
-  const cmdBackward = useCallback(async () => {
-    if (!only) {
-      return;
-    }
-    await apiBackward.mutateAsync({ shippingId: only.id });
-  }, [only, selected, apiBackward]);
-
   useEffect(() => {
     if (list.data && only) {
       const found = list.data.items.find((x) => x.id === only.id);
@@ -71,18 +55,6 @@ export default function Component() {
             <Toolbar.ButtonPreset.Update
               label="선택 배송 상세"
               onClick={() => setOpenUpdate(only.id)}
-            />
-            <Toolbar.Button
-              type="primary"
-              label="배송 역행"
-              onClick={cmdBackward}
-              disabled={only.status === "PREPARING"}
-            />
-            <Toolbar.Button
-              type="primary"
-              label="배송 진행"
-              onClick={cmdForward}
-              disabled={only.status === "DONE"}
             />
           </>
         )}

@@ -28,7 +28,7 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title="자사 재고 선택"
+      title="보관 재고 선택"
       {...props}
       open={!!props.open}
       width="calc(100vw - 200px)"
@@ -41,7 +41,7 @@ export default function Component(props: Props) {
             keySelector={(record) =>
               `${record.product.id} ${record.sizeX} ${record.sizeY} ${
                 record.grammage
-              } ${record.paperColorGroup?.id ?? "_"} ${
+              } ${record.packaging.id} ${record.paperColorGroup?.id ?? "_"} ${
                 record.paperColor?.id ?? "_"
               } ${record.paperPattern?.id ?? "_"} ${
                 record.paperCert?.id ?? "_"

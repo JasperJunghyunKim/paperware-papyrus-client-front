@@ -65,6 +65,12 @@ export default function Component(props: Props) {
     );
   }, [packagingId, grammage, sizeX, sizeY]);
 
+  useEffect(() => {
+    if (!props.open) {
+      form.resetFields();
+    }
+  }, [props.open]);
+
   return (
     <Popup.Template.Property
       title="도착 재고 추가"
@@ -73,15 +79,15 @@ export default function Component(props: Props) {
     >
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
-          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-            <FormControl.SelectProduct />
-          </Form.Item>
           <Form.Item
             name="packagingId"
             label="포장"
             rules={[{ required: true }]}
           >
             <FormControl.SelectPackaging />
+          </Form.Item>
+          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
+            <FormControl.SelectProduct />
           </Form.Item>
           <Form.Item
             name="grammage"

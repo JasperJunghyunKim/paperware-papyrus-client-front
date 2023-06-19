@@ -17,6 +17,7 @@ interface Props {
   value?: number | null;
   onChange?: (value: number | null) => void;
   disabled?: boolean;
+  onlyPositive?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -63,6 +64,7 @@ export default function Component(props: Props) {
           }
           disabled
           precision={1}
+          min={props.onlyPositive ? 0 : undefined}
         />
       ) : (
         <>
@@ -76,6 +78,7 @@ export default function Component(props: Props) {
             onChange={(p) => change("매")(p)}
             precision={0}
             disabled={props.disabled || props.spec.packaging.type === "BOX"}
+            min={props.onlyPositive ? 0 : undefined}
           />
           <InputNumber
             addonAfter={props.spec.packaging.type === "BOX" ? "BOX" : "R"}
@@ -89,6 +92,7 @@ export default function Component(props: Props) {
             }
             precision={props.spec.packaging.type === "BOX" ? 0 : 3}
             disabled={props.disabled}
+            min={props.onlyPositive ? 0 : undefined}
           />
         </>
       )}
@@ -103,6 +107,7 @@ export default function Component(props: Props) {
         onChange={(p) => change("T")((ntz(p) ?? 0) * 1000000)}
         disabled={props.disabled || props.spec.packaging.type !== "ROLL"}
         precision={3}
+        min={props.onlyPositive ? 0 : undefined}
       />
     </div>
   );

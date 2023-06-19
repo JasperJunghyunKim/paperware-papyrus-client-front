@@ -5,7 +5,7 @@ import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
@@ -31,6 +31,20 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
+  const apiCancel = ApiHook.Trade.Common.useCancel();
+  const cmdCancel = useCallback(async () => {
+    if (
+      !only ||
+      !(await Util.confirm(`선택한 매출(${only.orderNo})을 취소하시겠습니까?`))
+    ) {
+      return;
+    }
+
+    await apiCancel.mutateAsync({
+      orderId: only.id,
+    });
+  }, [apiCancel, only]);
+
   return (
     <Page title="매출 주문 목록">
       <StatBar.Container>
@@ -42,6 +56,16 @@ export default function Component() {
           onClick={() => setOpenStockUpsert("CREATE_OFFER")}
         />
         <div className="flex-1" />
+        {only &&
+          (only.status === "OFFER_PREPARING" ||
+            only.status === "OFFER_REJECTED" ||
+            only.status === "ORDER_PREPARING" ||
+            only.status === "ORDER_REJECTED") && (
+            <Toolbar.ButtonPreset.Delete
+              label="매출 삭제"
+              onClick={cmdCancel}
+            />
+          )}
         <Toolbar.ButtonPreset.Update
           label="매출 정보 상세"
           onClick={() => only && setOpenStockUpsert(only.id)}

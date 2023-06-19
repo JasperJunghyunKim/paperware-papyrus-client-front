@@ -102,26 +102,28 @@ export default function Component() {
           {
             title: "평량",
             dataIndex: ["grammage"],
-            render: (value: number) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)} ${
-                Util.UNIT_GPM
-              }`}</div>
-            ),
+            render: (value: number) =>
+              value && (
+                <div className="text-right font-fixed">{`${Util.comma(value)} ${
+                  Util.UNIT_GPM
+                }`}</div>
+              ),
           },
           {
             title: "지폭",
             dataIndex: ["sizeX"],
-            render: (value: number) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )} mm`}</div>
-            ),
+            render: (value: number) =>
+              value && (
+                <div className="text-right font-fixed">{`${Util.comma(
+                  value
+                )} mm`}</div>
+              ),
           },
           {
             title: "지장",
             dataIndex: ["sizeY"],
             render: (value: number, record: Record) =>
-              record.packagingType !== "ROLL" ? (
+              value && record.packagingType !== "ROLL" ? (
                 <div className="text-right font-fixed">{`${Util.comma(
                   value
                 )} mm`}</div>

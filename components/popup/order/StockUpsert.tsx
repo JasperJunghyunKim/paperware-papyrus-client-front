@@ -30,9 +30,9 @@ const REQUIRED_RULES = [{ required: true }];
 
 function title(open: OrderUpsertOpen) {
   return open === "CREATE_ORDER"
-    ? "정상 매입 등록"
+    ? "매입 등록"
     : open === "CREATE_OFFER"
-    ? "정상 매출 등록"
+    ? "매출 등록"
     : null;
 }
 
@@ -47,6 +47,8 @@ export default function Component(props: Props) {
   const order = ApiHook.Trade.Common.useGetItem({
     id: initialOrderId,
   });
+
+  console.log("ioi: " + initialOrderId);
 
   const isOffer = props.open === "CREATE_OFFER";
   const isSales = isOffer || me.data?.companyId === order.data?.dstCompany.id;
@@ -136,7 +138,15 @@ export default function Component(props: Props) {
               buttons={[
                 {
                   fn: cmdAccept(true),
-                  label: `매입 등록 완료`,
+                  label: `${
+                    order.data.orderType === "NORMAL"
+                      ? "정상 매출"
+                      : order.data.orderType === "DEPOSIT"
+                      ? "매출 보관"
+                      : order.data.orderType === "OUTSOURCE_PROCESS"
+                      ? "외주 재단 매출"
+                      : "기타 매출"
+                  } 등록`,
                 },
               ]}
             />
@@ -161,6 +171,12 @@ export default function Component(props: Props) {
             icon={<TbBrandMixpanel />}
             title={`매출처의 재고 승인을 기다리고 있습니다.`}
             phone={Util.formatPhoneNo(order.data.srcCompany.phoneNo)}
+            buttons={[
+              {
+                fn: cmdReset,
+                label: `구매 제안 취소`,
+              },
+            ]}
           />
         ) : (
           <RightSideSkeleton
@@ -204,18 +220,26 @@ export default function Component(props: Props) {
               buttons={[
                 {
                   fn: cmdAccept(true),
-                  label: `매입 등록 완료`,
+                  label: `${
+                    order.data.orderType === "NORMAL"
+                      ? "정상 매입"
+                      : order.data.orderType === "DEPOSIT"
+                      ? "매입 보관"
+                      : order.data.orderType === "OUTSOURCE_PROCESS"
+                      ? "외주 재단 매입"
+                      : "기타 매입"
+                  } 등록`,
                 },
               ]}
             />
           ) : (
             <RightSideSkeleton
               icon={<TbAB />}
-              title={`거래 하려는 매입처와 재고를 선택하고 발주 요청을 보내세요.`}
+              title={`거래 하려는 매입처와 재고를 선택하고 주문 요청을 보내세요.`}
               buttons={[
                 {
                   fn: cmdRequest,
-                  label: `발주 요청`,
+                  label: `주문 요청`,
                 },
               ]}
             />
@@ -229,6 +253,12 @@ export default function Component(props: Props) {
             icon={<TbBrandMixpanel />}
             title={`매입처의 주문 승인을 기다리고 있습니다.`}
             phone={Util.formatPhoneNo(order.data.dstCompany.phoneNo)}
+            buttons={[
+              {
+                fn: cmdReset,
+                label: `주문 요청 취소`,
+              },
+            ]}
           />
         ) : (
           <RightSideSkeleton
@@ -284,7 +314,10 @@ export default function Component(props: Props) {
             isOffer={isOffer}
             isSales={isSales}
             initialOrder={order.data ?? null}
-            onCreated={(p) => setInitialOrderId(p.id)}
+            onCreated={(p) => {
+              console.log(p);
+              setInitialOrderId(p.orderId);
+            }}
           />
         </div>
         {skeleton() ??
@@ -316,7 +349,10 @@ function DataForm(props: DataFormProps) {
 
   const [form] = useForm<
     (
-      | Api.OrderStockCreateRequest
+      | (Api.OrderStockCreateRequest &
+          Api.OrderDepositCreateRequest &
+          Api.OrderProcessCreateRequest &
+          Api.OrderEtcCreateRequest)
       | (Api.OrderStockUpdateRequest & Api.OrderStockAssignStockUpdateRequest)
     ) & { orderType: Enum.OrderType }
   >();
@@ -374,7 +410,8 @@ function DataForm(props: DataFormProps) {
     (!props.isSales &&
       companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
         ?.srcCompany.managedById !== null) ||
-    orderType === "DEPOSIT";
+    orderType === "DEPOSIT" ||
+    (props.isSales && orderType === "OUTSOURCE_PROCESS");
 
   const stockGroupQuantity = ApiHook.Stock.StockInhouse.useGetStockGroup({
     query: {
@@ -406,6 +443,8 @@ function DataForm(props: DataFormProps) {
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
         locationId: props.initialOrder.orderStock?.dstLocation.id,
+        dstLocationId: props.initialOrder.orderProcess?.dstLocation.id,
+        srcLocationId: props.initialOrder.orderProcess?.srcLocation.id,
         wantedDate: props.initialOrder.orderStock?.wantedDate,
         warehouseId: assignStock?.warehouse?.id,
         planId: assignStock?.planId,
@@ -423,6 +462,7 @@ function DataForm(props: DataFormProps) {
           (assignStockEvent?.change ??
             props.initialOrder.orderDeposit?.quantity ??
             0),
+        item: props.initialOrder.orderEtc?.item,
         memo: props.initialOrder.memo,
       });
       setWarehouse(assignStock?.warehouse ?? null);
@@ -458,6 +498,8 @@ function DataForm(props: DataFormProps) {
       data: payload,
     });
 
+    props.onCreated(created);
+
     return created;
   }, [
     form,
@@ -467,6 +509,7 @@ function DataForm(props: DataFormProps) {
     apiCreateNormal,
     props.isOffer,
     warehouse?.id,
+    props.onCreated,
   ]);
 
   const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
@@ -511,16 +554,30 @@ function DataForm(props: DataFormProps) {
       <FormControl.Util.Split
         label={props.isSales ? "매출 정보" : "매입 정보"}
       />
-      <Form.Item name="orderType" label="거래 구분" required>
+      <Form.Item
+        name="orderType"
+        label={props.isSales ? "매출 유형" : "매입 유형"}
+        initialValue={"NORMAL"}
+        required
+      >
         <Select
           options={Array.from<{ label: string; value: Enum.OrderType }>([
-            { label: "정상 거래", value: "NORMAL" },
-            { label: "보관 거래", value: "DEPOSIT" },
-            { label: "외주 재단", value: "OUTSOURCE_PROCESS" },
-            { label: "기타 거래", value: "ETC" },
+            {
+              label: props.isSales ? "정상 매출" : "정상 매입",
+              value: "NORMAL",
+            },
+            {
+              label: props.isSales ? "매출 보관" : "매입 보관",
+              value: "DEPOSIT",
+            },
+            {
+              label: props.isSales ? "외주 재단 매출" : "외주 재단 매입",
+              value: "OUTSOURCE_PROCESS",
+            },
+            { label: props.isSales ? "기타 매출" : "기타 매입", value: "ETC" },
           ])}
-          placeholder="거래 구분 선택"
-          disabled={!editable}
+          placeholder={props.isSales ? "매출 유형" : "매입 유형"}
+          disabled={!!props.initialOrder}
           onChange={(_) =>
             form.setFieldsValue({
               srcCompanyId: undefined,
@@ -531,38 +588,94 @@ function DataForm(props: DataFormProps) {
       </Form.Item>
       {!props.isSales && (
         <Form.Item name="dstCompanyId" label="매입처" rules={REQUIRED_RULES}>
-          <FormControl.SelectCompanyPurchase disabled={!editable} />
+          <FormControl.SelectCompanyPurchase disabled={!!props.initialOrder} />
         </Form.Item>
       )}
       {props.isSales && (
         <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanySales
-            disabled={!editable}
+            disabled={!!props.initialOrder}
             virtual={orderType === "OUTSOURCE_PROCESS" ? true : undefined}
           />
         </Form.Item>
       )}
-      {orderType == "NORMAL" &&
+      {(orderType == "NORMAL" || orderType == "OUTSOURCE_PROCESS") &&
         !props.isSales &&
         dstCompanyId &&
         (editable ? (
-          <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-            <FormControl.SelectLocation />
-          </Form.Item>
+          <>
+            {orderType == "OUTSOURCE_PROCESS" ? (
+              <>
+                <Form.Item
+                  name="dstLocationId"
+                  label="원지 도착지"
+                  rules={REQUIRED_RULES}
+                >
+                  <FormControl.SelectLocationForSales
+                    companyId={dstCompanyId}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="srcLocationId"
+                  label="최종 도착지"
+                  rules={REQUIRED_RULES}
+                >
+                  <FormControl.SelectLocation />
+                </Form.Item>
+              </>
+            ) : (
+              <Form.Item
+                name="locationId"
+                label="도착지"
+                rules={REQUIRED_RULES}
+              >
+                <FormControl.SelectLocation />
+              </Form.Item>
+            )}
+          </>
         ) : (
-          <Form.Item label="도착지" required>
-            <Input
-              value={props.initialOrder?.orderStock?.dstLocation.name}
-              disabled={!editable}
-            />
-            <div className="text-gray-400 text-sm mt-2">
-              {`주소: ${Util.formatAddress(
-                props.initialOrder?.orderStock?.dstLocation.address
-              )}`}
-            </div>
-          </Form.Item>
+          <>
+            {orderType == "OUTSOURCE_PROCESS" ? (
+              <>
+                <Form.Item label="원지 도착지" required>
+                  <Input
+                    value={props.initialOrder?.orderStock?.dstLocation.name}
+                    disabled={!editable}
+                  />
+                  <div className="text-gray-400 text-sm mt-2">
+                    {`주소: ${Util.formatAddress(
+                      props.initialOrder?.orderStock?.dstLocation.address
+                    )}`}
+                  </div>
+                </Form.Item>
+                <Form.Item label="도착지" required>
+                  <Input
+                    value={props.initialOrder?.orderStock?.dstLocation.name}
+                    disabled={!editable}
+                  />
+                  <div className="text-gray-400 text-sm mt-2">
+                    {`주소: ${Util.formatAddress(
+                      props.initialOrder?.orderStock?.dstLocation.address
+                    )}`}
+                  </div>
+                </Form.Item>
+              </>
+            ) : (
+              <Form.Item label="도착지" required>
+                <Input
+                  value={props.initialOrder?.orderStock?.dstLocation.name}
+                  disabled={!editable}
+                />
+                <div className="text-gray-400 text-sm mt-2">
+                  {`주소: ${Util.formatAddress(
+                    props.initialOrder?.orderStock?.dstLocation.address
+                  )}`}
+                </div>
+              </Form.Item>
+            )}
+          </>
         ))}
-      {props.isSales && srcCompanyId && orderType == "NORMAL" && (
+      {orderType == "NORMAL" && props.isSales && srcCompanyId && (
         <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
           <FormControl.SelectLocationForSales
             companyId={srcCompanyId}
@@ -570,13 +683,36 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      {orderType == "NORMAL" && (
+      {orderType == "OUTSOURCE_PROCESS" && props.isSales && srcCompanyId && (
+        <>
+          <Form.Item
+            name="dstLocationId"
+            label="원지 도착지"
+            rules={REQUIRED_RULES}
+          >
+            <FormControl.SelectLocation disabled={!editable} />
+          </Form.Item>
+          <Form.Item
+            name="srcLocationId"
+            label="최종 도착지"
+            rules={REQUIRED_RULES}
+          >
+            <FormControl.SelectLocation disabled={!editable} onlyPublic />
+          </Form.Item>
+        </>
+      )}
+      {(orderType == "NORMAL" || orderType == "OUTSOURCE_PROCESS") && (
         <Form.Item
           name="wantedDate"
           label={props.isSales ? "납품 요청일" : "도착 희망일"}
           rules={REQUIRED_RULES}
         >
           <FormControl.DatePicker disabled={!editable} />
+        </Form.Item>
+      )}
+      {orderType == "ETC" && (
+        <Form.Item name="item" label="상품" rules={REQUIRED_RULES}>
+          <Input disabled={!editable} />
         </Form.Item>
       )}
       <Form.Item name="memo" label="기타 요청사항">
@@ -592,135 +728,141 @@ function DataForm(props: DataFormProps) {
           />
         </div>
       )}
-      {(srcCompanyId || dstCompanyId) && (
-        <>
-          <FormControl.Util.Split
-            label={props.isSales ? "수주 원지 정보" : "주문 원지 정보"}
-          />
-          {editable &&
-            props.isSales &&
-            (props.initialOrder?.orderType === "NORMAL" ||
-              orderType === "NORMAL") && (
-              <div className="flex-initial flex mb-4">
-                <Button.Preset.SelectStockGroupInhouse
-                  onSelect={(stockGroup) => {
-                    setWarehouse(stockGroup.warehouse);
-                    form.setFieldsValue({
-                      warehouseId: stockGroup.warehouse?.id,
-                      planId: stockGroup.plan?.id,
-                      productId: stockGroup.product.id,
-                      packagingId: stockGroup.packaging.id,
-                      grammage: stockGroup.grammage,
-                      sizeX: stockGroup.sizeX,
-                      sizeY: stockGroup.sizeY,
-                      paperColorGroupId: stockGroup.paperColorGroup?.id,
-                      paperColorId: stockGroup.paperColor?.id,
-                      paperPatternId: stockGroup.paperPattern?.id,
-                      paperCertId: stockGroup.paperCert?.id,
-                    });
-                  }}
-                  rootClassName="flex-1"
-                />
-              </div>
-            )}
-          {editable && !props.isSales && !manual && (
-            <div className="flex-initial flex mb-4">
-              <Button.Preset.SelectPartnerStockGroup
-                companyId={dstCompanyId ?? null}
-                onSelect={(stockGroup) => {
-                  setWarehouse(stockGroup.warehouse);
-                  form.setFieldsValue({
-                    warehouseId: stockGroup.warehouse?.id,
-                    planId: stockGroup.plan?.id,
-                    productId: stockGroup.product.id,
-                    packagingId: stockGroup.packaging.id,
-                    grammage: stockGroup.grammage,
-                    sizeX: stockGroup.sizeX,
-                    sizeY: stockGroup.sizeY,
-                    paperColorGroupId: stockGroup.paperColorGroup?.id,
-                    paperColorId: stockGroup.paperColor?.id,
-                    paperPatternId: stockGroup.paperPattern?.id,
-                    paperCertId: stockGroup.paperCert?.id,
-                  });
-                }}
-                rootClassName="flex-1"
-              />
-            </div>
-          )}
-          {!manual && (
-            <>
-              <Form.Item
-                name="warehouseId"
-                label="창고"
-                hidden={!props.isSales}
-              >
-                <FormControl.SelectWarehouse disabled />
-              </Form.Item>
-              {!props.isSales && (
-                <Form.Item label="창고" rules={[{ required: true }]}>
-                  <Input value={warehouse?.name} disabled />
-                </Form.Item>
-              )}
-            </>
-          )}
-          <Form.Item name="planId" label="계획" hidden />
-          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-            <FormControl.SelectProduct disabled={!editable || !manual} />
-          </Form.Item>
-          <Form.Item
-            name="packagingId"
-            label="포장"
-            rules={[{ required: true }]}
-          >
-            <FormControl.SelectPackaging disabled={!editable || !manual} />
-          </Form.Item>
-          <Form.Item
-            name="grammage"
-            label="평량"
-            rules={[{ required: true }]}
-            rootClassName="flex-1"
-          >
-            <Number
-              min={0}
-              max={9999}
-              precision={0}
-              unit={Util.UNIT_GPM}
-              disabled={!editable || !manual}
+      {(srcCompanyId || dstCompanyId) &&
+        (orderType === "NORMAL" ||
+          orderType === "DEPOSIT" ||
+          orderType === "OUTSOURCE_PROCESS") && (
+          <>
+            <FormControl.Util.Split
+              label={
+                props.isSales
+                  ? orderType === "DEPOSIT"
+                    ? "수주 보관 정보"
+                    : orderType === "OUTSOURCE_PROCESS"
+                    ? "입고 원지 정보"
+                    : "수주 원지 정보"
+                  : orderType === "DEPOSIT"
+                  ? "주문 보관 정보"
+                  : orderType === "OUTSOURCE_PROCESS"
+                  ? "출고 원지 정보"
+                  : "주문 원지 정보"
+              }
             />
-          </Form.Item>
-          {packaging && (
-            <Form.Item>
-              <div className="flex justify-between gap-x-2">
-                {packaging.type !== "ROLL" && (
-                  <Form.Item label="규격" rootClassName="flex-1">
-                    <FormControl.Util.PaperSize
-                      sizeX={sizeX}
-                      sizeY={sizeY}
-                      onChange={(sizeX, sizeY) =>
-                        form.setFieldsValue({ sizeX, sizeY })
-                      }
-                      disabled={!editable || !manual}
-                    />
+            {editable &&
+              ((props.isSales && orderType === "NORMAL") ||
+                (!props.isSales && orderType === "OUTSOURCE_PROCESS")) && (
+                <div className="flex-initial flex mb-4">
+                  <Button.Preset.SelectStockGroupInhouse
+                    onSelect={(stockGroup) => {
+                      setWarehouse(stockGroup.warehouse);
+                      form.setFieldsValue({
+                        warehouseId: stockGroup.warehouse?.id,
+                        planId: stockGroup.plan?.id,
+                        productId: stockGroup.product.id,
+                        packagingId: stockGroup.packaging.id,
+                        grammage: stockGroup.grammage,
+                        sizeX: stockGroup.sizeX,
+                        sizeY: stockGroup.sizeY,
+                        paperColorGroupId: stockGroup.paperColorGroup?.id,
+                        paperColorId: stockGroup.paperColor?.id,
+                        paperPatternId: stockGroup.paperPattern?.id,
+                        paperCertId: stockGroup.paperCert?.id,
+                      });
+                    }}
+                    rootClassName="flex-1"
+                  />
+                </div>
+              )}
+            {editable &&
+              !props.isSales &&
+              !manual &&
+              orderType === "NORMAL" && (
+                <div className="flex-initial flex mb-4">
+                  <Button.Preset.SelectPartnerStockGroup
+                    companyId={dstCompanyId ?? null}
+                    onSelect={(stockGroup) => {
+                      setWarehouse(stockGroup.warehouse);
+                      form.setFieldsValue({
+                        warehouseId: stockGroup.warehouse?.id,
+                        planId: stockGroup.plan?.id,
+                        productId: stockGroup.product.id,
+                        packagingId: stockGroup.packaging.id,
+                        grammage: stockGroup.grammage,
+                        sizeX: stockGroup.sizeX,
+                        sizeY: stockGroup.sizeY,
+                        paperColorGroupId: stockGroup.paperColorGroup?.id,
+                        paperColorId: stockGroup.paperColor?.id,
+                        paperPatternId: stockGroup.paperPattern?.id,
+                        paperCertId: stockGroup.paperCert?.id,
+                      });
+                    }}
+                    rootClassName="flex-1"
+                  />
+                </div>
+              )}
+            {!manual && (
+              <>
+                <Form.Item
+                  name="warehouseId"
+                  label="창고"
+                  hidden={!props.isSales}
+                >
+                  <FormControl.SelectWarehouse disabled />
+                </Form.Item>
+                {!props.isSales && (
+                  <Form.Item label="창고" rules={[{ required: true }]}>
+                    <Input value={warehouse?.name} disabled />
                   </Form.Item>
                 )}
-                <Form.Item
-                  name="sizeX"
-                  label="지폭"
-                  rules={[{ required: true }]}
-                  rootClassName="flex-1"
-                >
-                  <Number
-                    min={0}
-                    max={9999}
-                    precision={0}
-                    unit="mm"
-                    disabled={!editable || !manual}
-                  />
-                </Form.Item>
-                {packaging.type !== "ROLL" && (
+              </>
+            )}
+            <Form.Item name="planId" label="계획" hidden />
+            <Form.Item
+              name="packagingId"
+              label="포장"
+              rules={[{ required: true }]}
+            >
+              <FormControl.SelectPackaging disabled={!editable || !manual} />
+            </Form.Item>
+            <Form.Item
+              name="productId"
+              label="제품"
+              rules={[{ required: true }]}
+            >
+              <FormControl.SelectProduct disabled={!editable || !manual} />
+            </Form.Item>
+            <Form.Item
+              name="grammage"
+              label="평량"
+              rules={[{ required: true }]}
+              rootClassName="flex-1"
+            >
+              <Number
+                min={0}
+                max={9999}
+                precision={0}
+                unit={Util.UNIT_GPM}
+                disabled={!editable || !manual}
+              />
+            </Form.Item>
+            {packaging && (
+              <Form.Item>
+                <div className="flex justify-between gap-x-2">
+                  {packaging.type !== "ROLL" && (
+                    <Form.Item label="규격" rootClassName="flex-1">
+                      <FormControl.Util.PaperSize
+                        sizeX={sizeX}
+                        sizeY={sizeY}
+                        onChange={(sizeX, sizeY) =>
+                          form.setFieldsValue({ sizeX, sizeY })
+                        }
+                        disabled={!editable || !manual}
+                      />
+                    </Form.Item>
+                  )}
                   <Form.Item
-                    name="sizeY"
-                    label="지장"
+                    name="sizeX"
+                    label="지폭"
                     rules={[{ required: true }]}
                     rootClassName="flex-1"
                   >
@@ -732,25 +874,40 @@ function DataForm(props: DataFormProps) {
                       disabled={!editable || !manual}
                     />
                   </Form.Item>
-                )}
-              </div>
+                  {packaging.type !== "ROLL" && (
+                    <Form.Item
+                      name="sizeY"
+                      label="지장"
+                      rules={[{ required: true }]}
+                      rootClassName="flex-1"
+                    >
+                      <Number
+                        min={0}
+                        max={9999}
+                        precision={0}
+                        unit="mm"
+                        disabled={!editable || !manual}
+                      />
+                    </Form.Item>
+                  )}
+                </div>
+              </Form.Item>
+            )}
+            <Form.Item name="paperColorGroupId" label="색군">
+              <FormControl.SelectColorGroup disabled={!editable || !manual} />
             </Form.Item>
-          )}
-          <Form.Item name="paperColorGroupId" label="색군">
-            <FormControl.SelectColorGroup disabled={!editable || !manual} />
-          </Form.Item>
-          <Form.Item name="paperColorId" label="색상">
-            <FormControl.SelectColor disabled={!editable || !manual} />
-          </Form.Item>
-          <Form.Item name="paperPatternId" label="무늬">
-            <FormControl.SelectPattern disabled={!editable || !manual} />
-          </Form.Item>
-          <Form.Item name="paperCertId" label="인증">
-            <FormControl.SelectCert disabled={!editable || !manual} />
-          </Form.Item>
-          <FormControl.Util.Split label="수량 정보" />
-        </>
-      )}
+            <Form.Item name="paperColorId" label="색상">
+              <FormControl.SelectColor disabled={!editable || !manual} />
+            </Form.Item>
+            <Form.Item name="paperPatternId" label="무늬">
+              <FormControl.SelectPattern disabled={!editable || !manual} />
+            </Form.Item>
+            <Form.Item name="paperCertId" label="인증">
+              <FormControl.SelectCert disabled={!editable || !manual} />
+            </Form.Item>
+            <FormControl.Util.Split label="수량 정보" />
+          </>
+        )}
       {packaging && (
         <>
           {(props.isSales || !manual) && orderType === "NORMAL" && (
@@ -1275,11 +1432,11 @@ function PricePanel(props: PricePanelProps) {
   const depositQuantity = useWatch<number>(["deposit", "quantity"], form);
 
   const depositSpec =
-    depositGrammage && depositSizeX && depositSizeY && depositPackaging
+    depositGrammage && depositSizeX && depositPackaging
       ? {
           grammage: depositGrammage,
           sizeX: depositSizeX,
-          sizeY: depositSizeY,
+          sizeY: depositSizeY ?? 1,
           packaging: depositPackaging,
         }
       : null;
@@ -1562,7 +1719,9 @@ function PricePanel(props: PricePanelProps) {
       >
         {props.order.orderType === "NORMAL" && (
           <>
-            <FormControl.Util.Split label="보관 출고" />
+            <FormControl.Util.Split
+              label={isSales ? "보관 출고" : "보관 입고"}
+            />
             <Form.Item name="deposit">
               <div className="flex-1 flex gap-x-2">
                 <Button.Preset.SelectDeposit
@@ -1591,11 +1750,11 @@ function PricePanel(props: PricePanelProps) {
             </Form.Item>
             {depositSpec && (
               <>
-                <Form.Item name={["deposit", "productId"]} label="제품">
-                  <FormControl.SelectProduct disabled />
-                </Form.Item>
                 <Form.Item name={["deposit", "packaging", "id"]} label="포장">
                   <FormControl.SelectPackaging disabled />
+                </Form.Item>
+                <Form.Item name={["deposit", "productId"]} label="제품">
+                  <FormControl.SelectProduct disabled />
                 </Form.Item>
                 <Form.Item
                   name={["deposit", "grammage"]}
@@ -1672,11 +1831,13 @@ function PricePanel(props: PricePanelProps) {
                   <>
                     <Form.Item
                       name={["deposit", "quantity"]}
-                      label="출고 수량"
+                      label={isSales ? "출고 수량" : "입고 수량"}
                       rules={[
                         {
                           required: true,
-                          message: "출고 수량을 입력해주세요.",
+                          message: `${
+                            isSales ? "출고" : "입고"
+                          } 수량을 입력해주세요.`,
                         },
                       ]}
                     >
@@ -1688,13 +1849,13 @@ function PricePanel(props: PricePanelProps) {
                   <Button.Default
                     type="primary"
                     icon={<TbX />}
-                    label="보관 출고 취소"
+                    label={isSales ? "보관 출고 취소" : "보관 입고 취소"}
                     onClick={cmdDeleteDeposit}
                     rootClassName="flex-1"
                   />
                   <Button.Default
                     type="secondary"
-                    label="보관출고 저장"
+                    label={isSales ? "보관 출고 저장" : "보관 입고 저장"}
                     onClick={cmdUpsertDeposit}
                     rootClassName="flex-1"
                   />

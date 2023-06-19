@@ -9,18 +9,21 @@ interface Props {
   value?: number;
   onChange?: (value: number) => void;
   disabled?: boolean;
+  onlyPublic?: boolean;
 }
 
 export default function Component(props: Props) {
   const list = ApiHook.Inhouse.Location.useGetList({ query: {} });
 
   const options = useMemo(() => {
-    return list.data?.items.map((x) => ({
-      label: <Item item={x} />,
-      text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
-      value: x.id,
-    }));
-  }, [list]);
+    return list.data?.items
+      .filter((x) => !props.onlyPublic || x.isPublic === props.onlyPublic)
+      .map((x) => ({
+        label: <Item item={x} />,
+        text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
+        value: x.id,
+      }));
+  }, [list, props.onlyPublic]);
 
   return (
     <div className="flex flex-col gap-y-1">

@@ -110,11 +110,11 @@ export default function Component(props: Props) {
           <Form.Item name="warehouseId" label="창고">
             <FormControl.SelectWarehouse disabled />
           </Form.Item>
-          <Form.Item name="productId" label="제품">
-            <FormControl.SelectProduct disabled />
-          </Form.Item>
           <Form.Item name="packagingId" label="포장">
             <FormControl.SelectPackaging disabled />
+          </Form.Item>
+          <Form.Item name="productId" label="제품">
+            <FormControl.SelectProduct disabled />
           </Form.Item>
           <Form.Item name="grammage" label="평량" rootClassName="flex-1">
             <Number

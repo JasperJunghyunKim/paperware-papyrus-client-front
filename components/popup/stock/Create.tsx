@@ -89,15 +89,15 @@ export default function Component(props: Props) {
               <FormControl.SelectWarehouse />
             </Form.Item>
           )}
-          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-            <FormControl.SelectProduct />
-          </Form.Item>
           <Form.Item
             name="packagingId"
             label="포장"
             rules={[{ required: true }]}
           >
             <FormControl.SelectPackaging />
+          </Form.Item>
+          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
+            <FormControl.SelectProduct />
           </Form.Item>
           <Form.Item
             name="grammage"
@@ -182,6 +182,7 @@ export default function Component(props: Props) {
                   sizeY,
                   packaging,
                 }}
+                onlyPositive
               />
             </Form.Item>
           )}

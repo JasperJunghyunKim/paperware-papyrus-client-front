@@ -74,15 +74,15 @@ export default function Component(props: Props) {
           <Form.Item name="partnerCompanyRegistrationNumber" label="거래처">
             <FormControl.SelectCompanyRegistrationNumber />
           </Form.Item>
-          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
-            <FormControl.SelectProduct />
-          </Form.Item>
           <Form.Item
             name="packagingId"
             label="포장"
             rules={[{ required: true }]}
           >
             <FormControl.SelectPackaging />
+          </Form.Item>
+          <Form.Item name="productId" label="제품" rules={[{ required: true }]}>
+            <FormControl.SelectProduct />
           </Form.Item>
           <Form.Item
             name="grammage"

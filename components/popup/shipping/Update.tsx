@@ -115,7 +115,7 @@ export default function Component(props: Props) {
                 onClick={cmdForward}
               />
             )}
-            {only && (
+            {only && only.invoiceStatus === "WAIT_LOADING" && (
               <Toolbar.ButtonPreset.Delete
                 label="송장 연결 해제"
                 onClick={cmdDisconnect}
@@ -141,22 +141,6 @@ export default function Component(props: Props) {
                 ),
               },
               {
-                title: "제품 유형",
-                dataIndex: ["product", "paperDomain", "name"],
-              },
-              {
-                title: "제지사",
-                dataIndex: ["product", "manufacturer", "name"],
-              },
-              {
-                title: "지군",
-                dataIndex: ["product", "paperGroup", "name"],
-              },
-              {
-                title: "지종",
-                dataIndex: ["product", "paperType", "name"],
-              },
-              {
                 title: "포장",
                 dataIndex: ["packaging", "type"],
                 render: (value, record) => (
@@ -171,6 +155,22 @@ export default function Component(props: Props) {
                     </div>
                   </div>
                 ),
+              },
+              {
+                title: "제품 유형",
+                dataIndex: ["product", "paperDomain", "name"],
+              },
+              {
+                title: "제지사",
+                dataIndex: ["product", "manufacturer", "name"],
+              },
+              {
+                title: "지군",
+                dataIndex: ["product", "paperGroup", "name"],
+              },
+              {
+                title: "지종",
+                dataIndex: ["product", "paperType", "name"],
               },
               {
                 title: "평량",
