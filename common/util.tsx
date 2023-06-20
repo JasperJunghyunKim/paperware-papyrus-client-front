@@ -382,7 +382,7 @@ export function planStatusToString(value: Model.Enum.PlanStatus) {
   }
 }
 
-export function orderStatusToSTring(value: Model.Enum.OrderStatus) {
+export function orderStatusToString(value: Model.Enum.OrderStatus) {
   switch (value) {
     case "ORDER_PREPARING":
       return "작성중";

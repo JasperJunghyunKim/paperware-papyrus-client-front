@@ -143,7 +143,7 @@ export default function Component() {
                   <Icon.OrderStatus value={value} />
                 </div>
                 <div className="flex-initial flex flex-col justify-center">
-                  {Util.orderStatusToSTring(value)}
+                  {Util.orderStatusToString(value)}
                 </div>
               </div>
             ),
