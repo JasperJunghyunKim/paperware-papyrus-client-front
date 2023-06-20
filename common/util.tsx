@@ -210,7 +210,7 @@ export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
   }
 }
 
-export function orderStatusToString(
+export function orderTypeToString(
   value: Enum.OrderType,
   type: "PURCHASE" | "SALES"
 ) {
