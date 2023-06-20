@@ -30,17 +30,6 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
-  const getStock = useCallback(
-    (record: RecordType) => {
-      return (
-        record.orderStock?.plan.find(
-          (p) => p.companyId === info.data?.companyId
-        )?.assignStockEvent?.stock ?? record.orderDeposit
-      );
-    },
-    [info.data?.companyId]
-  );
-
   const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (
@@ -53,6 +42,8 @@ export default function Component() {
     await apiCancel.mutateAsync({
       orderId: only.id,
     });
+
+    setSelected([]);
   }, [apiCancel, only]);
 
   return (
@@ -91,17 +82,9 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "매출 유형",
+            title: "매입 유형",
             render: (_value, record) => (
-              <div>
-                {record.orderStock
-                  ? record.srcDepositEvent
-                    ? "보관 입고"
-                    : "정상 매입"
-                  : record.orderDeposit
-                  ? "매입 보관"
-                  : ""}
-              </div>
+              <div>{Util.orderStatusToString(record.orderType, "SALES")}</div>
             ),
           },
           ...partnerColumn,
@@ -173,7 +156,7 @@ export default function Component() {
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
             (record) =>
-              record.orderStock?.plan.find(
+              (record.orderStock ?? record.orderProcess)?.plan?.find(
                 (p) => p.companyId === record.dstCompany.id
               )?.assignStockEvent?.stock ?? record.orderDeposit
           ),

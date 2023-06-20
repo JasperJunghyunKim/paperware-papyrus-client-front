@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, Icon, Popup, Table } from "@/components";
 import { useEffect, useState } from "react";
@@ -74,15 +74,13 @@ export default function Component(props: Props) {
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (record) => record,
-                (record) => (record.warehouse ? record.totalQuantity : 0),
+                (record) => QuantityUtil.compact(record, record).totalQuantity,
                 { prefix: "실물" }
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (record) => record,
                 (record) =>
-                  record.warehouse
-                    ? record.availableQuantity
-                    : record.storingQuantity,
+                  QuantityUtil.compact(record, record).availableQuantity,
                 { prefix: "가용" }
               ),
             ]}

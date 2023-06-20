@@ -1,5 +1,3 @@
-import { Model } from "@/@shared";
-
 export interface Quantity {
   totalQuantity: number;
   availableQuantity: number;

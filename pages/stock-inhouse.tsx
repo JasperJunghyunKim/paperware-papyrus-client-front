@@ -70,15 +70,7 @@ export default function Component() {
       </Toolbar.Container>
       <Table.Default<Model.StockGroup>
         data={groupList.data}
-        keySelector={(record) =>
-          `${record.product.id} ${record.sizeX} ${record.sizeY} ${
-            record.grammage
-          } ${record.paperColorGroup?.id ?? "_"} ${
-            record.paperColor?.id ?? "_"
-          } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
-            record.warehouse?.id ?? "_"
-          } ${record.plan?.id ?? "_"}`
-        }
+        keySelector={(record) => Util.keyOfStockGroup(record)}
         selected={selectedGroup}
         onSelectedChange={setSelectedGroup}
         selection="single"

@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, Icon, Popup, Table } from "@/components";
 import _ from "lodash";
@@ -63,13 +63,14 @@ export default function Component(props: Props) {
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
-                (p) => p.availableQuantity,
-                { prefix: "가용" }
+                (record) => QuantityUtil.compact(record, record).totalQuantity,
+                { prefix: "실물" }
               ),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
                 (p) => p, // TODO
-                (p) => p.totalQuantity,
-                { prefix: "실물" }
+                (record) =>
+                  QuantityUtil.compact(record, record).availableQuantity,
+                { prefix: "가용" }
               ),
             ]}
           />

@@ -28,6 +28,15 @@ export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
 const REQUIRED_RULES = [{ required: true }];
 
+type OrderCreateMixType = Api.OrderStockCreateRequest &
+  Api.OrderDepositCreateRequest &
+  Api.OrderProcessCreateRequest &
+  Api.OrderEtcCreateRequest;
+
+type OrderUpdateMixType = Api.OrderStockUpdateRequest &
+  Api.OrderProcessInfoUpdateRequest &
+  Api.OrderEtcUpdateRequest;
+
 function title(open: OrderUpsertOpen) {
   return open === "CREATE_ORDER"
     ? "매입 등록"
@@ -48,8 +57,6 @@ export default function Component(props: Props) {
     id: initialOrderId,
   });
 
-  console.log("ioi: " + initialOrderId);
-
   const isOffer = props.open === "CREATE_OFFER";
   const isSales = isOffer || me.data?.companyId === order.data?.dstCompany.id;
 
@@ -58,9 +65,8 @@ export default function Component(props: Props) {
       setInitialOrderId(props.open);
     } else {
       setInitialOrderId(null);
-      order.remove();
     }
-  }, [order, props.open]);
+  }, [props.open]);
 
   const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
@@ -316,7 +322,7 @@ export default function Component(props: Props) {
             initialOrder={order.data ?? null}
             onCreated={(p) => {
               console.log(p);
-              setInitialOrderId(p.orderId);
+              setInitialOrderId(p.id);
             }}
           />
         </div>
@@ -431,12 +437,14 @@ function DataForm(props: DataFormProps) {
 
   useEffect(() => {
     if (props.initialOrder) {
-      const assignStockEvent = props.initialOrder.orderStock?.plan.find(
+      const assignStockEvent = (
+        props.initialOrder.orderStock ?? props.initialOrder.orderProcess
+      )?.plan.find(
         (p) => p.companyId === props.initialOrder?.dstCompany.id
       )?.assignStockEvent;
       const assignStock: any =
         assignStockEvent?.stock ?? props.initialOrder.orderDeposit;
-      const quantityMultiply = props.initialOrder.orderStock ? -1 : 1;
+      const quantityMultiply = assignStockEvent ? -1 : 1;
 
       form.setFieldsValue({
         orderType: props.initialOrder.orderType,
@@ -446,6 +454,8 @@ function DataForm(props: DataFormProps) {
         dstLocationId: props.initialOrder.orderProcess?.dstLocation.id,
         srcLocationId: props.initialOrder.orderProcess?.srcLocation.id,
         wantedDate: props.initialOrder.orderStock?.wantedDate,
+        srcWantedDate: props.initialOrder.orderProcess?.srcWantedDate,
+        dstWantedDate: props.initialOrder.orderProcess?.dstWantedDate,
         warehouseId: assignStock?.warehouse?.id,
         planId: assignStock?.planId,
         productId: assignStock?.product.id,
@@ -473,26 +483,35 @@ function DataForm(props: DataFormProps) {
 
   const apiCreateNormal = ApiHook.Trade.OrderStock.useCreate();
   const apiCreateDeposit = ApiHook.Trade.OrderDeposit.useCreate();
+  const apiCreateProcess = ApiHook.Trade.OrderProcess.useCreate();
+  const apiCreateEtc = ApiHook.Trade.OrderEtc.useCreate();
   const cmdCreate = useCallback(async () => {
-    const values = (await form.validateFields()) as Api.OrderStockCreateRequest;
+    const values = (await form.validateFields()) as OrderCreateMixType;
 
     if (!me.data) {
       return;
     }
 
-    const api = orderType === "DEPOSIT" ? apiCreateDeposit : apiCreateNormal;
-    const payload: Api.OrderStockCreateRequest | Api.OrderDepositCreateRequest =
-      props.isOffer
-        ? {
-            ...values,
-            dstCompanyId: me.data.companyId,
-            warehouseId: warehouse?.id ?? null,
-          }
-        : {
-            ...values,
-            srcCompanyId: me.data.companyId,
-            warehouseId: warehouse?.id ?? null,
-          };
+    const api =
+      orderType === "DEPOSIT"
+        ? apiCreateDeposit
+        : orderType === "OUTSOURCE_PROCESS"
+        ? apiCreateProcess
+        : orderType === "ETC"
+        ? apiCreateEtc
+        : apiCreateNormal;
+
+    const payload: OrderCreateMixType = props.isOffer
+      ? {
+          ...values,
+          dstCompanyId: me.data.companyId,
+          warehouseId: warehouse?.id ?? null,
+        }
+      : {
+          ...values,
+          srcCompanyId: me.data.companyId,
+          warehouseId: warehouse?.id ?? null,
+        };
 
     const created = await api.mutateAsync({
       data: payload,
@@ -505,28 +524,42 @@ function DataForm(props: DataFormProps) {
     form,
     me.data,
     orderType,
-    apiCreateDeposit,
     apiCreateNormal,
+    apiCreateDeposit,
+    apiCreateProcess,
+    apiCreateEtc,
     props.isOffer,
     warehouse?.id,
     props.onCreated,
   ]);
 
-  const apiUpdate = ApiHook.Trade.OrderStock.useUpdate();
+  const apiUpdateStock = ApiHook.Trade.OrderStock.useUpdate();
+  const apiUpdateDeposit = ApiHook.Trade.OrderDeposit.useUpdate();
+  const apiUpdateProcess = ApiHook.Trade.OrderProcess.useUpdate();
+  const apiUpdateEtc = ApiHook.Trade.OrderEtc.useUpdate();
   const cmdUpdate = useCallback(async () => {
-    const values = (await form.validateFields()) as Api.OrderStockUpdateRequest;
+    const values = (await form.validateFields()) as OrderUpdateMixType;
 
     if (props.initialOrder === null) {
       return;
     }
 
-    await apiUpdate.mutateAsync({
+    const api =
+      props.initialOrder.orderType === "DEPOSIT"
+        ? apiUpdateDeposit
+        : props.initialOrder.orderType === "OUTSOURCE_PROCESS"
+        ? apiUpdateProcess
+        : props.initialOrder.orderType === "ETC"
+        ? apiUpdateEtc
+        : apiUpdateStock;
+
+    await api.mutateAsync({
       orderId: props.initialOrder.id,
       data: {
         ...values,
       },
     });
-  }, [form, apiUpdate, props.initialOrder]);
+  }, [form, apiUpdateStock, props.initialOrder]);
 
   const apiUpdateAssign = ApiHook.Trade.OrderStock.useUpdateStock();
   const cmdUpdateAssign = useCallback(async () => {
@@ -701,7 +734,7 @@ function DataForm(props: DataFormProps) {
           </Form.Item>
         </>
       )}
-      {(orderType == "NORMAL" || orderType == "OUTSOURCE_PROCESS") && (
+      {orderType == "NORMAL" && (
         <Form.Item
           name="wantedDate"
           label={props.isSales ? "납품 요청일" : "도착 희망일"}
@@ -709,6 +742,24 @@ function DataForm(props: DataFormProps) {
         >
           <FormControl.DatePicker disabled={!editable} />
         </Form.Item>
+      )}
+      {orderType == "OUTSOURCE_PROCESS" && (
+        <>
+          <Form.Item
+            name="dstWantedDate"
+            label={props.isSales ? "원지 도착 예정일" : "원지 도착 예정일"}
+            rules={REQUIRED_RULES}
+          >
+            <FormControl.DatePicker disabled={!editable} />
+          </Form.Item>
+          <Form.Item
+            name="srcWantedDate"
+            label={props.isSales ? "최종 납품 요청일" : "최종 도착 희망일"}
+            rules={REQUIRED_RULES}
+          >
+            <FormControl.DatePicker disabled={!editable} />
+          </Form.Item>
+        </>
       )}
       {orderType == "ETC" && (
         <Form.Item name="item" label="상품" rules={REQUIRED_RULES}>
@@ -948,16 +999,17 @@ function DataForm(props: DataFormProps) {
           )}
         </>
       )}
-      {packaging && editable && (
-        <div className="flex-initial flex justify-end">
-          <Button.Preset.Edit
-            label={`다음`}
-            onClick={async () =>
-              props.initialOrder ? await cmdUpdateAssign() : await cmdCreate()
-            }
-          />
-        </div>
-      )}
+      {((orderType === "ETC" && !props.initialOrder) || packaging) &&
+        editable && (
+          <div className="flex-initial flex justify-end">
+            <Button.Preset.Edit
+              label={`다음`}
+              onClick={async () =>
+                props.initialOrder ? await cmdUpdateAssign() : await cmdCreate()
+              }
+            />
+          </div>
+        )}
     </Form>
   );
 }
@@ -1098,7 +1150,8 @@ function RightSideOrder(props: RightSideOrderProps) {
   return (
     <div className="flex-1 w-0 flex">
       <div className="flex-1 flex flex-col w-0">
-        {props.order?.orderType === "NORMAL" ? (
+        {props.order?.orderType === "NORMAL" ||
+        props.order?.orderType === "OUTSOURCE_PROCESS" ? (
           <>
             <Toolbar.Container rootClassName="p-4">
               <Toolbar.ButtonPreset.Create
@@ -1296,9 +1349,9 @@ function RightSideSales(props: RightSideSalesProps) {
 
   const apiPlanStart = ApiHook.Working.Plan.useStart();
   const cmdPlanStart = useCallback(async () => {
-    const plan = props.order?.orderStock?.plan.find(
-      (p) => p.companyId === props.order?.dstCompany.id
-    );
+    const plan = (
+      props.order?.orderStock ?? props.order?.orderProcess
+    )?.plan.find((p) => p.companyId === props.order?.dstCompany.id);
     if (!plan) return;
     if (!(await Util.confirm("작업을 지시하시겠습니까?"))) return;
     await apiPlanStart.mutateAsync({
@@ -1328,7 +1381,10 @@ function RightSideSales(props: RightSideSalesProps) {
   const me = ApiHook.Auth.useGetMe();
 
   const plan = ApiHook.Working.Plan.useGetItem({
-    id: props.order?.orderStock?.plan.find(mine(me.data))?.id ?? null,
+    id:
+      (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
+        mine(me.data)
+      )?.id ?? null,
   });
 
   return (
@@ -1473,7 +1529,9 @@ function PricePanel(props: PricePanelProps) {
     paperCert: Model.PaperCert | null;
     quantity: number;
   } = useMemo(() => {
-    const assignStockEvent = props.order.orderStock?.plan.find(
+    const assignStockEvent = (
+      props.order.orderStock ?? props.order.orderProcess
+    )?.plan.find(
       (p) => p.companyId === props.order.dstCompany.id
     )?.assignStockEvent;
     const deposit = props.order.orderDeposit;
@@ -1865,92 +1923,100 @@ function PricePanel(props: PricePanelProps) {
           </>
         )}
         <FormControl.Util.Split label="금액 정보" />
-        <Form.Item label="단가 대체" name={["orderStockTradeAltBundle"]}>
-          <FormControl.Alt />
-        </Form.Item>
-        <Alert
-          message="단가 대체 규격을 수정하면 거래 금액정보가 초기화됩니다."
-          type="info"
-        />
-        <Form.Item label="거래 단가" name={["stockPrice"]}>
-          {positiveCompany && (
-            <FormControl.StockPrice
-              spec={{
-                grammage: assignSpec.grammage,
-                packaging:
-                  altSizeX && altSizeY
-                    ? {
-                        packA: 0,
-                        packB: 0,
-                        type: "SKID",
-                      }
-                    : altSizeX
-                    ? {
-                        packA: 0,
-                        packB: 0,
-                        type: "ROLL",
-                      }
-                    : assignSpec.packaging,
-                sizeX: altSizeX ?? assignSpec.sizeX,
-                sizeY: altSizeY ?? assignSpec.sizeY,
-              }}
-              officialSpec={{
-                productId: assignSpec.product.id,
-                paperColorGroupId: assignSpec.paperColorGroup?.id,
-                paperColorId: assignSpec.paperColor?.id,
-                paperPatternId: assignSpec.paperPattern?.id,
-                paperCertId: assignSpec.paperCert?.id,
-              }}
-              discountSpec={{
-                companyRegistrationNumber:
-                  positiveCompany?.companyRegistrationNumber,
-                productId: assignSpec.product.id,
-                discountRateType: isSales ? "SALES" : "PURCHASE",
-                paperColorGroupId: assignSpec.paperColorGroup?.id,
-                paperColorId: assignSpec.paperColor?.id,
-                paperPatternId: assignSpec.paperPattern?.id,
-                paperCertId: assignSpec.paperCert?.id,
-              }}
-            />
+        {props.order.orderType !== "ETC" &&
+          props.order.orderType !== "OUTSOURCE_PROCESS" && (
+            <>
+              <Form.Item label="단가 대체" name={["orderStockTradeAltBundle"]}>
+                <FormControl.Alt />
+              </Form.Item>
+              <Alert
+                message="단가 대체 규격을 수정하면 거래 금액정보가 초기화됩니다."
+                type="info"
+              />
+              <Form.Item label="거래 단가" name={["stockPrice"]}>
+                {positiveCompany && (
+                  <FormControl.StockPrice
+                    spec={{
+                      grammage: assignSpec.grammage,
+                      packaging:
+                        altSizeX && altSizeY
+                          ? {
+                              packA: 0,
+                              packB: 0,
+                              type: "SKID",
+                            }
+                          : altSizeX
+                          ? {
+                              packA: 0,
+                              packB: 0,
+                              type: "ROLL",
+                            }
+                          : assignSpec.packaging,
+                      sizeX: altSizeX ?? assignSpec.sizeX,
+                      sizeY: altSizeY ?? assignSpec.sizeY,
+                    }}
+                    officialSpec={{
+                      productId: assignSpec.product.id,
+                      paperColorGroupId: assignSpec.paperColorGroup?.id,
+                      paperColorId: assignSpec.paperColor?.id,
+                      paperPatternId: assignSpec.paperPattern?.id,
+                      paperCertId: assignSpec.paperCert?.id,
+                    }}
+                    discountSpec={{
+                      companyRegistrationNumber:
+                        positiveCompany?.companyRegistrationNumber,
+                      productId: assignSpec.product.id,
+                      discountRateType: isSales ? "SALES" : "PURCHASE",
+                      paperColorGroupId: assignSpec.paperColorGroup?.id,
+                      paperColorId: assignSpec.paperColor?.id,
+                      paperPatternId: assignSpec.paperPattern?.id,
+                      paperCertId: assignSpec.paperCert?.id,
+                    }}
+                  />
+                )}
+              </Form.Item>
+              <Form.Item name={"processPrice"} label="공정비">
+                <FormControl.Number unit="원" />
+              </Form.Item>
+            </>
           )}
-        </Form.Item>
-        <Form.Item name={"processPrice"} label="공정비">
-          <FormControl.Number unit="원" />
-        </Form.Item>
         <Form.Item name={"suppliedPrice"} label="공급가">
           <FormControl.Number unit="원" />
         </Form.Item>
-        <div className="flex-initial flex justify-end">
-          <div className="flex-1 flex gap-x-2 font-fixed text-xs">
-            <div className="flex flex-col text-gray-500">
-              {`기준공급가: ${Util.comma(
-                stockSuppliedPrice + (processPrice ?? 0)
-              )}원`}
-            </div>
-            {suppliedPrice &&
-            Math.abs(suppliedPrice - defaultSuppliedPrice) >= 1 ? (
-              <div
-                className={classNames("flex flex-col", {
-                  "text-orange-600": suppliedPrice > defaultSuppliedPrice,
-                  "text-green-600": suppliedPrice < defaultSuppliedPrice,
-                })}
-              >
-                {`(${Util.comma(
-                  Math.abs(suppliedPrice - defaultSuppliedPrice)
-                )}원 ${
-                  suppliedPrice > defaultSuppliedPrice ? "절상" : "절사"
-                })`}
+        {props.order.orderType !== "ETC" &&
+          props.order.orderType !== "OUTSOURCE_PROCESS" && (
+            <div className="flex-initial flex justify-end">
+              <div className="flex-1 flex gap-x-2 font-fixed text-xs">
+                <div className="flex flex-col text-gray-500">
+                  {`기준공급가: ${Util.comma(
+                    stockSuppliedPrice + (processPrice ?? 0)
+                  )}원`}
+                </div>
+                {suppliedPrice &&
+                Math.abs(suppliedPrice - defaultSuppliedPrice) >= 1 ? (
+                  <div
+                    className={classNames("flex flex-col", {
+                      "text-orange-600": suppliedPrice > defaultSuppliedPrice,
+                      "text-green-600": suppliedPrice < defaultSuppliedPrice,
+                    })}
+                  >
+                    {`(${Util.comma(
+                      Math.abs(suppliedPrice - defaultSuppliedPrice)
+                    )}원 ${
+                      suppliedPrice > defaultSuppliedPrice ? "절상" : "절사"
+                    })`}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-          <Button.Default
-            type="default"
-            label="기준공급가 적용"
-            onClick={() =>
-              form.setFieldValue("suppliedPrice", defaultSuppliedPrice)
-            }
-          />
-        </div>
+              <Button.Default
+                type="default"
+                label="기준공급가 적용"
+                onClick={() =>
+                  form.setFieldValue("suppliedPrice", defaultSuppliedPrice)
+                }
+              />
+            </div>
+          )}
         <Form.Item name={"vatPrice"} label="부가세">
           <FormControl.Number unit="원" />
         </Form.Item>

@@ -8,10 +8,10 @@ export function useCreate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "process", "create"],
-    async (params: { data: Api.OrderProcessCreateRequest }) => {
+    ["order", "etc", "create"],
+    async (params: { data: Api.OrderEtcCreateRequest }) => {
       const resp = await axios.post<Api.OrderCreateResponse>(
-        `${API_HOST}/order/process`,
+        `${API_HOST}/order/etc`,
         params.data
       );
       return resp.data;
@@ -29,42 +29,10 @@ export function useUpdate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "process", "update"],
-    async (params: {
-      orderId: number;
-      data: Api.OrderProcessInfoUpdateRequest;
-    }) => {
+    ["order", "etc", "update"],
+    async (params: { orderId: number; data: Api.OrderEtcUpdateRequest }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/process/${params.orderId}`,
-        params.data
-      );
-      return resp.data;
-    },
-    {
-      onSuccess: async (_data, variables) => {
-        await queryClient.invalidateQueries(["order", "list"]);
-        await queryClient.invalidateQueries([
-          "order",
-          "item",
-          variables.orderId,
-        ]);
-        message.info("수정사항이 저장되었습니다.");
-      },
-    }
-  );
-}
-
-export function useUpdateStock() {
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    ["order", "process", "update", "stock"],
-    async (params: {
-      orderId: number;
-      data: Api.OrderProcessStockUpdateRequest;
-    }) => {
-      const resp = await axios.put(
-        `${API_HOST}/order/process/${params.orderId}/assign`,
+        `${API_HOST}/order/etc/${params.orderId}`,
         params.data
       );
       return resp.data;

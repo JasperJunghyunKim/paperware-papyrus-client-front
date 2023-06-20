@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Enum } from "@/@shared/models";
 import { AccountedType, Subject } from "@/@shared/models/enum";
 import { Modal } from "antd";
 import dayjs, { Dayjs } from "dayjs";
@@ -207,6 +208,25 @@ export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
     case "DONE_SHIPPING":
       return "상차 완료";
   }
+}
+
+export function orderStatusToString(
+  value: Enum.OrderType,
+  type: "PURCHASE" | "SALES"
+) {
+  return match({ value, type })
+    .with({ value: "NORMAL", type: "PURCHASE" }, () => "정상 매입")
+    .with({ value: "NORMAL", type: "SALES" }, () => "정상 매출")
+    .with({ value: "DEPOSIT", type: "PURCHASE" }, () => "매입 보관")
+    .with({ value: "DEPOSIT", type: "SALES" }, () => "매출 보관")
+    .with(
+      { value: "OUTSOURCE_PROCESS", type: "PURCHASE" },
+      () => "외주 재단 매입"
+    )
+    .with({ value: "OUTSOURCE_PROCESS", type: "SALES" }, () => "외주 재단 매출")
+    .with({ value: "ETC", type: "PURCHASE" }, () => "기타 매입")
+    .with({ value: "ETC", type: "SALES" }, () => "기타 매출")
+    .otherwise(() => "");
 }
 
 export const reamToSheets = (ream: number) => Math.round(ream * 500);

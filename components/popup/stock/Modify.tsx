@@ -2,10 +2,11 @@ import { Api } from "@/@shared";
 import { ApiHook, QuantityUtil, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form } from "antd";
+import { Alert, Form, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useCallback, useEffect } from "react";
+import { Tb123, TbMinus, TbPlus } from "react-icons/tb";
 
 type OpenType = number | false;
 
@@ -14,12 +15,14 @@ export interface Props {
   onClose: (unit: false) => void;
 }
 
-type FormValues = Api.StockQuantityChangeRequest;
+type AddType = "INCREASE" | "DECREASE" | "SET";
+type FormValues = Api.StockQuantityChangeRequest & { type: AddType };
 
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
   const [form] = useForm<FormValues>();
+  const type = useWatch<AddType>("type", form);
   const quantity = useWatch<number>("quantity", form);
 
   const stock = ApiHook.Stock.StockInhouse.useGetItem({
@@ -42,9 +45,8 @@ export default function Component(props: Props) {
         }
       : {},
   });
-  const compactQuantity = stockQuantity?.data
-    ? QuantityUtil.compact(stockQuantity.data, stockQuantity.data)
-    : null;
+  const totalQuantity = stock.data ? stock.data.cachedQuantity : 0;
+  const availableQuantity = stock.data ? stock.data.cachedQuantityAvailable : 0;
   const spec = stock.data
     ? {
         grammage: stock.data.grammage,
@@ -63,6 +65,7 @@ export default function Component(props: Props) {
 
       const data: FormValues = {
         ...values,
+        quantity: type === "INCREASE" ? quantity : -quantity,
       };
 
       await api.mutateAsync({
@@ -72,11 +75,10 @@ export default function Component(props: Props) {
       form.resetFields();
       props.onClose(false);
     },
-    [api, form, props]
+    [api, form, props, quantity, type]
   );
 
   useEffect(() => {
-    console.log("stock", stock.data);
     if (props.open === false) {
       form.resetFields();
     } else if (stock.data) {
@@ -96,8 +98,17 @@ export default function Component(props: Props) {
     }
   }, [form, props.open, stock.data]);
 
-  const nextAvailableQuantity =
-    (compactQuantity?.availableQuantity ?? 0) + (quantity ?? 0);
+  const delta =
+    type === "INCREASE"
+      ? quantity
+      : type === "DECREASE"
+      ? -quantity
+      : quantity - totalQuantity;
+
+  const nextTotalQuantity = totalQuantity + delta;
+  const nextAvailableQuantity = availableQuantity + delta;
+
+  console.log(type, quantity);
 
   return (
     <Popup.Template.Property
@@ -107,6 +118,7 @@ export default function Component(props: Props) {
     >
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
+          <FormControl.Util.Split label="재고 정보" />
           <Form.Item name="warehouseId" label="창고">
             <FormControl.SelectWarehouse disabled />
           </Form.Item>
@@ -168,24 +180,98 @@ export default function Component(props: Props) {
           </Form.Item>
           {spec && (
             <>
+              <FormControl.Util.Split label="현재 수량" />
+              <Form.Item label="실물 수량">
+                <FormControl.Quantity
+                  spec={spec}
+                  value={stock.data?.cachedQuantity}
+                  disabled
+                />
+              </Form.Item>
               <Form.Item label="가용 수량">
+                <FormControl.Quantity
+                  spec={spec}
+                  value={stock.data?.cachedQuantityAvailable}
+                  disabled
+                />
+              </Form.Item>
+              <FormControl.Util.Split label="재고 수량 수정" />
+              <Form.Item
+                label="증감 구분"
+                name="type"
+                initialValue={"INCREASE"}
+              >
+                <Radio.Group
+                  optionType="button"
+                  buttonStyle="solid"
+                  options={[
+                    {
+                      label: (
+                        <div className="flex items-center">
+                          <TbPlus size={24} />
+                          증가량 입력
+                        </div>
+                      ),
+                      value: "INCREASE",
+                    },
+                    {
+                      label: (
+                        <div className="flex items-center">
+                          <TbMinus size={24} />
+                          감소량 입력
+                        </div>
+                      ),
+                      value: "DECREASE",
+                    },
+                    {
+                      label: (
+                        <div className="flex items-center">
+                          <Tb123 size={24} />
+                          실물 수량 지정
+                        </div>
+                      ),
+                      value: "SET",
+                    },
+                  ]}
+                  disabled={api.isLoading}
+                />
+              </Form.Item>
+              <Form.Item
+                name="quantity"
+                label={
+                  type === "INCREASE"
+                    ? "증가량 입력"
+                    : type === "DECREASE"
+                    ? "감소량 입력"
+                    : "실물 수량 지정"
+                }
+                rules={[{ required: true, message: "수량을 입력해주세요." }]}
+              >
+                <FormControl.Quantity spec={spec} onlyPositive />
+              </Form.Item>
+              {type !== "SET" && (
+                <Form.Item label="최종 실물 수량">
+                  <FormControl.Quantity
+                    spec={spec}
+                    value={nextTotalQuantity}
+                    disabled
+                  />
+                </Form.Item>
+              )}
+              <Form.Item label="최종 가용 수량">
                 <FormControl.Quantity
                   spec={spec}
                   value={nextAvailableQuantity}
                   disabled
                 />
               </Form.Item>
-              <Form.Item
-                name="quantity"
-                label="수량 증감"
-                rules={[{ required: true, message: "수량을 입력해주세요." }]}
-              >
-                <FormControl.Quantity spec={spec} />
-              </Form.Item>
             </>
           )}
           {nextAvailableQuantity < 0 ? (
-            <Alert type="error" message="가용수량 값이 0 이상이어야합니다." />
+            <Alert
+              type="error"
+              message="최종 가용수량 값이 0 이상이어야합니다."
+            />
           ) : (
             <Form.Item className="flex justify-end">
               <Button.Preset.Submit

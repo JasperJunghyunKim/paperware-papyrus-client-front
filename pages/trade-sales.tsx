@@ -15,7 +15,6 @@ export default function Component() {
 
   const [openStockUpsert, setOpenStockUpsert] =
     useState<OrderUpsertOpen>(false);
-  const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
   const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
     ["srcCompany", "companyRegistrationNumber"],
@@ -43,6 +42,8 @@ export default function Component() {
     await apiCancel.mutateAsync({
       orderId: only.id,
     });
+
+    setSelected([]);
   }, [apiCancel, only]);
 
   return (
@@ -83,15 +84,7 @@ export default function Component() {
           {
             title: "매출 유형",
             render: (_value, record) => (
-              <div>
-                {record.orderStock
-                  ? record.dstDepositEvent
-                    ? "보관 출고"
-                    : "정상 매출"
-                  : record.orderDeposit
-                  ? "매출 보관"
-                  : ""}
-              </div>
+              <div>{Util.orderStatusToString(record.orderType, "SALES")}</div>
             ),
           },
           {
@@ -118,7 +111,7 @@ export default function Component() {
           },
           ...Table.Preset.columnStockGroup<Model.Order>(
             (record) =>
-              record.orderStock?.plan.find(
+              (record.orderStock ?? record.orderProcess)?.plan?.find(
                 (p) => p.companyId === record.dstCompany.id
               )?.assignStockEvent?.stock ?? record.orderDeposit
           ),
@@ -172,7 +165,6 @@ export default function Component() {
         open={openStockUpsert}
         onClose={setOpenStockUpsert}
       />
-      <Popup.Plan.Update open={openUpdate} onClose={setOpenUpdate} />
     </Page>
   );
 }
