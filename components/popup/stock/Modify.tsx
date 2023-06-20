@@ -65,7 +65,12 @@ export default function Component(props: Props) {
 
       const data: FormValues = {
         ...values,
-        quantity: type === "INCREASE" ? quantity : -quantity,
+        quantity:
+          type === "INCREASE"
+            ? quantity
+            : type === "DECREASE"
+            ? -quantity
+            : quantity - totalQuantity,
       };
 
       await api.mutateAsync({
@@ -107,8 +112,6 @@ export default function Component(props: Props) {
 
   const nextTotalQuantity = totalQuantity + delta;
   const nextAvailableQuantity = availableQuantity + delta;
-
-  console.log(type, quantity);
 
   return (
     <Popup.Template.Property

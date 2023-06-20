@@ -215,8 +215,6 @@ function Collapse(props: CollapseProps) {
   const cmdUpdate = useCallback(async () => {
     const values = await form.validateFields();
 
-    console.log(values);
-
     await apiUpdate.mutateAsync({
       data: {
         isSyncPrice: false,

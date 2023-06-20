@@ -36,8 +36,6 @@ export default function Component(props: Props) {
     [api, form, props]
   );
 
-  console.log(stockGroup);
-
   return (
     <Popup.Template.Property title="내부 공정 등록" {...props}>
       <div className="flex-1 p-4">

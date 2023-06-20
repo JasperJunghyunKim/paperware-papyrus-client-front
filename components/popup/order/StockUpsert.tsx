@@ -321,7 +321,6 @@ export default function Component(props: Props) {
             isSales={isSales}
             initialOrder={order.data ?? null}
             onCreated={(p) => {
-              console.log(p);
               setInitialOrderId(p.id);
             }}
           />
