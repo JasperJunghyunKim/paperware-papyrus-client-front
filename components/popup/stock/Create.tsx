@@ -80,6 +80,24 @@ export default function Component(props: Props) {
     <Popup.Template.Property title="재고 추가" {...props}>
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
+          {props.arrival && (
+            <>
+              <Form.Item
+                name="dstLocationId"
+                label="도착지"
+                rules={[{ required: true }]}
+              >
+                <FormControl.SelectLocation isPublic={false} />
+              </Form.Item>
+              <Form.Item
+                name="wantedDate"
+                label={"도착 예정일"}
+                rules={[{ required: true }]}
+              >
+                <FormControl.DatePicker />
+              </Form.Item>
+            </>
+          )}
           {!props.arrival && (
             <Form.Item
               name="warehouseId"

@@ -99,7 +99,11 @@ export default function Component() {
             ),
           },
           ...partnerColumn,
-          { title: "매출일" },
+          {
+            title: "매출일",
+            dataIndex: "orderDate",
+            render: (value) => Util.formatIso8601ToLocalDate(value),
+          },
           {
             title: "납품 요청일",
             dataIndex: "wantedDate",
@@ -109,12 +113,6 @@ export default function Component() {
             title: "납품 도착지",
             dataIndex: ["orderStock", "dstLocation", "name"],
           },
-          ...Table.Preset.columnStockGroup<Model.Order>(
-            (record) =>
-              (record.orderStock ?? record.orderProcess)?.plan?.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.stock ?? record.orderDeposit
-          ),
           {
             title: "매출 상태",
             dataIndex: "status",
@@ -148,16 +146,13 @@ export default function Component() {
               </div>
             ),
           },
+          ...Table.Preset.columnStockGroup<Model.Order>((record) =>
+            Util.assignStockFromOrder(record)
+          ),
           ...Table.Preset.columnQuantity<Model.Order>(
-            (record) =>
-              record.orderStock?.plan.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.stock ?? record.orderDeposit,
-            (record) =>
-              record.orderStock?.plan.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.change ?? record.orderDeposit?.quantity,
-            { prefix: "매출" }
+            (record) => Util.assignStockFromOrder(record),
+            (record) => Util.assignQuantityFromOrder(record),
+            { prefix: "매출", negative: true }
           ),
         ]}
       />

@@ -9,7 +9,7 @@ interface Props {
   value?: number;
   onChange?: (value: number) => void;
   disabled?: boolean;
-  onlyPublic?: boolean;
+  isPublic?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -17,13 +17,15 @@ export default function Component(props: Props) {
 
   const options = useMemo(() => {
     return list.data?.items
-      .filter((x) => !props.onlyPublic || x.isPublic === props.onlyPublic)
+      .filter(
+        (x) => props.isPublic === undefined || x.isPublic === props.isPublic
+      )
       .map((x) => ({
         label: <Item item={x} />,
         text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
         value: x.id,
       }));
-  }, [list, props.onlyPublic]);
+  }, [list, props.isPublic]);
 
   return (
     <div className="flex flex-col gap-y-1">

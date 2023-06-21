@@ -5,7 +5,7 @@ import { usePage } from "@/common/hook";
 import { mine } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form, Input, Select, Steps } from "antd";
+import { Alert, Form, Input, Select, Steps, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import _ from "lodash";
@@ -414,7 +414,8 @@ function DataForm(props: DataFormProps) {
   const manual =
     (!props.isSales &&
       companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
-        ?.srcCompany.managedById !== null) ||
+        ?.srcCompany.managedById !== null &&
+      orderType !== "OUTSOURCE_PROCESS") ||
     orderType === "DEPOSIT" ||
     (props.isSales && orderType === "OUTSOURCE_PROCESS");
 
@@ -436,17 +437,22 @@ function DataForm(props: DataFormProps) {
 
   useEffect(() => {
     if (props.initialOrder) {
-      const assignStockEvent = (
-        props.initialOrder.orderStock ?? props.initialOrder.orderProcess
-      )?.plan.find(
-        (p) => p.companyId === props.initialOrder?.dstCompany.id
-      )?.assignStockEvent;
-      const assignStock: any =
-        assignStockEvent?.stock ?? props.initialOrder.orderDeposit;
+      const assignStockEvent = Util.assignStockEventFromOrder(
+        props.initialOrder
+      );
+      const assignStock = Util.assignStockFromOrder(
+        props.initialOrder
+      ) as Model.Stock;
       const quantityMultiply = assignStockEvent ? -1 : 1;
 
       form.setFieldsValue({
         orderType: props.initialOrder.orderType,
+        orderDate: props.initialOrder.orderDate,
+        isDirectShipping: props.initialOrder.orderStock?.isDirectShipping,
+        isSrcDirectShipping:
+          props.initialOrder.orderProcess?.isSrcDirectShipping,
+        isDstDirectShipping:
+          props.initialOrder.orderProcess?.isDstDirectShipping,
         dstCompanyId: props.initialOrder.dstCompany.id,
         srcCompanyId: props.initialOrder.srcCompany.id,
         locationId: props.initialOrder.orderStock?.dstLocation.id,
@@ -631,119 +637,68 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      {(orderType == "NORMAL" || orderType == "OUTSOURCE_PROCESS") &&
-        !props.isSales &&
-        dstCompanyId &&
-        (editable ? (
-          <>
-            {orderType == "OUTSOURCE_PROCESS" ? (
-              <>
-                <Form.Item
-                  name="dstLocationId"
-                  label="원지 도착지"
-                  rules={REQUIRED_RULES}
-                >
-                  <FormControl.SelectLocationForSales
-                    companyId={dstCompanyId}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="srcLocationId"
-                  label="최종 도착지"
-                  rules={REQUIRED_RULES}
-                >
-                  <FormControl.SelectLocation />
-                </Form.Item>
-              </>
-            ) : (
-              <Form.Item
-                name="locationId"
-                label="도착지"
-                rules={REQUIRED_RULES}
-              >
-                <FormControl.SelectLocation />
-              </Form.Item>
-            )}
-          </>
+      <Form.Item
+        name="orderDate"
+        label={props.isSales ? "매출일" : "매입일"}
+        rules={REQUIRED_RULES}
+      >
+        <FormControl.DatePicker disabled={!editable} />
+      </Form.Item>
+
+      {orderType == "NORMAL" &&
+        (props.isSales && srcCompanyId ? (
+          <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
+            <FormControl.SelectLocationForSales
+              companyId={srcCompanyId}
+              disabled={!editable}
+            />
+          </Form.Item>
         ) : (
-          <>
-            {orderType == "OUTSOURCE_PROCESS" ? (
-              <>
-                <Form.Item label="원지 도착지" required>
-                  <Input
-                    value={props.initialOrder?.orderStock?.dstLocation.name}
-                    disabled={!editable}
-                  />
-                  <div className="text-gray-400 text-sm mt-2">
-                    {`주소: ${Util.formatAddress(
-                      props.initialOrder?.orderStock?.dstLocation.address
-                    )}`}
-                  </div>
-                </Form.Item>
-                <Form.Item label="도착지" required>
-                  <Input
-                    value={props.initialOrder?.orderStock?.dstLocation.name}
-                    disabled={!editable}
-                  />
-                  <div className="text-gray-400 text-sm mt-2">
-                    {`주소: ${Util.formatAddress(
-                      props.initialOrder?.orderStock?.dstLocation.address
-                    )}`}
-                  </div>
-                </Form.Item>
-              </>
-            ) : (
-              <Form.Item label="도착지" required>
-                <Input
-                  value={props.initialOrder?.orderStock?.dstLocation.name}
-                  disabled={!editable}
-                />
-                <div className="text-gray-400 text-sm mt-2">
-                  {`주소: ${Util.formatAddress(
-                    props.initialOrder?.orderStock?.dstLocation.address
-                  )}`}
-                </div>
-              </Form.Item>
-            )}
-          </>
-        ))}
-      {orderType == "NORMAL" && props.isSales && srcCompanyId && (
-        <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-          <FormControl.SelectLocationForSales
-            companyId={srcCompanyId}
-            disabled={!editable}
-          />
-        </Form.Item>
-      )}
-      {orderType == "OUTSOURCE_PROCESS" && props.isSales && srcCompanyId && (
-        <>
-          <Form.Item
-            name="dstLocationId"
-            label="원지 도착지"
-            rules={REQUIRED_RULES}
-          >
+          <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocation disabled={!editable} />
           </Form.Item>
+        ))}
+      {orderType == "NORMAL" && (
+        <>
           <Form.Item
-            name="srcLocationId"
-            label="최종 도착지"
+            name="wantedDate"
+            label={props.isSales ? "납품 요청일" : "도착 희망일"}
             rules={REQUIRED_RULES}
           >
-            <FormControl.SelectLocation disabled={!editable} onlyPublic />
+            <FormControl.DatePicker disabled={!editable} />
+          </Form.Item>
+          <Form.Item
+            name="isDirectShipping"
+            label="직송 여부"
+            valuePropName="checked"
+            rules={REQUIRED_RULES}
+            initialValue={false}
+          >
+            <Switch disabled={!editable} />
           </Form.Item>
         </>
       )}
-      {orderType == "NORMAL" && (
-        <Form.Item
-          name="wantedDate"
-          label={props.isSales ? "납품 요청일" : "도착 희망일"}
-          rules={REQUIRED_RULES}
-        >
-          <FormControl.DatePicker disabled={!editable} />
-        </Form.Item>
-      )}
-      {orderType == "OUTSOURCE_PROCESS" && (
+      {orderType == "OUTSOURCE_PROCESS" && (srcCompanyId || dstCompanyId) && (
         <>
+          <FormControl.Util.Split label="원지 배송 정보" />
+          {props.isSales && srcCompanyId && (
+            <Form.Item
+              name="dstLocationId"
+              label="원지 도착지"
+              rules={REQUIRED_RULES}
+            >
+              <FormControl.SelectLocation disabled={!editable} />
+            </Form.Item>
+          )}
+          {!props.isSales && dstCompanyId && (
+            <Form.Item
+              name="dstLocationId"
+              label="원지 도착지"
+              rules={REQUIRED_RULES}
+            >
+              <FormControl.SelectLocationForSales companyId={dstCompanyId} />
+            </Form.Item>
+          )}
           <Form.Item
             name="dstWantedDate"
             label={props.isSales ? "원지 도착 예정일" : "원지 도착 예정일"}
@@ -752,11 +707,48 @@ function DataForm(props: DataFormProps) {
             <FormControl.DatePicker disabled={!editable} />
           </Form.Item>
           <Form.Item
+            name="isDstDirectShipping"
+            label="원지 직송 여부"
+            valuePropName="checked"
+            rules={REQUIRED_RULES}
+            initialValue={false}
+          >
+            <Switch disabled={!editable} />
+          </Form.Item>
+          <FormControl.Util.Split label="주문 배송 정보" />
+          {props.isSales && srcCompanyId && (
+            <Form.Item
+              name="srcLocationId"
+              label="최종 도착지"
+              rules={REQUIRED_RULES}
+            >
+              <FormControl.SelectLocation disabled={!editable} isPublic />
+            </Form.Item>
+          )}
+          {!props.isSales && dstCompanyId && (
+            <Form.Item
+              name="srcLocationId"
+              label="최종 도착지"
+              rules={REQUIRED_RULES}
+            >
+              <FormControl.SelectLocation />
+            </Form.Item>
+          )}
+          <Form.Item
             name="srcWantedDate"
             label={props.isSales ? "최종 납품 요청일" : "최종 도착 희망일"}
             rules={REQUIRED_RULES}
           >
             <FormControl.DatePicker disabled={!editable} />
+          </Form.Item>
+          <Form.Item
+            name="isSrcDirectShipping"
+            label="최종 직송 여부"
+            valuePropName="checked"
+            rules={REQUIRED_RULES}
+            initialValue={false}
+          >
+            <Switch disabled={!editable} />
           </Form.Item>
         </>
       )}
@@ -1062,14 +1054,19 @@ interface RightSideOrderProps {
 }
 function RightSideOrder(props: RightSideOrderProps) {
   const [open, setOpen] = useState<number | false>(false);
+  const me = ApiHook.Auth.useGetMe();
 
   const accepted =
     props.order && Util.inc<OrderStatus>(props.order.status, "ACCEPTED");
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Trade.Common.useGetOrderStockArrivalList({
-    orderId: props.order?.id ?? null,
-    query: page,
+  const list = ApiHook.Stock.StockInhouse.useGetGroupList({
+    query: {
+      ...page,
+      planId: props.order
+        ? Util.planFromOrder(props.order, me.data?.companyId)?.id
+        : undefined,
+    },
   });
 
   const apiRequest = ApiHook.Trade.Common.useRequest();
@@ -1271,7 +1268,11 @@ function RightSideOrder(props: RightSideOrderProps) {
         ) : (
           <>
             <div className="flex-1 flex">
-              <RightSideSkeleton title="보관품 거래입니다." />
+              <RightSideSkeleton
+                title={`${
+                  props.order?.orderType === "DEPOSIT" ? "보관품" : "기타"
+                } 거래입니다.`}
+              />
             </div>
           </>
         )}
@@ -1279,7 +1280,12 @@ function RightSideOrder(props: RightSideOrderProps) {
       {props.order && (
         <>
           <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} orderId={props.order.id} />
+          {props.order.orderType === "NORMAL" ||
+          props.order.orderType === "DEPOSIT" ? (
+            <PricePanel order={props.order} orderId={props.order.id} />
+          ) : (
+            <BasePricePanel order={props.order} orderId={props.order.id} />
+          )}
         </>
       )}
       <CreateArrival open={open} onClose={setOpen} />
@@ -2016,6 +2022,122 @@ function PricePanel(props: PricePanelProps) {
               />
             </div>
           )}
+        <Form.Item name={"vatPrice"} label="부가세">
+          <FormControl.Number unit="원" />
+        </Form.Item>
+        <div className="flex-initial flex justify-end">
+          <div className="flex-1 flex gap-x-2 font-fixed text-xs">
+            <div className="flex flex-col text-gray-500">
+              {`10%부가세: ${Util.comma(defaultVatPrice)}원`}
+            </div>
+            {vatPrice && Math.abs(vatPrice - defaultVatPrice) >= 1 ? (
+              <div
+                className={classNames("flex flex-col", {
+                  "text-orange-600": vatPrice > defaultVatPrice,
+                  "text-green-600": vatPrice < defaultVatPrice,
+                })}
+              >
+                {`(${Util.comma(Math.abs(vatPrice - defaultVatPrice))}원 ${
+                  vatPrice > defaultVatPrice ? "절상" : "절사"
+                })`}
+              </div>
+            ) : null}
+          </div>
+          <Button.Default
+            type="default"
+            label="10%부가세 적용"
+            onClick={() => form.setFieldValue("vatPrice", defaultVatPrice)}
+          />
+        </div>
+        <Form.Item label="합계">
+          <FormControl.Number
+            unit="원"
+            value={(suppliedPrice ?? 0) + (vatPrice ?? 0)}
+            disabled
+          />
+        </Form.Item>
+        <div className="flex-initial flex justify-end mt-4 gap-x-2">
+          <Button.Default
+            type="secondary"
+            label="금액 정보 저장"
+            onClick={cmdUpdate}
+          />
+          <Button.Default
+            type="primary"
+            icon={<TbRubberStamp />}
+            label="거래 마감"
+          />
+        </div>
+        <div className="h-8" />
+      </Form>
+    </div>
+  );
+}
+
+interface BasePricePanelProps {
+  order: Model.Order;
+  orderId: number | null;
+}
+function BasePricePanel(props: PricePanelProps) {
+  const [form] = useForm();
+
+  const me = ApiHook.Auth.useGetMe();
+
+  const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
+  const vatPrice = useWatch<number | null>(["vatPrice"], form);
+
+  const tradePrice = ApiHook.Trade.Common.useGetTradePrice({
+    orderId: props.order.id,
+  });
+
+  const apiUpdate = ApiHook.Trade.Common.useUpdateTradePrice();
+  const cmdUpdate = useCallback(async () => {
+    if (!props.order || !me.data) return;
+    await form.validateFields();
+    const values = await form.getFieldsValue();
+
+    await apiUpdate.mutateAsync({
+      orderId: props.order.id,
+      data: {
+        suppliedPrice: values.suppliedPrice ?? 0,
+        vatPrice: values.vatPrice ?? 0,
+      },
+    });
+  }, [props.order, me.data, form, apiUpdate]);
+
+  const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
+
+  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
+    .filter((_) => me.data)
+    .find((p) => p.id !== me.data?.companyId);
+
+  const isSales = props.order.dstCompany.id === me.data?.companyId;
+
+  useEffect(() => {
+    if (tradePrice.data && tradePrice.data.orderStockTradePrice) {
+      form.setFieldsValue({
+        suppliedPrice: tradePrice.data.suppliedPrice,
+        vatPrice: tradePrice.data.vatPrice,
+      });
+    } else {
+      form.setFieldsValue({
+        suppliedPrice: 0,
+        vatPrice: 0,
+      });
+    }
+  }, [props.orderId, tradePrice.data, form]);
+
+  return (
+    <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
+      <Form
+        form={form}
+        layout="vertical"
+        rootClassName="flex-initial basis-[500px]"
+      >
+        <FormControl.Util.Split label="금액 정보" />
+        <Form.Item name={"suppliedPrice"} label="공급가">
+          <FormControl.Number unit="원" />
+        </Form.Item>
         <Form.Item name={"vatPrice"} label="부가세">
           <FormControl.Number unit="원" />
         </Form.Item>

@@ -87,17 +87,8 @@ export default function Component() {
               <div>{Util.orderTypeToString(record.orderType, "SALES")}</div>
             ),
           },
-          ...partnerColumn,
           {
-            title: "사업자등록번호",
-            dataIndex: ["dstCompany", "companyRegistrationNumber"],
-          },
-          ...Table.Preset.columnConnection<RecordType>([
-            "dstCompany",
-            "managedById",
-          ]),
-          {
-            title: "주문 번호",
+            title: "매입 번호",
             dataIndex: "orderNo",
             render: (value, record) => (
               <div className="flex">
@@ -106,6 +97,12 @@ export default function Component() {
                 </div>
               </div>
             ),
+          },
+          ...partnerColumn,
+          {
+            title: "매입일",
+            dataIndex: "orderDate",
+            render: (value) => Util.formatIso8601ToLocalDate(value),
           },
           {
             title: "도착 희망일",
@@ -117,12 +114,7 @@ export default function Component() {
             dataIndex: ["orderStock", "dstLocation", "name"],
           },
           {
-            title: "도착지 주소",
-            dataIndex: ["orderStock", "dstLocation", "address"],
-            render: (value) => <div>{Util.formatAddress(value)}</div>,
-          },
-          {
-            title: "주문 상태",
+            title: "매입 상태",
             dataIndex: "status",
             render: (value: Model.Enum.OrderStatus) => (
               <div
@@ -154,22 +146,13 @@ export default function Component() {
               </div>
             ),
           },
-          ...Table.Preset.columnStockGroup<Model.Order>(
-            (record) =>
-              (record.orderStock ?? record.orderProcess)?.plan?.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.stock ?? record.orderDeposit
+          ...Table.Preset.columnStockGroup<Model.Order>((record) =>
+            Util.assignStockFromOrder(record)
           ),
           ...Table.Preset.columnQuantity<Model.Order>(
-            (record) =>
-              record.orderStock?.plan.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.stock ?? record.orderDeposit,
-            (record) =>
-              record.orderStock?.plan.find(
-                (p) => p.companyId === record.dstCompany.id
-              )?.assignStockEvent?.change ?? record.orderDeposit?.quantity,
-            { prefix: "매입" }
+            (record) => Util.assignStockFromOrder(record),
+            (record) => Util.assignQuantityFromOrder(record),
+            { prefix: "매입", negative: true }
           ),
         ]}
       />

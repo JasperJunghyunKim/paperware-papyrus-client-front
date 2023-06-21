@@ -56,37 +56,40 @@ export function columnStockGroup<T>(
     },
     {
       title: "평량",
-      render: (_value: any, record: T) => (
-        <div className="text-right font-fixed">{`${Util.comma(
-          getStock(record)?.grammage
-        )} ${Util.UNIT_GPM}`}</div>
-      ),
+      render: (_value: any, record: T) =>
+        getStock(record) && (
+          <div className="text-right font-fixed">{`${Util.comma(
+            getStock(record)?.grammage
+          )} ${Util.UNIT_GPM}`}</div>
+        ),
     },
     {
       title: "규격",
-      render: (_value: any, record: T) => (
-        <div className="font-fixed">
-          {
-            Util.findPaperSize(
-              getStock(record)?.sizeX ?? 1,
-              getStock(record)?.sizeY ?? 1
-            )?.name
-          }
-        </div>
-      ),
+      render: (_value: any, record: T) =>
+        getStock(record) && (
+          <div className="font-fixed">
+            {
+              Util.findPaperSize(
+                getStock(record)?.sizeX ?? 1,
+                getStock(record)?.sizeY ?? 1
+              )?.name
+            }
+          </div>
+        ),
     },
     {
       title: "지폭",
-      render: (_value: any, record: T) => (
-        <div className="text-right font-fixed">{`${Util.comma(
-          getStock(record)?.sizeX
-        )} mm`}</div>
-      ),
+      render: (_value: any, record: T) =>
+        getStock(record) && (
+          <div className="text-right font-fixed">{`${Util.comma(
+            getStock(record)?.sizeX
+          )} mm`}</div>
+        ),
     },
     {
       title: "지장",
       render: (_value: any, record: T) =>
-        getStock(record)?.packaging?.type !== "ROLL" ? (
+        getStock(record) && getStock(record)?.packaging?.type !== "ROLL" ? (
           <div className="text-right font-fixed">{`${Util.comma(
             getStock(record)?.sizeY
           )} mm`}</div>
@@ -406,20 +409,22 @@ export function columnPackagingType<T>(
       render: (_value: any, record: T) => {
         const value = getPackaging(record);
         return (
-          <div className="font-fixed flex gap-x-1">
-            <div className="flex-initial flex flex-col justify-center text-lg">
-              <Icon.PackagingType packagingType={value?.type} />
+          value && (
+            <div className="font-fixed flex gap-x-1">
+              <div className="flex-initial flex flex-col justify-center text-lg">
+                <Icon.PackagingType packagingType={value.type} />
+              </div>
+              <div className="flex-initial flex flex-col justify-center whitespace-pre">
+                {value.type.padEnd(4)}
+              </div>
+              {value?.type !== "SKID" && (
+                <div className="flex-initial text-gray-400 mx-1">─</div>
+              )}
+              <div className="flex-initial flex flex-col justify-center text-gray-500">
+                {Util.formatPackaging(value, true)}
+              </div>
             </div>
-            <div className="flex-initial flex flex-col justify-center whitespace-pre">
-              {value?.type.padEnd(4)}
-            </div>
-            {value?.type !== "SKID" && (
-              <div className="flex-initial text-gray-400 mx-1">─</div>
-            )}
-            <div className="flex-initial flex flex-col justify-center text-gray-500">
-              {value ? Util.formatPackaging(value, true) : ""}
-            </div>
-          </div>
+          )
         );
       },
     },

@@ -655,3 +655,43 @@ export const keyOfStockGroup = (record: Model.StockGroup) => {
     record.warehouse?.id ?? "_"
   } ${record.plan?.id}`;
 };
+
+export function planFromOrder(
+  order: Model.Order,
+  companyId: number | null | undefined
+) {
+  return (order.orderStock ?? order.orderProcess)?.plan.find(
+    (p) => p.companyId === companyId
+  );
+}
+
+export function assignStockFromOrder(order: Model.Order) {
+  return (
+    (
+      order.orderStock?.plan.find((p) => p.companyId === order.dstCompany.id) ??
+      order.orderProcess?.plan.find(
+        (p) => p.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+      )
+    )?.assignStockEvent?.stock ?? order.orderDeposit
+  );
+}
+
+export function assignStockEventFromOrder(order: Model.Order) {
+  return (
+    order.orderStock?.plan.find((p) => p.companyId === order.dstCompany.id) ??
+    order.orderProcess?.plan.find(
+      (p) => p.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+    )
+  )?.assignStockEvent;
+}
+
+export function assignQuantityFromOrder(order: Model.Order) {
+  return (
+    (
+      order.orderStock?.plan.find((p) => p.companyId === order.dstCompany.id) ??
+      order.orderProcess?.plan.find(
+        (p) => p.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+      )
+    )?.assignStockEvent.change ?? order.orderDeposit?.quantity
+  );
+}

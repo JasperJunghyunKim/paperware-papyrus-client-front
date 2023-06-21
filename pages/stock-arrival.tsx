@@ -80,7 +80,7 @@ export default function Component() {
           {
             title: "작업 구분",
             render: (value: RecordType) => (
-              <div>{value ? "정상 매입" : ""}</div>
+              <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
             ),
           },
           {
@@ -117,22 +117,20 @@ export default function Component() {
               </div>
             ),
           },
-          ...Table.Preset.columnStockGroup<RecordType>(
-            (p) => p // TODO
-          ),
+          ...Table.Preset.columnStockGroup<RecordType>((p) => p),
           ...Table.Preset.columnQuantity<RecordType>(
-            (p) => p, // TODO
+            (p) => p,
             (p) => p.nonStoringQuantity,
             { prefix: "배정" }
           ),
           ...Table.Preset.columnQuantity<RecordType>(
-            (p) => p, // TODO
+            (p) => p,
             (p) => p.storingQuantity,
             { prefix: "입고" }
           ),
           ...Table.Preset.columnQuantity<RecordType>(
-            (p) => p, // TODO
-            (p) => p.totalQuantity,
+            (p) => p,
+            (p) => p.totalArrivalQuantity,
             { prefix: "전체" }
           ),
         ]}
