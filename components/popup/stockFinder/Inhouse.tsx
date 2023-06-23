@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { ApiHook, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Button, Icon, Popup, Table } from "@/components";
+import { Button, Popup, Table } from "@/components";
 import { useEffect, useState } from "react";
 
 export interface Props {

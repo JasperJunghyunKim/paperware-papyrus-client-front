@@ -1,4 +1,4 @@
-import { Api, Model } from "@/@shared";
+import { Api } from "@/@shared";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";

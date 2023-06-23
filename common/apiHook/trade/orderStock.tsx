@@ -2,7 +2,7 @@ import { Api } from "@/@shared";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 
 export function useCreate() {
   const queryClient = useQueryClient();

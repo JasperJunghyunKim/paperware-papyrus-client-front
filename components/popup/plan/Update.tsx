@@ -1,15 +1,14 @@
+import { Model } from "@/@shared";
 import { ApiHook } from "@/common";
-import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
-import classNames from "classnames";
-import { TaskMap } from "./common";
-import { useCallback, useEffect, useState } from "react";
+import { usePage } from "@/common/hook";
+import { Button, Popup, Table, Toolbar } from "@/components";
 import { Form, Input, Steps } from "antd";
 import { useForm } from "antd/lib/form/Form";
+import classNames from "classnames";
+import { useCallback, useEffect, useState } from "react";
 import { RegisterInputStock } from ".";
-import { RegisterInputStockRequest } from "@/@shared/api";
 import { OpenType } from "./RegisterInputStock";
-import { Model } from "@/@shared";
-import { usePage } from "@/common/hook";
+import { TaskMap } from "./common";
 
 export interface Props {
   open: number | false;

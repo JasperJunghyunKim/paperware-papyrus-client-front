@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { ApiHook, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Button, Icon, Popup, Table } from "@/components";
+import { Button, Popup, Table } from "@/components";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 
@@ -41,15 +41,7 @@ export default function Component(props: Props) {
         <div className="flex-1">
           <Table.Default<Model.StockGroup>
             data={groupList.data}
-            keySelector={(record) =>
-              `${record.product.id} ${record.sizeX} ${record.sizeY} ${
-                record.grammage
-              } ${record.paperColorGroup?.id ?? "_"} ${
-                record.paperColor?.id ?? "_"
-              } ${record.paperPattern?.id ?? "_"} ${
-                record.paperCert?.id ?? "_"
-              } ${record.warehouse?.id ?? "_"}`
-            }
+            keySelector={Util.keyOfStockGroup}
             selected={selectedGroup}
             onSelectedChange={setSelectedGroup}
             selection="single"

@@ -1442,7 +1442,8 @@ function RightSideSales(props: RightSideSalesProps) {
             props.order.orderStock?.plan.find(
               (p) => p.companyId === props.order?.dstCompany.id
             )?.status === "PREPARING" &&
-            props.order.orderType === "NORMAL" && (
+            (props.order.orderType === "NORMAL" ||
+              props.order.orderType === "OUTSOURCE_PROCESS") && (
               <Toolbar.ButtonPreset.Continue
                 label="작업 지시"
                 onClick={cmdPlanStart}
