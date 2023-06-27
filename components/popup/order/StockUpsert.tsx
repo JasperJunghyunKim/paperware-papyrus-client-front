@@ -595,7 +595,7 @@ function DataForm(props: DataFormProps) {
       <Form.Item
         name="orderType"
         label={props.isSales ? "매출 유형" : "매입 유형"}
-        initialValue={"NORMAL"}
+        initialValue={props.initialOrder?.orderType ?? "NORMAL"}
         required
       >
         <Select
@@ -1462,12 +1462,16 @@ function RightSideSales(props: RightSideSalesProps) {
           </div>
         </div>
       </div>
-      {props.order && (
-        <>
-          <div className="basis-px bg-gray-200" />
-          <PricePanel order={props.order} orderId={props.order.id} />
-        </>
-      )}
+      <div className="basis-px bg-gray-200" />
+      {props.order &&
+        (props.order.orderType === "NORMAL" ||
+        props.order?.orderType === "DEPOSIT" ? (
+          <>
+            <PricePanel order={props.order} orderId={props.order.id} />
+          </>
+        ) : (
+          <BasePricePanel order={props.order} orderId={props.order.id} />
+        ))}
     </div>
   );
 }
@@ -1693,6 +1697,9 @@ function PricePanel(props: PricePanelProps) {
   const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
 
   useEffect(() => {
+    if (!assignSpec) {
+      return;
+    }
     form.setFieldValue(
       "stockPrice",
       FormControl.Util.Price.initialStockPrice(
@@ -1703,7 +1710,7 @@ function PricePanel(props: PricePanelProps) {
           : assignSpec.packaging.type
       )
     );
-  }, [altSizeX, altSizeY, assignSpec.packaging.type, form]);
+  }, [altSizeX, altSizeY, assignSpec, form]);
 
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)
@@ -1751,7 +1758,7 @@ function PricePanel(props: PricePanelProps) {
         suppliedPrice: tradePrice.data.suppliedPrice,
         vatPrice: tradePrice.data.vatPrice,
       });
-    } else {
+    } else if (assignSpec) {
       form.setFieldsValue({
         stockPrice: FormControl.Util.Price.initialStockPrice(
           assignSpec.packaging.type
@@ -1761,13 +1768,7 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: 0,
       });
     }
-  }, [
-    props.orderId,
-    deposit.data,
-    tradePrice.data,
-    form,
-    assignSpec.packaging.type,
-  ]);
+  }, [props.orderId, deposit.data, tradePrice.data, form, assignSpec]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -2079,7 +2080,7 @@ interface BasePricePanelProps {
   order: Model.Order;
   orderId: number | null;
 }
-function BasePricePanel(props: PricePanelProps) {
+function BasePricePanel(props: BasePricePanelProps) {
   const [form] = useForm();
 
   const me = ApiHook.Auth.useGetMe();
