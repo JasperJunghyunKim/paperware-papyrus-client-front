@@ -36,7 +36,7 @@ export function convertQuantity(
   const calcPackUnit = () =>
     packtype() === "BOX" ? spec.packaging.packA * spec.packaging.packB : 1;
   const calcSheets = () =>
-    packtype() === "ROLL" ? 0 : quantity * calcPackUnit();
+    packtype() === "ROLL" ? 0 : Math.round(quantity * calcPackUnit());
   const calcRect = () => spec.sizeX * (spec.sizeY || 1);
   const calcGrams = () =>
     packtype() === "ROLL"

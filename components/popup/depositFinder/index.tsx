@@ -5,7 +5,12 @@ import { Button, Icon, Popup, Table } from "@/components";
 import { useEffect, useState } from "react";
 
 export interface Props {
-  open: "SALES" | "PURCHASE" | false;
+  open:
+    | {
+        type: "SALES" | "PURCHASE";
+        companyRegistrationNumber: string;
+      }
+    | false;
   onClose: (unit: false) => void;
   onSelect: (deposit: Model.Deposit) => void;
 }
@@ -14,7 +19,10 @@ export default function Component(props: Props) {
   const [page, setPage] = usePage();
   const groupList = ApiHook.Trade.Deposit.useGetList({
     query: {
-      type: props.open ? props.open : undefined,
+      type: props.open ? props.open.type : undefined,
+      companyRegistrationNumber: props.open
+        ? props.open.companyRegistrationNumber
+        : undefined,
       ...page,
     },
   });

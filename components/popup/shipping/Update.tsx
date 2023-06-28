@@ -77,13 +77,12 @@ export default function Component(props: Props) {
   const selectedStatusUnique = _.uniq(selected.map((x) => x.invoiceStatus));
   const selectedStatusUniqueOnly = Util.only(selectedStatusUnique);
   const invoiceForwardLabel = match(selectedStatusUniqueOnly)
-    .with("WAIT_LOADING", () => "상차 대기")
-    .with("WAIT_SHIPPING", () => "상차 시작")
-    .with("ON_SHIPPING", () => "상차 완료")
+    .with("WAIT_SHIPPING", () => "배송 시작")
+    .with("ON_SHIPPING", () => "배송 완료")
     .otherwise(() => null);
   const invoiceBackwardLabel = match(selectedStatusUniqueOnly)
-    .with("WAIT_SHIPPING", () => "상차 취소")
-    .with("ON_SHIPPING", () => "상차 중지")
+    .with("ON_SHIPPING", () => "배송 중지")
+    .with("DONE_SHIPPING", () => "배송 취소")
     .otherwise(() => null);
 
   return (
@@ -103,6 +102,12 @@ export default function Component(props: Props) {
             />
           </Toolbar.Container>
           <Toolbar.Container>
+            {only && only.invoiceStatus === "WAIT_SHIPPING" && (
+              <Toolbar.ButtonPreset.Delete
+                label="상차 취소"
+                onClick={cmdDisconnect}
+              />
+            )}
             {invoiceBackwardLabel && (
               <Toolbar.ButtonPreset.Continue
                 label={invoiceBackwardLabel}
@@ -113,12 +118,6 @@ export default function Component(props: Props) {
               <Toolbar.ButtonPreset.Continue
                 label={invoiceForwardLabel}
                 onClick={cmdForward}
-              />
-            )}
-            {only && only.invoiceStatus === "WAIT_LOADING" && (
-              <Toolbar.ButtonPreset.Delete
-                label="송장 연결 해제"
-                onClick={cmdDisconnect}
               />
             )}
           </Toolbar.Container>

@@ -974,7 +974,9 @@ function DataForm(props: DataFormProps) {
                     sizeY,
                     packaging,
                   }}
-                  value={(compactQuantity?.availableQuantity ?? 0) - quantity}
+                  value={
+                    (compactQuantity?.availableQuantity ?? 0) - (quantity ?? 0)
+                  }
                   disabled
                 />
               </Form.Item>
@@ -1439,11 +1441,14 @@ function RightSideSales(props: RightSideSalesProps) {
             />
           )}
           {props.order?.status === "ACCEPTED" &&
-            props.order.orderStock?.plan.find(
-              (p) => p.companyId === props.order?.dstCompany.id
-            )?.status === "PREPARING" &&
-            (props.order.orderType === "NORMAL" ||
-              props.order.orderType === "OUTSOURCE_PROCESS") && (
+            ((props.order.orderType === "NORMAL" &&
+              props.order.orderStock?.plan.find(
+                (p) => p.companyId === props.order?.dstCompany.id
+              )?.status === "PREPARING") ||
+              (props.order.orderType === "OUTSOURCE_PROCESS" &&
+                props.order.orderProcess?.plan.find(
+                  (p) => p.companyId === props.order?.dstCompany.id
+                )?.status === "PREPARING")) && (
               <Toolbar.ButtonPreset.Continue
                 label="작업 지시"
                 onClick={cmdPlanStart}
@@ -1782,7 +1787,7 @@ function PricePanel(props: PricePanelProps) {
           ),
         }}
       >
-        {props.order.orderType === "NORMAL" && (
+        {props.order.orderType === "NORMAL" && positiveCompany && (
           <>
             <FormControl.Util.Split
               label={isSales ? "보관 출고" : "보관 입고"}
@@ -1790,7 +1795,11 @@ function PricePanel(props: PricePanelProps) {
             <Form.Item name="deposit">
               <div className="flex-1 flex gap-x-2">
                 <Button.Preset.SelectDeposit
-                  type={isSales ? "SALES" : "PURCHASE"}
+                  option={{
+                    type: isSales ? "SALES" : "PURCHASE",
+                    companyRegistrationNumber:
+                      positiveCompany.companyRegistrationNumber,
+                  }}
                   onSelect={(deposit) => {
                     form.setFieldsValue({
                       deposit: {

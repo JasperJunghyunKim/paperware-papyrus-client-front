@@ -32,7 +32,7 @@ export default function Component(props: Props) {
 
   const arrivals = ApiHook.Stock.StockInhouse.useGetGroupList({
     query: {
-      planId: props.open ? props.open : 0,
+      planId: props.open ? props.open : undefined,
     },
   });
 

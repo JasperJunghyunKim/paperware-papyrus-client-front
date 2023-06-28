@@ -15,6 +15,9 @@ export function useGetList(params: { query: Partial<Api.OrderListQuery> }) {
       params.query.srcCompanyId,
     ],
     async () => {
+      if (!params.query.dstCompanyId && !params.query.srcCompanyId) {
+        return null;
+      }
       const resp = await axios.get<Api.OrderListResponse>(`${API_HOST}/order`, {
         params: params.query,
       });

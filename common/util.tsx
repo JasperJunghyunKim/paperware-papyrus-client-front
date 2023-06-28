@@ -202,11 +202,11 @@ export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
     case "WAIT_LOADING":
       return "출고 대기";
     case "WAIT_SHIPPING":
-      return "상차 대기";
-    case "ON_SHIPPING":
-      return "상차 진행중";
-    case "DONE_SHIPPING":
       return "상차 완료";
+    case "ON_SHIPPING":
+      return "배송중";
+    case "DONE_SHIPPING":
+      return "배송 완료";
   }
 }
 

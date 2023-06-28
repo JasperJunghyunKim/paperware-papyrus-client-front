@@ -161,7 +161,7 @@ export default function Component(props: Props) {
         <div className="basis-px bg-gray-200" />
         <div className="flex-initial flex justify-center gap-x-2 p-4">
           <Button.Default
-            label="송장 등록"
+            label="상차"
             onClick={cmdConnect}
             type="primary"
             disabled={selectedGroup.length === 0}

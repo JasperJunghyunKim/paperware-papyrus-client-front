@@ -100,7 +100,10 @@ export function SelectPartnerStockGroup(props: SelectPartnerStockGroupProps) {
 }
 
 interface SelectDepositProps {
-  type: "SALES" | "PURCHASE";
+  option: {
+    type: "SALES" | "PURCHASE";
+    companyRegistrationNumber: string;
+  };
   onSelect: (stockGroup: Model.Deposit) => void;
   rootClassName?: string;
 }
@@ -119,7 +122,7 @@ export function SelectDeposit(props: SelectDepositProps) {
         }}
       />
       <Popup.DepositFinder.default
-        open={open && props.type}
+        open={open && props.option}
         onClose={() => setOpen(false)}
         onSelect={(deposit: Model.Deposit) => {
           props.onSelect(deposit);

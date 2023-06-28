@@ -106,14 +106,19 @@ export default function Component() {
           },
           {
             title: "도착지",
-            dataIndex: ["plan", "orderStock", "dstLocation", "name"],
+            render: (_, record) =>
+              record.plan?.orderStock?.dstLocation.name ??
+              record.plan?.planShipping?.dstLocation.name,
           },
           {
             title: "예정일",
-            dataIndex: ["plan", "orderStock", "order", "wantedDate"],
-            render: (value) => (
+            render: (_, record) => (
               <div className="font-fixed">
-                {Util.formatIso8601ToLocalDate(value)}
+                {Util.formatIso8601ToLocalDate(
+                  record.plan?.orderStock?.wantedDate ??
+                    record.plan?.planShipping?.wantedDate ??
+                    null
+                )}
               </div>
             ),
           },
