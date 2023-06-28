@@ -11,6 +11,7 @@ type RecordType = Model.BusinessRelationshipCompact;
 export default function Component() {
   const info = ApiHook.Auth.useGetMe();
 
+  const [openUpdate, setOpenUpdate] = useState<number | false>(false);
   const [openReceive, setOpenReceive] = useState(false);
   const [openSend, setOpenSend] = useState(false);
   const [openManaged, setOpenManaged] = useState(false);
@@ -100,16 +101,10 @@ export default function Component() {
           />
         )}
         <div className="flex-1" />
-        {!!(info.data && only && only.flag & (1 << 0)) && (
-          <Toolbar.ButtonPreset.Delete
-            label="매출 중지"
-            onClick={cmdDeactive(info.data.companyId, only.id)}
-          />
-        )}
-        {!!(info.data && only && only.flag & (1 << 1)) && (
-          <Toolbar.ButtonPreset.Delete
-            label="매입 중지"
-            onClick={cmdDeactive(only.id, info.data.companyId)}
+        {only && (
+          <Toolbar.ButtonPreset.Update
+            label="상세 정보"
+            onClick={() => setOpenUpdate(only.id)}
           />
         )}
       </Toolbar.Container>
@@ -124,14 +119,13 @@ export default function Component() {
           ...partnerColumn,
           ...Table.Preset.columnConnection<RecordType>(["managedById"]),
           {
-            title: "송장 코드",
+            title: "회사 코드",
             dataIndex: ["invoiceCode"],
             render: (value) => <div className="font-fixed">{value}</div>,
           },
           {
             title: "주소",
-            dataIndex: ["address"],
-            render: (value) => Util.formatAddress(value),
+            render: (_, record) => Util.formatAddress(record.address),
           },
           {
             title: "거래관계",
@@ -180,6 +174,7 @@ export default function Component() {
         onClose={setOpenSend}
       />
       <Popup.Company.Register open={openManaged} onClose={setOpenManaged} />
+      <Popup.Company.Update open={openUpdate} onClose={setOpenUpdate} />
     </Page>
   );
 }

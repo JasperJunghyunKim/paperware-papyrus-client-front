@@ -150,6 +150,7 @@ export default function Component(props: Props) {
                 name="isSyncPrice"
                 label="매입 동기화"
                 valuePropName="checked"
+                initialValue={false}
               >
                 <Switch />
               </Form.Item>

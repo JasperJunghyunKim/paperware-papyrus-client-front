@@ -1,5 +1,6 @@
 import { API_HOST } from "@/common/const";
 import { Api } from "@shared";
+import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
@@ -75,6 +76,7 @@ export function useAccept() {
     },
     {
       onSuccess: async () => {
+        message.info("거래처 요청을 수락하였습니다.");
         await queryClient.invalidateQueries([
           "inhouse",
           "business-relationship-request",
@@ -101,6 +103,7 @@ export function useReject() {
     },
     {
       onSuccess: async () => {
+        message.info("거래처 요청을 거절하였습니다.");
         await queryClient.invalidateQueries([
           "inhouse",
           "business-relationship-request",

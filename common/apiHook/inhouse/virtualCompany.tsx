@@ -1,5 +1,6 @@
 import { API_HOST } from "@/common/const";
 import { Api } from "@shared";
+import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
@@ -58,13 +59,18 @@ export function useUpdate() {
     async (params: { data: Api.VirtualCompanyUpdateRequest; id: number }) => {
       const resp = await axios.put(
         `${API_HOST}/inhouse/virtual-company/${params.id}`,
-        params
+        params.data
       );
       return resp.data;
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["inhouse", "virtual-company"]);
+      onSuccess: async () => {
+        message.info("회사 정보가 수정되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "business-relationship",
+        ]);
+        await queryClient.invalidateQueries(["inhouse", "virtual-company"]);
       },
     }
   );

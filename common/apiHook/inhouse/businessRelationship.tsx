@@ -1,3 +1,4 @@
+import { BusinessRelationshipCompact } from "@/@shared/models";
 import { API_HOST } from "@/common/const";
 import { Api } from "@shared";
 import { message } from "antd";
@@ -72,6 +73,47 @@ export function useGetCompactList(params: {
     }
   );
 }
+
+export function useGetCompactItem(params: { targetCompanyId: number | null }) {
+  return useQuery(
+    ["inhouse", "business-relationship", "compact", params.targetCompanyId],
+    async () => {
+      if (!params.targetCompanyId) return null;
+
+      const resp = await axios.get<BusinessRelationshipCompact>(
+        `${API_HOST}/inhouse/business-relationship/compact/${params.targetCompanyId}`
+      );
+      return resp.data;
+    }
+  );
+}
+
+export function useUpsertPartner() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: {
+      companyRegistrationNumber: string;
+      data: Api.UpsertPartnerRequest;
+    }) => {
+      const resp = await axios.put(
+        `${API_HOST}/inhouse/business-relationship/partner/${params.companyRegistrationNumber}`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        message.info("거래처 정보가 저장되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "business-relationship",
+        ]);
+      },
+    }
+  );
+}
+
 export function useSearchPartnerItem() {
   return useMutation(async (params: { data: Api.SearchPartnerRequest }) => {
     const resp = await axios.post<Api.SearchPartnerResponse>(
@@ -96,6 +138,29 @@ export function useRegisterPartner() {
     {
       onSuccess: async () => {
         message.info("등록되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "business-relationship",
+        ]);
+      },
+    }
+  );
+}
+
+export function useRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { data: Api.BusinessRelationshipRequestRequest }) => {
+      const resp = await axios.post(
+        `${API_HOST}/inhouse/business-relationship/request`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        message.info("거래 관계를 수정했습니다.");
         await queryClient.invalidateQueries([
           "inhouse",
           "business-relationship",

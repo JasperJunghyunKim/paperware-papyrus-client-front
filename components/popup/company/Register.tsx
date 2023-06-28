@@ -49,13 +49,13 @@ export default function Component(props: Props) {
 
       const resp = await apiSearch.mutateAsync({ data: values });
 
-      if (resp.partner) {
-        Util.warn(
-          `'${resp.partner.partnerNickName} (사업자등록번호: ${resp.partner.companyRegistrationNumber})'는 이미 등록된 거래처입니다.`
-        );
-        setSearched(null);
-        return;
-      }
+      // if (resp.partner) {
+      //   Util.warn(
+      //     `'${resp.partner.partnerNickName} (사업자등록번호: ${resp.partner.companyRegistrationNumber})'는 이미 등록된 거래처입니다.`
+      //   );
+      //   setSearched(null);
+      //   return;
+      // }
       setSearched(resp);
       form.setFieldValue("isVirtual", resp.company ? false : true);
     },
@@ -106,16 +106,18 @@ export default function Component(props: Props) {
           </Form.Item>
           {searched ? (
             <>
-              <Form.Item name="isVirtual" label="연결 거래처 여부">
-                <Radio.Group
-                  optionType="button"
-                  options={[
-                    { label: "연결 거래처", value: false },
-                    { label: "비연결 거래처", value: true },
-                  ].filter((x) => searched.company || x.value)}
-                  buttonStyle="solid"
-                />
-              </Form.Item>
+              <div className="hidden">
+                <Form.Item name="isVirtual" label="연결 거래처 여부">
+                  <Radio.Group
+                    optionType="button"
+                    options={[
+                      { label: "연결 거래처", value: false },
+                      { label: "비연결 거래처", value: true },
+                    ].filter((x) => searched.company || x.value)}
+                    buttonStyle="solid"
+                  />
+                </Form.Item>
+              </div>
               <Alert
                 message={
                   isVirtual
@@ -170,9 +172,9 @@ export default function Component(props: Props) {
             {!isVirtual && (
               <Form.Item
                 name="invoiceCode"
-                label="송장코드"
+                label="회사 코드"
                 rules={[
-                  { required: true, message: "송장코드를 입력해주세요." },
+                  { required: true, message: "회사 코드를 입력해주세요." },
                 ]}
               >
                 <Input disabled={!!searched?.company && !isVirtual} />

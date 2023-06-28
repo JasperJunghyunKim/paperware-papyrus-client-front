@@ -73,7 +73,7 @@ export default function Component(props: Props) {
               disabled={!only}
             />
             <Toolbar.ButtonPreset.Continue
-              label="매출처 등록 수락"
+              label="거래처 등록 승인"
               onClick={async () => {
                 only && (await cmdAccept({ companyId: only.srcCompany.id }));
               }}
@@ -118,12 +118,12 @@ export default function Component(props: Props) {
                 dataIndex: ["srcCompany", "email"],
               },
               {
-                title: "거래 관계",
+                title: "희망 거래 관계",
                 render: (_value, record) => (
                   <div>
                     {[
-                      record.isSales ? "매출" : null,
-                      record.isPurchase ? "매입" : null,
+                      record.isSales ? "매입" : null,
+                      record.isPurchase ? "매출" : null,
                     ]
                       .filter((p) => !!p)
                       .join(" & ")}
