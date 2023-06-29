@@ -73,7 +73,7 @@ export default function Component(props: Props) {
               disabled={!only}
             />
             <Toolbar.ButtonPreset.Continue
-              label="거래처 등록 승인"
+              label="거래처 등록 수락"
               onClick={async () => {
                 only && (await cmdAccept({ companyId: only.srcCompany.id }));
               }}

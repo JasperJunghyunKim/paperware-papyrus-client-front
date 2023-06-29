@@ -152,7 +152,7 @@ export default function Component() {
           ...Table.Preset.columnQuantity<Model.Order>(
             (record) => Util.assignStockFromOrder(record),
             (record) => Util.assignQuantityFromOrder(record),
-            { prefix: "매출", negative: true }
+            { prefix: "매출", negative: false }
           ),
         ]}
       />

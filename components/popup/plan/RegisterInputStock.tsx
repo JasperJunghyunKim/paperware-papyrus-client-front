@@ -7,7 +7,7 @@ import { useCallback, useEffect } from "react";
 
 export type OpenType =
   | {
-      stockId: number;
+      serial: string;
       planId: number;
     }
   | false;
@@ -29,26 +29,26 @@ export default function Component(props: Props) {
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
+  const stock = ApiHook.Stock.StockInhouse.useGetItemBySerial({
+    serial: props.open ? props.open.serial : null,
+  });
+
   const api = ApiHook.Working.Plan.useRegisterInputStock();
   const cmd = useCallback(async () => {
-    if (!props.open) {
+    if (!props.open || !stock.data) {
       return;
     }
 
     await api.mutateAsync({
       id: props.open.planId,
       data: {
-        stockId: props.open.stockId,
+        stockId: stock.data.id,
         quantity: quantity,
       },
     });
     form.resetFields();
     props.onClose(false);
-  }, [api, form, props.onClose]);
-
-  const stock = ApiHook.Stock.StockInhouse.useGetItem({
-    id: props.open ? props.open.stockId : null,
-  });
+  }, [api, form, stock.data, props.onClose]);
 
   useEffect(() => {
     if (!stock.data) {

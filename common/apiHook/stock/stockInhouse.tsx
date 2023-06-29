@@ -75,6 +75,26 @@ export function useGetItem(params: { id: number | null }) {
   });
 }
 
+export async function fetchItemBySerial(serial: string) {
+  return await axios.get<Api.StockDetailResponse>(
+    `${API_HOST}/stock/by-serial/${serial}`
+  );
+}
+
+export function useGetItemBySerial(params: { serial: string | null }) {
+  return useQuery(
+    ["stockInhouse", "item", "by-serial", params.serial],
+    async () => {
+      if (!params.serial) {
+        return null;
+      }
+
+      const resp = await fetchItemBySerial(params.serial);
+      return resp.data;
+    }
+  );
+}
+
 export function useCreate() {
   const queryClient = useQueryClient();
 

@@ -719,14 +719,7 @@ export function planFromOrder(
 }
 
 export function assignStockFromOrder(order: Model.Order) {
-  return (
-    (
-      order.orderStock?.plan.find((p) => p.companyId === order.dstCompany.id) ??
-      order.orderProcess?.plan.find(
-        (p) => p.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
-      )
-    )?.assignStockEvent?.stock ?? order.orderDeposit
-  );
+  return order.orderStock ?? order.orderProcess ?? order.orderDeposit;
 }
 
 export function assignStockEventFromOrder(order: Model.Order) {
@@ -740,11 +733,8 @@ export function assignStockEventFromOrder(order: Model.Order) {
 
 export function assignQuantityFromOrder(order: Model.Order) {
   return (
-    (
-      order.orderStock?.plan.find((p) => p.companyId === order.dstCompany.id) ??
-      order.orderProcess?.plan.find(
-        (p) => p.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
-      )
-    )?.assignStockEvent.change ?? order.orderDeposit?.quantity
+    order.orderStock?.quantity ??
+    order.orderProcess?.quantity ??
+    order.orderDeposit?.quantity
   );
 }

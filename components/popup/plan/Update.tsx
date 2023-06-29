@@ -22,9 +22,7 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
-  const [form] = useForm();
   const me = ApiHook.Auth.useGetMe();
-  const [stockId, setStockId] = useState<number | null>(null);
   const [serial, setSerial] = useState<string>("");
   const [openRegister, setOpenRegister] = useState<OpenType | false>(false);
 
@@ -36,10 +34,9 @@ export default function Component(props: Props) {
     planId: props.open ? props.open : null,
   });
 
-  const [inputStocksPage, setInputStocksPage] = usePage();
   const inputStocks = ApiHook.Working.Plan.useGetInputList({
     planId: props.open ? props.open : null,
-    query: inputStocksPage,
+    query: {},
   });
 
   const apiStart = ApiHook.Working.Plan.useStart();
@@ -64,16 +61,6 @@ export default function Component(props: Props) {
     });
   }, [props.open, data.data]);
 
-  useEffect(() => {
-    if (stockId && props.open && !openRegister) {
-      setOpenRegister({
-        planId: props.open,
-        stockId: stockId,
-      });
-      setStockId(null);
-    }
-  }, [props.open, stockId, openRegister]);
-
   const isAllCompleted = useCallback(() => {
     if (!tasks.data) {
       return false;
@@ -81,6 +68,32 @@ export default function Component(props: Props) {
 
     return tasks.data.every((task) => task.status === "PROGRESSED");
   }, [tasks.data]);
+
+  const showRegister = useCallback(
+    async (serial: string) => {
+      if (!data.data || !me.data) return;
+      if (
+        inputStocks.data?.items.some(
+          (x) => x.stock.serial === `P${me.data.company.invoiceCode}${serial}`
+        )
+      ) {
+        Util.warn("이미 실투입으로 등록된 재고입니다.");
+        return;
+      }
+
+      try {
+        const _ = await ApiHook.Stock.StockInhouse.fetchItemBySerial(serial);
+        setOpenRegister({
+          planId: data.data.id,
+          serial: serial,
+        });
+        setSerial("");
+      } catch {
+        Util.warn("존재하지 않는 재고입니다.");
+      }
+    },
+    [data.data, inputStocks.data, me.data]
+  );
 
   return (
     <Popup.Template.Full
@@ -186,22 +199,20 @@ export default function Component(props: Props) {
             {data.data.status === "PROGRESSING" && (
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
-                <div className="flex-initial basis-48 flex h-0">
+                <div className="flex-initial basis-64 flex h-0">
                   <div className="flex-1 flex flex-col w-0">
                     <Table.Default<Model.StockEvent>
                       data={inputStocks.data}
-                      page={inputStocksPage}
-                      setPage={setInputStocksPage}
                       keySelector={(record) => `${record.id}`}
-                      selection="none"
+                      selection="single"
                       columns={[
                         {
                           title: "재고 번호",
                           dataIndex: ["stock", "serial"],
-                          render: (value, record) => (
+                          render: (value) => (
                             <div className="flex">
-                              <div className="flex font-fixed bg-yellow-100 px-1 text-yellow-800 rounded-md">
-                                {value}
+                              <div className="flex font-fixed bg-yellow-100 px-1 text-yellow-800 rounded-md border border-solid border-yellow-300">
+                                {Util.formatSerial(value)}
                               </div>
                             </div>
                           ),
@@ -217,7 +228,6 @@ export default function Component(props: Props) {
                           { prefix: "총" }
                         ),
                       ]}
-                      borderless
                     />
                   </div>
                   <div className="basis-px bg-gray-300" />
@@ -237,9 +247,10 @@ export default function Component(props: Props) {
                           fontWeight: "bold",
                           color: "darkgray",
                           fontSize: "16px",
+                          padding: "0",
+                          margin: "0",
                         },
                         input: {
-                          textAlign: "right",
                           fontFamily: "D2CodingFont",
                           fontWeight: "bold",
                           color: "blue",
@@ -247,7 +258,7 @@ export default function Component(props: Props) {
                         },
                       }}
                     />
-                    <div className="flex-initial grid grid-cols-4 grid-rows-3 gap-2">
+                    <div className="flex-1 grid grid-cols-4 grid-rows-4 gap-2">
                       {Array.from<number | "bs" | "c">([
                         7,
                         8,
@@ -267,10 +278,13 @@ export default function Component(props: Props) {
                           onClick={setSerial}
                         />
                       ))}
-                      <Button.Preset.Edit
+                      <Button.Default
+                        type="primary"
                         label="재고 검색"
-                        onClick={() => {}}
+                        onClick={() => showRegister(serial)}
+                        disabled={serial.length !== 10}
                       />
+                      <NumberPad value={0} onClick={setSerial} />
                     </div>
                   </div>
                 </div>
@@ -325,7 +339,7 @@ function NumberPad(props: {
   return (
     <div
       className={classNames(
-        "flex flex-col pb-1 justify-center bg-white rounded border border-gray-300 border-solid text-lg font-bold text-center select-none",
+        "flex flex-col pb-1 justify-center bg-white rounded border border-gray-300 border-solid text-lg font-bold text-center select-none cursor-pointer active:bg-cyan-800 active:text-white",
         {
           "bg-green-100": props.value === "c" || props.value === "bs",
         }
