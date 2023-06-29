@@ -40,6 +40,7 @@ export interface User {
   email: string | null;
   company: {
     companyRegistrationNumber: string;
+    invoiceCode: string;
   };
 }
 

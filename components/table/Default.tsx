@@ -16,6 +16,7 @@ interface Props<T> {
   onSelectedChange?: (selected: T[]) => void;
   selection?: "none" | "single" | "multiple";
   expandable?: ExpandableConfig<T>;
+  borderless?: boolean;
 }
 
 export default function Component<T extends object>(props: Props<T>) {
@@ -54,7 +55,7 @@ export default function Component<T extends object>(props: Props<T>) {
 
   return (
     <Table<T>
-      bordered
+      bordered={!props.borderless}
       pagination={
         props.page
           ? {
@@ -65,7 +66,7 @@ export default function Component<T extends object>(props: Props<T>) {
           : false
       }
       rowKey={props.keySelector}
-      scroll={{ x: true }}
+      scroll={{ x: true, y: "100%" }}
       size="small"
       columns={props.columns}
       rowSelection={

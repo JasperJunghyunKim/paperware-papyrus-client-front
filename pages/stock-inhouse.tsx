@@ -279,16 +279,6 @@ export default function Component() {
               </div>
             ),
           },
-          {
-            title: "공개 여부",
-            render: (_, record) =>
-              record.warehouse?.isPublic && (
-                <div className="flex items-center gap-x-1">
-                  <TbEyeCheck className="text-xl" />
-                  공개
-                </div>
-              ),
-          },
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,
             (record) => record.cachedQuantity,

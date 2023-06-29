@@ -1,11 +1,17 @@
 import { Model } from "@/@shared";
-import { ApiHook } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Button, Popup, Table, Toolbar } from "@/components";
 import { Form, Input, Steps } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import classNames from "classnames";
-import { useCallback, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { RegisterInputStock } from ".";
 import { OpenType } from "./RegisterInputStock";
 import { TaskMap } from "./common";
@@ -17,7 +23,9 @@ export interface Props {
 
 export default function Component(props: Props) {
   const [form] = useForm();
+  const me = ApiHook.Auth.useGetMe();
   const [stockId, setStockId] = useState<number | null>(null);
+  const [serial, setSerial] = useState<string>("");
   const [openRegister, setOpenRegister] = useState<OpenType | false>(false);
 
   const data = ApiHook.Working.Plan.useGetItem({
@@ -179,7 +187,7 @@ export default function Component(props: Props) {
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
                 <div className="flex-initial basis-48 flex h-0">
-                  <div className="flex-1 flex flex-col p-4 overflow-y-scroll">
+                  <div className="flex-1 flex flex-col w-0">
                     <Table.Default<Model.StockEvent>
                       data={inputStocks.data}
                       page={inputStocksPage}
@@ -209,23 +217,61 @@ export default function Component(props: Props) {
                           { prefix: "총" }
                         ),
                       ]}
+                      borderless
                     />
                   </div>
                   <div className="basis-px bg-gray-300" />
-                  <div className="basis-[400px] flex p-4 bg-yellow-50">
-                    <Form
-                      form={form}
-                      layout="vertical"
-                      rootClassName="w-full"
-                      onFinish={(value) => setStockId(Number(value.stockNo))}
-                    >
-                      <Form.Item label="재고 번호" name="stockNo">
-                        <Input />
-                      </Form.Item>
-                      <div className="flex-initial flex justify-end">
-                        <Button.Preset.Submit label="재고 검색" />
-                      </div>
-                    </Form>
+                  <div className="flex-[0_0_400px] flex flex-col gap-y-2 p-2 bg-yellow-50">
+                    <Input
+                      prefix={`P-${data.data.company.invoiceCode}-`}
+                      addonBefore={`재고 번호`}
+                      placeholder="00000-00000"
+                      value={Util.formatSerialNo(serial)}
+                      onChange={(e) =>
+                        setSerial(e.target.value.replace(/-/g, ""))
+                      }
+                      maxLength={11}
+                      styles={{
+                        prefix: {
+                          fontFamily: "D2CodingFont",
+                          fontWeight: "bold",
+                          color: "darkgray",
+                          fontSize: "16px",
+                        },
+                        input: {
+                          textAlign: "right",
+                          fontFamily: "D2CodingFont",
+                          fontWeight: "bold",
+                          color: "blue",
+                          fontSize: "16px",
+                        },
+                      }}
+                    />
+                    <div className="flex-initial grid grid-cols-4 grid-rows-3 gap-2">
+                      {Array.from<number | "bs" | "c">([
+                        7,
+                        8,
+                        9,
+                        "bs",
+                        4,
+                        5,
+                        6,
+                        "c",
+                        1,
+                        2,
+                        3,
+                      ]).map((item) => (
+                        <NumberPad
+                          key={item}
+                          value={item}
+                          onClick={setSerial}
+                        />
+                      ))}
+                      <Button.Preset.Edit
+                        label="재고 검색"
+                        onClick={() => {}}
+                      />
+                    </div>
                   </div>
                 </div>
               </>
@@ -268,6 +314,33 @@ function OrderItemProperty(props: OrderItemPropertyProps) {
       >
         {props.content}
       </div>
+    </div>
+  );
+}
+
+function NumberPad(props: {
+  value: number | "bs" | "c";
+  onClick: Dispatch<SetStateAction<string>>;
+}) {
+  return (
+    <div
+      className={classNames(
+        "flex flex-col pb-1 justify-center bg-white rounded border border-gray-300 border-solid text-lg font-bold text-center select-none",
+        {
+          "bg-green-100": props.value === "c" || props.value === "bs",
+        }
+      )}
+      onClick={() =>
+        props.onClick((prev) =>
+          props.value === "c"
+            ? ""
+            : props.value === "bs"
+            ? prev.substring(0, prev.length - 1)
+            : prev.substring(0, 9) + props.value
+        )
+      }
+    >
+      {props.value === "bs" ? "←" : props.value === "c" ? "C" : props.value}
     </div>
   );
 }

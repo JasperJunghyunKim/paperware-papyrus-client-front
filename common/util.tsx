@@ -687,6 +687,12 @@ export function formatSerial(serial: string): string {
     : `${serial}`;
 }
 
+export function formatSerialNo(serial: string): string {
+  return serial.length >= 5
+    ? `${serial.slice(0, 5)}-${serial.slice(5)}`
+    : serial;
+}
+
 export const mine =
   (x: { companyId: number } | undefined | null) =>
   (y: { companyId: number } | undefined | null) => {
