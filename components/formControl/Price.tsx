@@ -16,7 +16,7 @@ export default function Component(props: Props) {
   const unit = useMemo(() => {
     return {
       unit: Util.priceUnit(props.packaging.type),
-      format: Util.formatPriceUnit(props.packaging.type),
+      format: Util.formatPackagingPriceUnit(props.packaging.type),
     };
   }, [props.packaging.type]);
 

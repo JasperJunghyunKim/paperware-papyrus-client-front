@@ -143,6 +143,40 @@ export function formatAddress(address: string | Address | null | undefined) {
   }`;
 }
 
+export function formatOfficialPriceType(
+  type: Model.Enum.OfficialPriceType | null | undefined
+) {
+  switch (type) {
+    case "NONE":
+      return "고시가 미지정";
+    case "MANUAL_NONE":
+      return "직접 입력";
+    case "RETAIL":
+      return "실가";
+    case "WHOLESALE":
+      return "도매";
+    default:
+      return "";
+  }
+}
+
+export function formatDiscountType(
+  type: Model.Enum.DiscountType | null | undefined
+) {
+  switch (type) {
+    case "NONE":
+      return "단가 지정";
+    case "DEFAULT":
+      return "기본";
+    case "MANUAL_NONE":
+      return "할인율 지정";
+    case "SPECIAL":
+      return "특가";
+    default:
+      return "";
+  }
+}
+
 export function formatPackaging(packaging: Model.Packaging, short?: boolean) {
   switch (packaging.type) {
     case "SKID":
@@ -184,7 +218,20 @@ export function priceUnit(packagingType: Model.Enum.PackagingType): PriceUnit {
   }
 }
 
-export function formatPriceUnit(packagingType: Model.Enum.PackagingType) {
+export function formatPriceUnit(priceUnit: Model.Enum.PriceUnit) {
+  switch (priceUnit) {
+    case "WON_PER_TON":
+      return "원/T";
+    case "WON_PER_BOX":
+      return "원/BOX";
+    case "WON_PER_REAM":
+      return "원/R";
+  }
+}
+
+export function formatPackagingPriceUnit(
+  packagingType: Model.Enum.PackagingType
+) {
   switch (packagingType) {
     case "SKID":
       return "원/R";

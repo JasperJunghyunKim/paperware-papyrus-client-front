@@ -1,10 +1,19 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, PriceUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
+import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
+import {
+  TbCheck,
+  TbCircleCheckFilled,
+  TbEyeCheck,
+  TbMapPin,
+  TbMapPinFilled,
+  TbRefresh,
+} from "react-icons/tb";
+import { match } from "ts-pattern";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -135,28 +144,150 @@ export default function Component() {
         selection="single"
         columns={[
           {
-            title: "#",
-            dataIndex: "id",
-            render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(
-                value
-              )}`}</div>
-            ),
-          },
-          {
             title: "거래처",
             dataIndex: ["initialOrder", "dstCompany", "businessName"],
           },
           {
+            title: "금액 동기화",
+            render: (_, record) =>
+              record.isSyncPrice && (
+                <div className="flex items-center text-green-600 gap-x-1">
+                  <TbRefresh />
+                  금액 동기화
+                </div>
+              ),
+          },
+          {
             title: "재고 번호",
             dataIndex: "serial",
-            render: (value, record) => (
+            render: (value) => (
               <div className="flex">
                 <div className="flex font-fixed bg-yellow-100 px-1 text-yellow-800 rounded-md border border-solid border-yellow-300">
                   {Util.formatSerial(value)}
                 </div>
               </div>
             ),
+          },
+          {
+            title: "작업 구분",
+            render: (_, record) => (
+              <div>
+                {match(record.initialPlan.type)
+                  .with("INHOUSE_CREATE", () => "신규 등록")
+                  .with("INHOUSE_MODIFY", () => "재고 수정")
+                  .with("INHOUSE_PROCESS", () => "재부 재단")
+                  .with("INHOUSE_RELOCATION", () => "재고 이고")
+                  .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
+                  .with("TRADE_NORMAL_BUYER", () => "정상 매입")
+                  .with("TRADE_NORMAL_SELLER", () => "정상 매출")
+                  .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 재단 매입")
+                  .with(
+                    "TRADE_OUTSOURCE_PROCESS_SELLER",
+                    () => "외주 재단 매출"
+                  )
+                  .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
+                  .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
+                  .otherwise(() => "")}
+              </div>
+            ),
+          },
+          {
+            title: "고시가",
+            render: (_, record) =>
+              record.stockPrice.officialPriceType !== "NONE" && (
+                <div className="flex items-center gap-x-2">
+                  <div className="flex-initial rounded text-white px-1 bg-blue-500">
+                    {Util.formatOfficialPriceType(
+                      record.stockPrice.officialPriceType
+                    )}
+                  </div>
+                  <div className="flex-1 font-fixed text-right whitespace-pre">
+                    {`${Util.comma(
+                      record.stockPrice.officialPrice
+                    )} ${Util.formatPriceUnit(
+                      record.stockPrice.officialPriceUnit
+                    ).padEnd(6)}`}
+                  </div>
+                </div>
+              ),
+          },
+          {
+            title: "할인율",
+            render: (_, record) =>
+              record.stockPrice.officialPriceType !== "NONE" && (
+                <div className="flex items-center gap-x-2">
+                  <div
+                    className={classNames(
+                      "flex-initial rounded text-white px-1",
+                      {
+                        "bg-gray-500":
+                          record.stockPrice.discountType === "NONE",
+                        "bg-blue-500":
+                          record.stockPrice.discountType !== "NONE",
+                      }
+                    )}
+                  >
+                    {Util.formatDiscountType(record.stockPrice.discountType)}
+                  </div>
+                  <div className="flex-1 font-fixed text-right whitespace-pre">
+                    {`${Util.comma(
+                      record.stockPrice.discountType === "MANUAL_NONE"
+                        ? record.stockPrice.discountPrice
+                        : (1 -
+                            PriceUtil.convertPrice({
+                              srcUnit: record.stockPrice.unitPriceUnit,
+                              dstUnit: record.stockPrice.officialPriceUnit,
+                              origPrice: record.stockPrice.unitPrice,
+                              spec: record,
+                            }) /
+                              record.stockPrice.officialPrice) *
+                            100
+                    )} %`}
+                  </div>
+                </div>
+              ),
+          },
+          {
+            title: "단가",
+            render: (_, record) => (
+              <div className="font-fixed text-right">
+                {`${Util.comma(
+                  record.stockPrice.discountType === "NONE"
+                    ? record.stockPrice.unitPrice
+                    : PriceUtil.convertPrice({
+                        srcUnit: record.stockPrice.officialPriceUnit,
+                        dstUnit: record.stockPrice.unitPriceUnit,
+                        origPrice: record.stockPrice.officialPrice,
+                        spec: record,
+                      }) *
+                        (1 - record.stockPrice.discountPrice / 100)
+                )} ${Util.formatPriceUnit(record.stockPrice.unitPriceUnit)}`}
+              </div>
+            ),
+          },
+          {
+            title: "공급가",
+            render: (_, record) => (
+              <div className="font-fixed text-right">
+                {`${Util.comma(
+                  PriceUtil.calcSupplyPrice({
+                    spec: record,
+                    price: record.stockPrice,
+                    quantity: record.cachedQuantity,
+                  })
+                )} 원`}
+              </div>
+            ),
+          },
+          {
+            title: "공개 여부",
+            render: (_, record) =>
+              record.warehouse?.isPublic && (
+                <div className="flex items-center gap-x-1">
+                  <TbEyeCheck className="text-xl" />
+                  공개
+                </div>
+              ),
           },
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,

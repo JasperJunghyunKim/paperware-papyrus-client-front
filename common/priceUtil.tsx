@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { PaperUtil } from ".";
 
 export interface Packaging {
   type: "ROLL" | "BOX" | "REAM" | "SKID";
@@ -54,4 +55,37 @@ export const convertPrice = (p: {
   }
 
   return p.origPrice;
+};
+
+export const calcSupplyPrice = (p: {
+  spec: Spec;
+  price: {
+    officialPriceType: Model.Enum.OfficialPriceType;
+    officialPrice: number;
+    officialPriceUnit: Model.Enum.PriceUnit;
+    discountType: Model.Enum.DiscountType;
+    discountPrice: number;
+    unitPrice: number;
+    unitPriceUnit: Model.Enum.PriceUnit;
+  };
+  quantity: number;
+}) => {
+  const convert = (unit: "T" | "BOX" | "매") =>
+    PaperUtil.convertQuantityWith(p.spec, unit, p.quantity);
+
+  const converted =
+    p.spec.packaging.type === "ROLL"
+      ? convert("T")
+      : p.spec.packaging.type === "BOX"
+      ? convert("BOX")
+      : convert("매");
+
+  return !converted
+    ? 0
+    : p.price.unitPrice *
+        (p.price.unitPriceUnit === "WON_PER_TON"
+          ? converted.grams * 0.000001
+          : p.price.unitPriceUnit === "WON_PER_BOX"
+          ? converted.quantity
+          : converted.packed?.value ?? 0);
 };
