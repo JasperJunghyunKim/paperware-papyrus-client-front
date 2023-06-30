@@ -1,17 +1,9 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
-import { usePage } from "@/common/hook";
 import { Button, Popup, Table, Toolbar } from "@/components";
-import { Form, Input, Steps } from "antd";
-import { useForm } from "antd/lib/form/Form";
+import { Input, Steps } from "antd";
 import classNames from "classnames";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { RegisterInputStock } from ".";
 import { OpenType } from "./RegisterInputStock";
 import { TaskMap } from "./common";
