@@ -63,7 +63,7 @@ export default function Component() {
             only.status === "ORDER_PREPARING" ||
             only.status === "ORDER_REJECTED") && (
             <Toolbar.ButtonPreset.Delete
-              label="매출 삭제"
+              label="매입 삭제"
               onClick={cmdCancel}
             />
           )}
@@ -84,7 +84,7 @@ export default function Component() {
           {
             title: "매입 유형",
             render: (_value, record) => (
-              <div>{Util.orderTypeToString(record.orderType, "SALES")}</div>
+              <div>{Util.orderTypeToString(record.orderType, "PURCHASE")}</div>
             ),
           },
           {

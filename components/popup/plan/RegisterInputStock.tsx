@@ -55,6 +55,7 @@ export default function Component(props: Props) {
       return;
     }
     form.setFieldsValue({
+      warehouseId: stock.data.warehouse?.id,
       productId: stock.data.product.id,
       packagingId: stock.data.packaging.id,
       grammage: stock.data.grammage,

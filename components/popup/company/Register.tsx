@@ -22,6 +22,10 @@ export default function Component(props: Props) {
     ApiHook.Inhouse.BusinessRelationship.useRegisterPartner();
   const cmdSendRequest = useCallback(
     async (values: Api.RegisterPartnerRequest) => {
+      if (values.partnerNickname.trim().length == 0) {
+        Util.warn("올바른 거래처명을 입력해주세요.");
+        return;
+      }
       await apiSendRequest.mutateAsync({
         data: {
           ...values,
@@ -39,6 +43,11 @@ export default function Component(props: Props) {
   const apiSearch = ApiHook.Inhouse.BusinessRelationship.useSearchPartnerItem();
   const cmdSearch = useCallback(
     async (values: Api.SearchPartnerRequest) => {
+      if (values.companyRegistrationNumber.length !== 10) {
+        Util.warn("사업자등록번호 10자리를 입력해주세요.");
+        return;
+      }
+
       if (
         values.companyRegistrationNumber ===
         me.data?.company.companyRegistrationNumber
