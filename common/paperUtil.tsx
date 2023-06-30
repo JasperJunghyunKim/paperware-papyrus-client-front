@@ -66,7 +66,7 @@ export function convertQuantity(
 
 export function convertQuantityWith(
   spec: QuantitySpec,
-  unit: "매" | "R" | "BOX" | "m" | "T",
+  unit: "매" | "R" | "BOX" | "m" | "T" | "g",
   value: number
 ): Quantity | null {
   const packtype = () => spec.packaging.type;
@@ -85,6 +85,8 @@ export function convertQuantityWith(
       ? unit === "m"
         ? spec.grammage * spec.sizeX * value * 0.001
         : unit === "T"
+        ? value * 0.000001
+        : unit === "g"
         ? value
         : null
       : packtype() === "REAM"

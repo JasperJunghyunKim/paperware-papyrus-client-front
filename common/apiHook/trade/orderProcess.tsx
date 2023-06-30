@@ -64,7 +64,7 @@ export function useUpdateStock() {
       data: Api.OrderProcessStockUpdateRequest;
     }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/process/${params.orderId}/assign`,
+        `${API_HOST}/order/${params.orderId}/process/stock`,
         params.data
       );
       return resp.data;

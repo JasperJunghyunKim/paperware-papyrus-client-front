@@ -39,7 +39,7 @@ export default function Component(props: Props) {
   );
 
   const change = useCallback(
-    (unit: "매" | "R" | "BOX" | "T") => (value: number | null) => {
+    (unit: "매" | "R" | "BOX" | "g") => (value: number | null) => {
       const converted = convert(unit)(_.toNumber(value) ?? 0);
       const newValue =
         props.spec.packaging.type === "ROLL"
@@ -104,7 +104,7 @@ export default function Component(props: Props) {
             0.000001,
           3
         )}
-        onChange={(p) => change("T")((ntz(p) ?? 0) * 1000000)}
+        onChange={(p) => change("g")((ntz(p) ?? 0) * 1000000)}
         disabled={props.disabled || props.spec.packaging.type !== "ROLL"}
         precision={3}
         min={props.onlyPositive ? 0 : undefined}

@@ -70,12 +70,12 @@ export const calcSupplyPrice = (p: {
   };
   quantity: number;
 }) => {
-  const convert = (unit: "T" | "BOX" | "매") =>
+  const convert = (unit: "g" | "BOX" | "매") =>
     PaperUtil.convertQuantityWith(p.spec, unit, p.quantity);
 
   const converted =
     p.spec.packaging.type === "ROLL"
-      ? convert("T")
+      ? convert("g")
       : p.spec.packaging.type === "BOX"
       ? convert("BOX")
       : convert("매");

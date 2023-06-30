@@ -106,12 +106,18 @@ export default function Component() {
           },
           {
             title: "납품 요청일",
-            dataIndex: "wantedDate",
-            render: (value) => Util.formatIso8601ToLocalDate(value),
+            render: (_, record) =>
+              Util.formatIso8601ToLocalDate(
+                record.orderStock?.wantedDate ??
+                  record.orderProcess?.srcWantedDate ??
+                  null
+              ),
           },
           {
             title: "납품 도착지",
-            dataIndex: ["orderStock", "dstLocation", "name"],
+            render: (_, record) =>
+              record.orderStock?.dstLocation.name ??
+              record.orderProcess?.srcLocation.name,
           },
           {
             title: "매출 상태",

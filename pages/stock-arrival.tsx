@@ -96,13 +96,7 @@ export default function Component() {
           },
           {
             title: "거래처",
-            dataIndex: [
-              "plan",
-              "orderStock",
-              "order",
-              "partnerCompany",
-              "businessName",
-            ],
+            render: (_, record) => "",
           },
           {
             title: "도착지",

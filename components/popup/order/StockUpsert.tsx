@@ -440,9 +440,7 @@ function DataForm(props: DataFormProps) {
       const assignStockEvent = Util.assignStockEventFromOrder(
         props.initialOrder
       );
-      const assignStock = Util.assignStockFromOrder(
-        props.initialOrder
-      ) as Model.Stock;
+      const assignStock = Util.assignStockFromOrder(props.initialOrder);
       const quantityMultiply = assignStockEvent ? -1 : 1;
 
       form.setFieldsValue({
@@ -461,8 +459,8 @@ function DataForm(props: DataFormProps) {
         wantedDate: props.initialOrder.orderStock?.wantedDate,
         srcWantedDate: props.initialOrder.orderProcess?.srcWantedDate,
         dstWantedDate: props.initialOrder.orderProcess?.dstWantedDate,
-        warehouseId: assignStock?.warehouse?.id,
-        planId: assignStock?.planId,
+        warehouseId: (assignStock as any)?.warehouse?.id,
+        planId: (assignStock as any)?.planId,
         productId: assignStock?.product.id,
         packagingId: assignStock?.packaging.id,
         grammage: assignStock?.grammage,
@@ -480,7 +478,7 @@ function DataForm(props: DataFormProps) {
         item: props.initialOrder.orderEtc?.item,
         memo: props.initialOrder.memo,
       });
-      setWarehouse(assignStock?.warehouse ?? null);
+      setWarehouse((assignStock as any)?.warehouse ?? null);
     } else {
       form.resetFields();
     }
@@ -566,22 +564,28 @@ function DataForm(props: DataFormProps) {
     });
   }, [form, apiUpdateStock, props.initialOrder]);
 
-  const apiUpdateAssign = ApiHook.Trade.OrderStock.useUpdateStock();
+  const apiUpdateAssignNormal = ApiHook.Trade.OrderStock.useUpdateStock();
+  const apiUpdateAssignOutPro = ApiHook.Trade.OrderProcess.useUpdateStock();
   const cmdUpdateAssign = useCallback(async () => {
     const values =
-      (await form.validateFields()) as Api.OrderStockAssignStockUpdateRequest;
+      (await form.validateFields()) as Api.OrderProcessStockUpdateRequest;
 
     if (props.initialOrder === null) {
       return;
     }
 
-    await apiUpdateAssign.mutateAsync({
+    const api =
+      props.initialOrder.orderType === "OUTSOURCE_PROCESS"
+        ? apiUpdateAssignOutPro
+        : apiUpdateAssignNormal;
+
+    await api.mutateAsync({
       orderId: props.initialOrder.id,
       data: {
         ...values,
       },
     });
-  }, [form, apiUpdateAssign, props.initialOrder]);
+  }, [form, apiUpdateAssignNormal, apiUpdateAssignOutPro, props.initialOrder]);
 
   const compactQuantity = stockGroupQuantity.data
     ? QuantityUtil.compact(stockGroupQuantity.data, stockGroupQuantity.data)
@@ -1462,6 +1466,7 @@ function RightSideSales(props: RightSideSalesProps) {
               <TaskMap
                 plan={plan.data}
                 packagingType={plan.data.assignStockEvent.stock.packaging.type}
+                readonly
               />
             )}
           </div>
@@ -1477,6 +1482,11 @@ function RightSideSales(props: RightSideSalesProps) {
         ) : (
           <BasePricePanel order={props.order} orderId={props.order.id} />
         ))}
+      {/* 
+import Monad (IO)
+
+board = 
+      */}
     </div>
   );
 }
@@ -1543,23 +1553,16 @@ function PricePanel(props: PricePanelProps) {
     paperPattern: Model.PaperPattern | null;
     paperCert: Model.PaperCert | null;
     quantity: number;
-  } = useMemo(() => {
-    const assignStockEvent = (
-      props.order.orderStock ?? props.order.orderProcess
-    )?.plan.find(
-      (p) => p.companyId === props.order.dstCompany.id
-    )?.assignStockEvent;
-    const deposit = props.order.orderDeposit;
+  } | null = useMemo(() => {
+    const assignStock = Util.assignStockFromOrder(props.order);
+    const quantity = Util.assignQuantityFromOrder(props.order);
 
-    const spec = assignStockEvent?.stock ?? deposit!;
-    const m = assignStockEvent ? -1 : 1;
-    const quantity =
-      altQuantity ?? assignStockEvent?.change ?? deposit?.quantity;
-
-    return {
-      ...spec,
-      quantity: quantity * m,
-    };
+    return assignStock
+      ? {
+          ...assignStock,
+          quantity: quantity ?? 0,
+        }
+      : null;
   }, [
     props.order.orderStock?.plan,
     props.order.orderDeposit,
@@ -1568,23 +1571,16 @@ function PricePanel(props: PricePanelProps) {
   ]);
 
   const stockSuppliedPrice = useMemo(() => {
-    const spec = {
-      grammage: assignSpec.grammage ?? props.order.orderDeposit?.grammage ?? 1,
-      sizeX: assignSpec.sizeX ?? props.order.orderDeposit?.sizeX ?? 1,
-      sizeY: assignSpec.sizeY ?? props.order.orderDeposit?.sizeY ?? 1,
-      packaging: assignSpec.packaging ?? props.order.orderDeposit?.packaging,
-    };
-
-    if (!spec.packaging) {
+    if (!assignSpec) {
       return 0;
     }
 
-    const convert = (unit: "T" | "BOX" | "매") =>
-      PaperUtil.convertQuantityWith(spec, unit, assignSpec.quantity);
+    const convert = (unit: "g" | "BOX" | "매") =>
+      PaperUtil.convertQuantityWith(assignSpec, unit, assignSpec.quantity);
 
     const converted =
       assignSpec.packaging.type === "ROLL"
-        ? convert("T")
+        ? convert("g")
         : assignSpec.packaging.type === "BOX"
         ? convert("BOX")
         : convert("매");
@@ -1598,11 +1594,7 @@ function PricePanel(props: PricePanelProps) {
             ? converted.quantity
             : converted.packed?.value ?? 0);
   }, [
-    assignSpec.grammage,
-    assignSpec.sizeX,
-    assignSpec.sizeY,
-    assignSpec.packaging,
-    assignSpec.quantity,
+    assignSpec,
     props.order.orderDeposit?.grammage,
     props.order.orderDeposit?.sizeX,
     props.order.orderDeposit?.sizeY,
@@ -1746,20 +1738,13 @@ function PricePanel(props: PricePanelProps) {
         deposit: undefined,
       });
     }
-    if (tradePrice.data && tradePrice.data.orderStockTradePrice) {
+    const priceData =
+      tradePrice.data?.orderStockTradePrice ??
+      tradePrice.data?.orderDepositTradePrice;
+    if (tradePrice.data && priceData) {
       form.setFieldsValue({
-        stockPrice: {
-          officialPriceType:
-            tradePrice.data.orderStockTradePrice.officialPriceType,
-          officialPrice: tradePrice.data.orderStockTradePrice.officialPrice,
-          officialPriceUnit:
-            tradePrice.data.orderStockTradePrice.officialPriceUnit,
-          discountType: tradePrice.data.orderStockTradePrice.discountType,
-          discountPrice: tradePrice.data.orderStockTradePrice.discountPrice,
-          unitPrice: tradePrice.data.orderStockTradePrice.unitPrice,
-          unitPriceUnit: tradePrice.data.orderStockTradePrice.unitPriceUnit,
-        },
-        processPrice: tradePrice.data.orderStockTradePrice.processPrice,
+        stockPrice: priceData,
+        processPrice: priceData.processPrice,
         suppliedPrice: tradePrice.data.suppliedPrice,
         vatPrice: tradePrice.data.vatPrice,
       });
@@ -1783,7 +1768,7 @@ function PricePanel(props: PricePanelProps) {
         rootClassName="flex-initial basis-[500px]"
         initialValues={{
           price: FormControl.Util.Price.initialStockPrice(
-            assignSpec.packaging.type
+            assignSpec?.packaging.type ?? "SKID"
           ),
         }}
       >
@@ -1950,7 +1935,7 @@ function PricePanel(props: PricePanelProps) {
                 type="info"
               />
               <Form.Item label="거래 단가" name={["stockPrice"]}>
-                {positiveCompany && (
+                {positiveCompany && assignSpec && (
                   <FormControl.StockPrice
                     spec={{
                       grammage: assignSpec.grammage,

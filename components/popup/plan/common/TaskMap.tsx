@@ -38,6 +38,7 @@ function convert(data: Model.Task[]): TempDataType[] {
 interface Props {
   plan: Model.Plan;
   packagingType: Model.Enum.PackagingType;
+  readonly?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -56,6 +57,7 @@ export default function Component(props: Props) {
               plan={props.plan}
               edge={false}
               parent={null}
+              readonly={!!props.readonly}
             />
           ))}
         </div>
@@ -75,9 +77,7 @@ export default function Component(props: Props) {
                 parentTaskId={null}
               />
             )}
-            {!converted.some((p) => p.value.type === "RELEASE") && (
-              <AddNode type="RELEASE" plan={props.plan} parentTaskId={null} />
-            )}
+            <AddNode type="RELEASE" plan={props.plan} parentTaskId={null} />
           </>
         )}
       </div>
@@ -90,6 +90,7 @@ interface ItemProps {
   data: TempDataType;
   parent: TempDataType | null;
   edge: boolean;
+  readonly: boolean;
 }
 
 function Item(props: ItemProps) {
@@ -165,6 +166,7 @@ function Item(props: ItemProps) {
                 data={props.data.value.taskConverting}
                 current={props.data}
                 parent={props.parent}
+                readonly={props.readonly}
               />
             )}
             {props.data.value.taskGuillotine && (
@@ -174,6 +176,7 @@ function Item(props: ItemProps) {
                 data={props.data.value.taskGuillotine}
                 current={props.data}
                 parent={props.parent}
+                readonly={props.readonly}
               />
             )}
             {props.data.value.taskQuantity && (
@@ -183,6 +186,7 @@ function Item(props: ItemProps) {
                 data={props.data.value.taskQuantity}
                 current={props.data}
                 parent={props.parent}
+                readonly={props.readonly}
               />
             )}
           </div>
@@ -197,6 +201,7 @@ function Item(props: ItemProps) {
                   key={item.value.id}
                   edge={true}
                   parent={props.data}
+                  readonly={props.readonly}
                 />
               );
             })}
@@ -418,6 +423,7 @@ interface ConvertingProps {
   data: Model.TaskConverting;
   current: TempDataType;
   parent: TempDataType | null;
+  readonly: boolean;
 }
 function ConvertingNode(props: ConvertingProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
@@ -498,7 +504,8 @@ function ConvertingNode(props: ConvertingProps) {
           )}
         </ConfigProvider>
       </div>
-      {props.plan.status === "PROGRESSING" &&
+      {!props.readonly &&
+        props.plan.status === "PROGRESSING" &&
         props.current.value.status !== "PROGRESSED" && (
           <>
             {props.current.value.status === "PREPARING" &&
@@ -525,6 +532,7 @@ interface GuillotineProps {
   data: Model.TaskGuillotine;
   current: TempDataType;
   parent: TempDataType | null;
+  readonly: boolean;
 }
 function GuillotineNode(props: GuillotineProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
@@ -605,7 +613,8 @@ function GuillotineNode(props: GuillotineProps) {
           )}
         </ConfigProvider>
       </div>
-      {props.plan.status === "PROGRESSING" &&
+      {!props.readonly &&
+        props.plan.status === "PROGRESSING" &&
         props.current.value.status !== "PROGRESSED" && (
           <>
             {props.current.value.status === "PREPARING" &&
@@ -632,6 +641,7 @@ interface QuantityProps {
   data: Model.TaskQuantity;
   current: TempDataType;
   parent: TempDataType | null;
+  readonly: boolean;
 }
 function QuantityNode(props: QuantityProps) {
   const [initialQ, setInitialQ] = useState(props.data.quantity);
@@ -662,51 +672,69 @@ function QuantityNode(props: QuantityProps) {
     return initialQ !== q;
   }, [initialQ, q]);
 
-  const getWeight = useCallback(() => {
-    let parent = props.parent;
-    return props.plan.assignStockEvent
-      ? (PaperUtil.convertQuantityWith(
-          {
-            ...props.plan.assignStockEvent.stock,
-            sizeX:
-              parent?.value.taskConverting?.sizeX ??
-              parent?.value.taskGuillotine?.sizeX ??
-              1,
-            sizeY:
-              parent?.value.taskConverting?.sizeY ??
-              parent?.value.taskGuillotine?.sizeY ??
-              1,
-          },
-          "매",
-          q
-        )?.grams ?? 0) * 0.000001
-      : 0;
-  }, [props.current, props.parent, q]);
-
-  const getMeters = useCallback(() => {
-    let parent = props.parent;
-    return props.plan.assignStockEvent
-      ? PaperUtil.convertQuantityWith(
-          {
-            ...props.plan.assignStockEvent.stock,
-            sizeX:
-              parent?.value.taskConverting?.sizeX ??
-              parent?.value.taskGuillotine?.sizeX ??
-              1,
-            sizeY:
-              parent?.value.taskConverting?.sizeY ??
-              parent?.value.taskGuillotine?.sizeY ??
-              1,
-          },
-          "T",
-          q
-        )?.packed?.value ?? 0
-      : 0;
-  }, [props.current, props.parent, q]);
+  const packaging: PaperUtil.Packaging | null = props.parent
+    ? {
+        type: "SKID",
+        packA: 0,
+        packB: 0,
+      }
+    : props.plan.assignStockEvent?.stock.packaging ?? null;
 
   const isRootRoll =
     props.current.value.parentTaskId === null &&
     props.plan.assignStockEvent?.stock.packaging.type === "ROLL";
+
+  const isRootBox =
+    props.current.value.parentTaskId === null &&
+    props.plan.assignStockEvent?.stock.packaging.type === "BOX";
+
+  const getWeight = useCallback(() => {
+    let parent = props.parent;
+    return props.plan.assignStockEvent && packaging
+      ? (PaperUtil.convertQuantityWith(
+          {
+            packaging: packaging,
+            grammage: props.plan.assignStockEvent.stock.grammage,
+            sizeX:
+              parent?.value.taskConverting?.sizeX ??
+              parent?.value.taskGuillotine?.sizeX ??
+              props.plan.assignStockEvent.stock.sizeX ??
+              1,
+            sizeY:
+              parent?.value.taskConverting?.sizeY ??
+              parent?.value.taskGuillotine?.sizeY ??
+              props.plan.assignStockEvent.stock.sizeY ??
+              1,
+          },
+          packaging.type === "BOX" ? "BOX" : "매",
+          q
+        )?.grams ?? 0) * 0.000001
+      : 0;
+  }, [props.current, props.parent, props.plan, q]);
+
+  const getMeters = useCallback(() => {
+    let parent = props.parent;
+    return props.plan.assignStockEvent && packaging
+      ? PaperUtil.convertQuantityWith(
+          {
+            packaging: packaging,
+            grammage: props.plan.assignStockEvent.stock.grammage,
+            sizeX:
+              parent?.value.taskConverting?.sizeX ??
+              parent?.value.taskGuillotine?.sizeX ??
+              props.plan.assignStockEvent.stock.sizeX ??
+              1,
+            sizeY:
+              parent?.value.taskConverting?.sizeY ??
+              parent?.value.taskGuillotine?.sizeY ??
+              props.plan.assignStockEvent.stock.sizeY ??
+              1,
+          },
+          "g",
+          q
+        )?.packed?.value ?? 0
+      : 0;
+  }, [props.current, props.parent, props.plan, q]);
 
   return (
     <div className="flex-initial flex flex-col gap-y-2">
@@ -719,7 +747,7 @@ function QuantityNode(props: QuantityProps) {
               <MiniFormNumber
                 label="중량"
                 value={Util.gramsToTon(q ?? 0)}
-                unit="톤"
+                unit="T"
                 disabled={props.plan.status !== "PREPARING"}
                 onChange={(p) => setQ(Util.tonToGrams(p ?? 0))}
                 precision={3}
@@ -732,8 +760,36 @@ function QuantityNode(props: QuantityProps) {
                 precision={1}
               />
             </>
+          ) : isRootBox ? (
+            <>
+              <MiniFormNumber
+                label="출고 수량"
+                value={q}
+                onChange={(p) => setQ(p ?? 0)}
+                unit="BOX"
+                disabled={props.plan.status !== "PREPARING"}
+                max={999999999}
+              />
+              <MiniFormNumber
+                label="중량"
+                value={getWeight()}
+                unit="T"
+                disabled
+                precision={3}
+                max={999999999}
+              />
+            </>
           ) : (
             <>
+              <MiniFormNumber
+                label="출고 수량"
+                value={q / 500}
+                onChange={(p) => setQ((p ?? 0) * 500)}
+                unit="R"
+                disabled={props.plan.status !== "PREPARING"}
+                max={999999999}
+                precision={3}
+              />
               <MiniFormNumber
                 label="출고 수량"
                 value={q}
@@ -745,7 +801,7 @@ function QuantityNode(props: QuantityProps) {
               <MiniFormNumber
                 label="중량"
                 value={getWeight()}
-                unit="톤"
+                unit="T"
                 disabled
                 precision={3}
                 max={999999999}
@@ -757,7 +813,8 @@ function QuantityNode(props: QuantityProps) {
           )}
         </ConfigProvider>
       </div>
-      {props.plan.status === "PROGRESSING" &&
+      {!props.readonly &&
+        props.plan.status === "PROGRESSING" &&
         props.current.value.status !== "PROGRESSED" &&
         (!props.parent || props.parent.value.status === "PROGRESSED") && (
           <div className="flex-initial flex gap-x-2 p-2 bg-yellow-100">

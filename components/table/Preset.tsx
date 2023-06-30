@@ -1,13 +1,12 @@
 import { Model } from "@/@shared";
+import DiscountRate from "@/@shared/models/discount-rate";
 import { ApiHook, PaperUtil, Util } from "@/common";
 import { Quantity } from "@/common/paperUtil";
 import { ColumnType } from "antd/lib/table/interface";
-import { Icon } from "..";
-import { TbHome, TbHomeLink } from "react-icons/tb";
 import classNames from "classnames";
-import DiscountRate from "@/@shared/models/discount-rate";
-import { useCallback } from "react";
 import _ from "lodash";
+import { TbHome, TbHomeLink } from "react-icons/tb";
+import { Icon } from "..";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
