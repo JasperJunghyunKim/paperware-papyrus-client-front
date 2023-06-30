@@ -5,6 +5,7 @@ import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
+import { match } from "ts-pattern";
 
 type RecordType = Model.StockGroup;
 
@@ -79,17 +80,33 @@ export default function Component() {
         columns={[
           {
             title: "작업 구분",
-            render: (value: RecordType) => (
-              <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
+            render: (_, record) => (
+              <div>
+                {match(record.plan?.planType)
+                  .with("INHOUSE_CREATE", () => "신규 등록")
+                  .with("INHOUSE_MODIFY", () => "재고 수정")
+                  .with("INHOUSE_PROCESS", () => "내부 재단")
+                  .with("INHOUSE_RELOCATION", () => "재고 이고")
+                  .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
+                  .with("TRADE_NORMAL_BUYER", () => "정상 매입")
+                  .with("TRADE_NORMAL_SELLER", () => "정상 매출")
+                  .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 재단 매입")
+                  .with(
+                    "TRADE_OUTSOURCE_PROCESS_SELLER",
+                    () => "외주 재단 매출"
+                  )
+                  .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
+                  .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
+                  .otherwise(() => "")}
+              </div>
             ),
           },
           {
             title: "작업 번호",
-            dataIndex: ["plan", "orderStock", "order", "orderNo"],
             render: (value, record) => (
               <div className="flex">
                 <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                  {value}
+                  {record.plan?.planNo}
                 </div>
               </div>
             ),
