@@ -65,15 +65,7 @@ export default function Component() {
         data={list.data}
         page={page}
         setPage={setPage}
-        keySelector={(record) =>
-          `${record.product.id} ${record.sizeX} ${record.sizeY} ${
-            record.grammage
-          } ${record.paperColorGroup?.id ?? "_"} ${
-            record.paperColor?.id ?? "_"
-          } ${record.paperPattern?.id ?? "_"} ${record.paperCert?.id ?? "_"} ${
-            record.warehouse?.id ?? "_"
-          } ${record.plan?.id ?? "_"}`
-        }
+        keySelector={Util.keyOfStockGroup}
         selected={selected}
         onSelectedChange={setSelected}
         selection="single"
