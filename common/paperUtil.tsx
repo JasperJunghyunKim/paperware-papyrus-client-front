@@ -51,9 +51,9 @@ export function convertQuantity(
       : { value: calcSheets() / 500, unit: "R" };
   const calcUnpacked = (): UnpackedQuantity | null =>
     packtype() === "REAM" || packtype() === "SKID"
-      ? { value: quantity, unit: "매" }
+      ? { value: Math.round(quantity), unit: "매" }
       : packtype() === "BOX"
-      ? { value: quantity * calcPackUnit(), unit: "매" }
+      ? { value: Math.round(quantity * calcPackUnit()), unit: "매" }
       : null;
 
   return {

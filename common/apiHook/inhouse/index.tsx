@@ -9,3 +9,4 @@ export * as Discount from "./discount";
 export * as Card from "./card";
 export * as BankAccount from "./bankAccount";
 export * as Security from "./security";
+export * as Partner from "./partner";

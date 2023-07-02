@@ -3,7 +3,6 @@ import { ApiHook } from "@/common";
 import { Table } from "antd";
 import { ColumnType, ExpandableConfig } from "antd/lib/table/interface";
 import { TableComponents } from "rc-table/lib/interface";
-import { useEffect } from "react";
 import { useMemo } from "react";
 
 interface Props<T> {
@@ -66,7 +65,7 @@ export default function Component<T extends object>(props: Props<T>) {
           : false
       }
       rowKey={props.keySelector}
-      scroll={{ x: true, y: "100%" }}
+      scroll={{ x: true }}
       size="small"
       columns={props.columns}
       rowSelection={
@@ -90,6 +89,7 @@ export default function Component<T extends object>(props: Props<T>) {
       expandable={props.expandable}
       dataSource={props.data?.items}
       components={components}
+      tableLayout="auto"
     />
   );
 }

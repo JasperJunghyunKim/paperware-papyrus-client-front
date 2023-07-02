@@ -17,6 +17,7 @@ import Quantity from "./Quantity";
 import SelectCompanyPurchase from "./SelectCompanyPurchase";
 import SelectLocation from "./SelectLocation";
 import SelectLocationForSales from "./SelectLocationForSales";
+import SelectLocationForPurchase from "./SelectLocationForPurchase";
 import DatePicker from "./DatePicker";
 import SelectCompanySales from "./SelectCompanySales";
 import StockPrice from "./StockPrice";
@@ -60,6 +61,7 @@ export {
   SelectCompanySales,
   SelectLocation,
   SelectLocationForSales,
+  SelectLocationForPurchase,
   DatePicker,
   StockPrice,
   SelectPackagingType,

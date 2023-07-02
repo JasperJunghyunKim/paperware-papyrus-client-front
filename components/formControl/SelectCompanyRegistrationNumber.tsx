@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function Component(props: Props) {
-  const staticData = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
+  const staticData = ApiHook.Inhouse.Partner.useGetList({
     query: {},
   });
 
@@ -18,7 +18,7 @@ export default function Component(props: Props) {
     const options = staticData.data?.items.map((x) => ({
       label: <Item item={x} />,
       value: x.companyRegistrationNumber,
-      temp: `${x.partner?.partnerNickName} ${x.companyRegistrationNumber} ${x.businessName}`,
+      temp: `${x.partnerNickName} ${x.companyRegistrationNumber}`,
     }));
     options?.sort((a, b) => a.temp.localeCompare(b.temp));
     return options;
@@ -38,7 +38,7 @@ export default function Component(props: Props) {
         }}
         showSearch
         allowClear
-        placeholder="포장을 선택하세요"
+        placeholder="거래처를 선택하세요"
         dropdownMatchSelectWidth={false}
         disabled={props.disabled}
       />
@@ -47,20 +47,17 @@ export default function Component(props: Props) {
 }
 
 interface ItemProps {
-  item: Model.BusinessRelationshipCompact;
+  item: Model.Partner;
 }
 
 function Item(props: ItemProps) {
   const x = props.item;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div className="flex-1">
-        {x.partner?.partnerNickName ?? x.businessName}
-      </div>
+      <div className="flex-1">{x.partnerNickName}</div>
       <div className="flex-initial text-gray-400">
         {Util.formatCompanyRegistrationNo(x.companyRegistrationNumber)}
       </div>
-      <div className="flex-initial">{x.managedById ? "비연결" : "연결"}</div>
     </div>
   );
 }

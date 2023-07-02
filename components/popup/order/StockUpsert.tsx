@@ -659,7 +659,7 @@ function DataForm(props: DataFormProps) {
           </Form.Item>
         ) : (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-            <FormControl.SelectLocation disabled={!editable} />
+            <FormControl.SelectLocationForPurchase disabled={!editable} />
           </Form.Item>
         ))}
       {orderType == "NORMAL" && (
@@ -671,15 +671,17 @@ function DataForm(props: DataFormProps) {
           >
             <FormControl.DatePicker disabled={!editable} />
           </Form.Item>
-          <Form.Item
-            name="isDirectShipping"
-            label="직송 여부"
-            valuePropName="checked"
-            rules={REQUIRED_RULES}
-            initialValue={false}
-          >
-            <Switch disabled={!editable} />
-          </Form.Item>
+          {!props.isSales && (
+            <Form.Item
+              name="isDirectShipping"
+              label="직송 여부"
+              valuePropName="checked"
+              rules={REQUIRED_RULES}
+              initialValue={false}
+            >
+              <Switch disabled={!editable} />
+            </Form.Item>
+          )}
         </>
       )}
       {orderType == "OUTSOURCE_PROCESS" && (srcCompanyId || dstCompanyId) && (
@@ -691,7 +693,7 @@ function DataForm(props: DataFormProps) {
               label="원지 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocation disabled={!editable} />
+              <FormControl.SelectLocationForPurchase disabled={!editable} />
             </Form.Item>
           )}
           {!props.isSales && dstCompanyId && (
@@ -700,7 +702,10 @@ function DataForm(props: DataFormProps) {
               label="원지 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForSales companyId={dstCompanyId} />
+              <FormControl.SelectLocationForSales
+                companyId={dstCompanyId}
+                disabled={!editable}
+              />
             </Form.Item>
           )}
           <Form.Item
@@ -710,15 +715,17 @@ function DataForm(props: DataFormProps) {
           >
             <FormControl.DatePicker disabled={!editable} />
           </Form.Item>
-          <Form.Item
-            name="isDstDirectShipping"
-            label="원지 직송 여부"
-            valuePropName="checked"
-            rules={REQUIRED_RULES}
-            initialValue={false}
-          >
-            <Switch disabled={!editable} />
-          </Form.Item>
+          {props.isSales && (
+            <Form.Item
+              name="isDstDirectShipping"
+              label="원지 직송 여부"
+              valuePropName="checked"
+              rules={REQUIRED_RULES}
+              initialValue={false}
+            >
+              <Switch disabled={!editable} />
+            </Form.Item>
+          )}
           <FormControl.Util.Split label="주문 배송 정보" />
           {props.isSales && srcCompanyId && (
             <Form.Item
@@ -726,7 +733,10 @@ function DataForm(props: DataFormProps) {
               label="최종 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocation disabled={!editable} isPublic />
+              <FormControl.SelectLocationForPurchase
+                disabled={!editable}
+                isPublic
+              />
             </Form.Item>
           )}
           {!props.isSales && dstCompanyId && (
@@ -735,7 +745,7 @@ function DataForm(props: DataFormProps) {
               label="최종 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocation />
+              <FormControl.SelectLocationForPurchase disabled={!editable} />
             </Form.Item>
           )}
           <Form.Item
@@ -745,15 +755,17 @@ function DataForm(props: DataFormProps) {
           >
             <FormControl.DatePicker disabled={!editable} />
           </Form.Item>
-          <Form.Item
-            name="isSrcDirectShipping"
-            label="최종 직송 여부"
-            valuePropName="checked"
-            rules={REQUIRED_RULES}
-            initialValue={false}
-          >
-            <Switch disabled={!editable} />
-          </Form.Item>
+          {!props.isSales && (
+            <Form.Item
+              name="isSrcDirectShipping"
+              label="최종 직송 여부"
+              valuePropName="checked"
+              rules={REQUIRED_RULES}
+              initialValue={false}
+            >
+              <Switch disabled={!editable} />
+            </Form.Item>
+          )}
         </>
       )}
       {orderType == "ETC" && (
