@@ -66,8 +66,12 @@ export default function Component(props: Props) {
               {
                 title: "송장 번호",
                 dataIndex: "invoiceNo",
-                render: (value: string) => (
-                  <div className="font-fixed">{value}</div>
+                render: (value) => (
+                  <div className="flex">
+                    <div className="flex font-fixed bg-red-100 px-1 text-red-800 rounded-md border border-solid border-red-300">
+                      {Util.formatSerial(value)}
+                    </div>
+                  </div>
                 ),
               },
               {

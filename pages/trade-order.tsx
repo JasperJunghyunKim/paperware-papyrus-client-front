@@ -53,7 +53,7 @@ export default function Component() {
       </StatBar.Container>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
-          label="정상 매입 등록"
+          label="매입 등록"
           onClick={() => setOpenStockUpsert("CREATE_ORDER")}
         />
         <div className="flex-1" />

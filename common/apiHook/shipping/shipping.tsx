@@ -61,7 +61,28 @@ export function useConnectInvoices() {
           variables.shippingId,
         ]);
         await queryClient.invalidateQueries(["invoice", "list"]);
+        await queryClient.invalidateQueries(["shipping", "list"]);
         message.success("송장이 연결되었습니다.");
+      },
+    }
+  );
+}
+
+export function useDelete() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["shipping", "delete"],
+    async (params: { shippingId: number }) => {
+      const resp = await axios.delete(
+        `${API_HOST}/shipping/${params.shippingId}`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["shipping", "list"]);
+        message.success("배송이 삭제되었습니다.");
       },
     }
   );

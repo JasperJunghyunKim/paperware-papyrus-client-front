@@ -26,6 +26,22 @@ export default function Component() {
     [apiCreate]
   );
 
+  const apiDelete = ApiHook.Shipping.Shipping.useDelete();
+  const cmdDelete = useCallback(async () => {
+    if (
+      !only ||
+      !(await Util.confirm(
+        `선택한 배송(${only.shippingNo})을 삭제하시겠습니까?`
+      ))
+    ) {
+      return;
+    }
+
+    await apiDelete.mutateAsync({
+      shippingId: only.id,
+    });
+  }, [apiDelete, only]);
+
   useEffect(() => {
     if (list.data && only) {
       const found = list.data.items.find((x) => x.id === only.id);
@@ -52,6 +68,10 @@ export default function Component() {
         <div className="flex-1" />
         {only && (
           <>
+            <Toolbar.ButtonPreset.Delete
+              label="선택 배송 삭제"
+              onClick={cmdDelete}
+            />
             <Toolbar.ButtonPreset.Update
               label="선택 배송 상세"
               onClick={() => setOpenUpdate(only.id)}

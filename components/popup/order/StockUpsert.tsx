@@ -85,7 +85,7 @@ export default function Component(props: Props) {
         !(await Util.confirm(
           virtual
             ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
-            : "재고를 승인하시겠습니까?"
+            : "주문을 확정하시겠습니까?"
         ))
       )
         return;
@@ -164,6 +164,17 @@ export default function Component(props: Props) {
                 {
                   fn: cmdRequest,
                   label: `재고 승인 요청`,
+                },
+                {
+                  fn: cmdAccept(false),
+                  label:
+                    order.data.orderType === "NORMAL"
+                      ? "정상 매출 확정"
+                      : order.data.orderType === "DEPOSIT"
+                      ? "매출 보관 확정"
+                      : order.data.orderType === "OUTSOURCE_PROCESS"
+                      ? "외주 재단 매출 확정"
+                      : "기타 매출 확정",
                 },
               ]}
             />
@@ -437,11 +448,9 @@ function DataForm(props: DataFormProps) {
 
   useEffect(() => {
     if (props.initialOrder) {
-      const assignStockEvent = Util.assignStockEventFromOrder(
-        props.initialOrder
-      );
+      const assignQuantity =
+        Util.assignQuantityFromOrder(props.initialOrder) ?? 0;
       const assignStock = Util.assignStockFromOrder(props.initialOrder);
-      const quantityMultiply = assignStockEvent ? -1 : 1;
 
       form.setFieldsValue({
         orderType: props.initialOrder.orderType,
@@ -470,11 +479,7 @@ function DataForm(props: DataFormProps) {
         paperColorId: assignStock?.paperColor?.id,
         paperPatternId: assignStock?.paperPattern?.id,
         paperCertId: assignStock?.paperCert?.id,
-        quantity:
-          quantityMultiply *
-          (assignStockEvent?.change ??
-            props.initialOrder.orderDeposit?.quantity ??
-            0),
+        quantity: assignQuantity,
         item: props.initialOrder.orderEtc?.item,
         memo: props.initialOrder.memo,
       });
