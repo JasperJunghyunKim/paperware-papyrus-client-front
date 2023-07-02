@@ -79,7 +79,8 @@ export function columnStockGroup<T>(
     {
       title: "지폭",
       render: (_value: any, record: T) =>
-        getStock(record) && (
+        getStock(record) &&
+        getStock(record)?.sizeX && (
           <div className="text-right font-fixed">{`${Util.comma(
             getStock(record)?.sizeX
           )} mm`}</div>
@@ -88,7 +89,9 @@ export function columnStockGroup<T>(
     {
       title: "지장",
       render: (_value: any, record: T) =>
-        getStock(record) && getStock(record)?.packaging?.type !== "ROLL" ? (
+        getStock(record) &&
+        getStock(record)?.packaging?.type !== "ROLL" &&
+        getStock(record)?.sizeY ? (
           <div className="text-right font-fixed">{`${Util.comma(
             getStock(record)?.sizeY
           )} mm`}</div>
