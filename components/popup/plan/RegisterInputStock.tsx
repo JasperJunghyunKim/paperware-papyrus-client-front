@@ -1,7 +1,8 @@
+import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form } from "antd";
+import { Alert, Form } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect } from "react";
 
@@ -15,16 +16,22 @@ export type OpenType =
 export interface Props {
   open: OpenType;
   onClose: (unit: false) => void;
+  targetStock?: Model.Stock;
 }
 
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
   const [form] = useForm();
+  const productId = useWatch(["productId"], form);
   const packagingId = useWatch(["packagingId"], form);
   const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
   const sizeY = useWatch(["sizeY"], form);
+  const paperColorGroupId = useWatch(["paperColorGroupId"], form);
+  const paperColorId = useWatch(["paperColorId"], form);
+  const paperPatternId = useWatch(["paperPatternId"], form);
+  const paperCertId = useWatch(["paperCertId"], form);
   const quantity = useWatch(["quantity"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
@@ -68,6 +75,34 @@ export default function Component(props: Props) {
     });
   }, [form, stock.data]);
 
+  const isDifferencesWithTargetStock = useCallback(() => {
+    if (!props.targetStock) {
+      return false;
+    }
+    return (
+      props.targetStock.product.id != productId ||
+      props.targetStock.packaging.id != packagingId ||
+      props.targetStock.grammage != grammage ||
+      props.targetStock.sizeX != sizeX ||
+      props.targetStock.sizeY != sizeY ||
+      props.targetStock.paperColorGroup?.id != paperColorGroupId ||
+      props.targetStock.paperColor?.id != paperColorId ||
+      props.targetStock.paperPattern?.id != paperPatternId ||
+      props.targetStock.paperCert?.id != paperCertId
+    );
+  }, [
+    props.targetStock,
+    productId,
+    packaging,
+    grammage,
+    sizeX,
+    sizeY,
+    paperColorGroupId,
+    paperColorId,
+    paperPatternId,
+    paperCertId,
+  ]);
+
   return (
     <Popup.Template.Property
       title="실투입 재고 등록"
@@ -81,6 +116,14 @@ export default function Component(props: Props) {
           layout="vertical"
           rootClassName="pb-16"
         >
+          {isDifferencesWithTargetStock() && (
+            <Alert
+              type="warning"
+              showIcon
+              message="지정된 원지와 다른 스펙의 재고입니다."
+              rootClassName="mb-4"
+            />
+          )}
           <Form.Item name="warehouseId" label="창고">
             <FormControl.SelectWarehouse disabled />
           </Form.Item>

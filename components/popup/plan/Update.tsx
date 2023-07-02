@@ -288,6 +288,7 @@ export default function Component(props: Props) {
       <RegisterInputStock
         open={openRegister}
         onClose={() => setOpenRegister(false)}
+        targetStock={data.data?.assignStockEvent?.stock}
       />
     </Popup.Template.Full>
   );
