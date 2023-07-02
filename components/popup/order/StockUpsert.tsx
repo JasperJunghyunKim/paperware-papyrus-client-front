@@ -525,6 +525,8 @@ function DataForm(props: DataFormProps) {
       data: payload,
     });
 
+    console.log("created: ", created);
+
     props.onCreated(created);
 
     return created;

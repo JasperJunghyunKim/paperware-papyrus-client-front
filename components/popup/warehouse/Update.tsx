@@ -35,7 +35,6 @@ export default function Component(props: Props) {
 
     form.setFieldsValue({
       name: data.data.name,
-      code: data.data.code,
       isPublic: data.data.isPublic,
       address: data.data.address,
     });

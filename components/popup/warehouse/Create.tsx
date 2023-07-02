@@ -1,9 +1,9 @@
+import { Api } from "@/@shared";
 import { ApiHook } from "@/common";
 import { Popup } from "@/components";
-import { useCallback } from "react";
-import { FormCreate } from "./common";
 import { useForm } from "antd/lib/form/Form";
-import { Api } from "@/@shared";
+import { useCallback, useEffect } from "react";
+import { FormCreate } from "./common";
 
 export interface Props {
   open: boolean;
@@ -22,6 +22,14 @@ export default function Component(props: Props) {
     },
     [api, form, props]
   );
+
+  useEffect(() => {
+    if (!props.open) {
+      return;
+    }
+
+    form.resetFields();
+  }, [form, props.open]);
 
   return (
     <Popup.Template.Property title="창고 추가" {...props}>

@@ -18,8 +18,8 @@ export function columnStockGroup<T>(
         product: Model.Product;
         packaging?: Model.Packaging;
         grammage: number;
-        sizeX: number;
-        sizeY: number;
+        sizeX: number | null;
+        sizeY: number | null;
         paperColorGroup: Model.PaperColorGroup | null;
         paperColor: Model.PaperColor | null;
         paperPattern: Model.PaperPattern | null;

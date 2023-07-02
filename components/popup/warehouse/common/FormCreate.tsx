@@ -19,7 +19,6 @@ export default function Component(props: Props) {
         label="공개 여부"
         valuePropName="checked"
         rules={[{ required: true }]}
-        initialValue={false}
       >
         <Switch />
       </Form.Item>

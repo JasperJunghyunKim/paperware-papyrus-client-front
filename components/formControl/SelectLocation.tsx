@@ -22,7 +22,7 @@ export default function Component(props: Props) {
       )
       .map((x) => ({
         label: <Item item={x} />,
-        text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
+        text: `${x.name} ${Util.formatAddress(x.address)}`,
         value: x.id,
       }));
   }, [list, props.isPublic]);

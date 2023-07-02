@@ -9,6 +9,7 @@ export function useGetList(params: {
   return useQuery(
     [
       "deposit",
+      "list",
       params.query.skip,
       params.query.take,
       params.query.type,

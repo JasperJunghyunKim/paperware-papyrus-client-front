@@ -17,7 +17,7 @@ export default function Component(props: Props) {
   const options = useMemo(() => {
     return list.data?.items.map((x) => ({
       label: <Item item={x} />,
-      text: `${x.code} ${x.name} ${Util.formatAddress(x.address)}`,
+      text: `${x.name} ${Util.formatAddress(x.address)}`,
       value: x.id,
     }));
   }, [list]);

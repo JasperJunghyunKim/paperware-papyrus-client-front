@@ -1,9 +1,10 @@
 import { Popup } from "@/components";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FormCreate } from "./common";
-import { useForm } from "antd/lib/form/Form";
+import { useForm, useWatch } from "antd/lib/form/Form";
 import { Api } from "@/@shared";
 import { ApiHook } from "@/common";
+import { Alert } from "antd";
 
 export interface Props {
   open: boolean;
@@ -22,6 +23,14 @@ export default function Component(props: Props) {
     },
     [api, form, props]
   );
+
+  useEffect(() => {
+    if (!props.open) {
+      return;
+    }
+
+    form.resetFields();
+  }, [form, props.open]);
 
   return (
     <Popup.Template.Property title="도착지 추가" {...props}>
