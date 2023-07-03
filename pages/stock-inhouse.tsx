@@ -1,18 +1,11 @@
 import { Model } from "@/@shared";
 import { ApiHook, PriceUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import {
-  TbCheck,
-  TbCircleCheckFilled,
-  TbEyeCheck,
-  TbMapPin,
-  TbMapPinFilled,
-  TbRefresh,
-} from "react-icons/tb";
+import { TbMapPin, TbMapPinFilled, TbRefresh } from "react-icons/tb";
 import { match } from "ts-pattern";
 
 export default function Component() {
@@ -194,6 +187,7 @@ export default function Component() {
           {
             title: "고시가",
             render: (_, record) =>
+              record.stockPrice &&
               record.stockPrice.officialPriceType !== "NONE" && (
                 <div className="flex items-center gap-x-2">
                   <div className="flex-initial rounded text-white px-1 bg-blue-500">
@@ -214,6 +208,7 @@ export default function Component() {
           {
             title: "할인율",
             render: (_, record) =>
+              record.stockPrice &&
               record.stockPrice.officialPriceType !== "NONE" && (
                 <div className="flex items-center gap-x-2">
                   <div
@@ -249,35 +244,37 @@ export default function Component() {
           },
           {
             title: "단가",
-            render: (_, record) => (
-              <div className="font-fixed text-right">
-                {`${Util.comma(
-                  record.stockPrice.discountType === "NONE"
-                    ? record.stockPrice.unitPrice
-                    : PriceUtil.convertPrice({
-                        srcUnit: record.stockPrice.officialPriceUnit,
-                        dstUnit: record.stockPrice.unitPriceUnit,
-                        origPrice: record.stockPrice.officialPrice,
-                        spec: record,
-                      }) *
-                        (1 - record.stockPrice.discountPrice / 100)
-                )} ${Util.formatPriceUnit(record.stockPrice.unitPriceUnit)}`}
-              </div>
-            ),
+            render: (_, record) =>
+              record.stockPrice && (
+                <div className="font-fixed text-right">
+                  {`${Util.comma(
+                    record.stockPrice.discountType === "NONE"
+                      ? record.stockPrice.unitPrice
+                      : PriceUtil.convertPrice({
+                          srcUnit: record.stockPrice.officialPriceUnit,
+                          dstUnit: record.stockPrice.unitPriceUnit,
+                          origPrice: record.stockPrice.officialPrice,
+                          spec: record,
+                        }) *
+                          (1 - record.stockPrice.discountPrice / 100)
+                  )} ${Util.formatPriceUnit(record.stockPrice.unitPriceUnit)}`}
+                </div>
+              ),
           },
           {
             title: "공급가",
-            render: (_, record) => (
-              <div className="font-fixed text-right">
-                {`${Util.comma(
-                  PriceUtil.calcSupplyPrice({
-                    spec: record,
-                    price: record.stockPrice,
-                    quantity: record.cachedQuantity,
-                  })
-                )} 원`}
-              </div>
-            ),
+            render: (_, record) =>
+              record.stockPrice && (
+                <div className="font-fixed text-right">
+                  {`${Util.comma(
+                    PriceUtil.calcSupplyPrice({
+                      spec: record,
+                      price: record.stockPrice,
+                      quantity: record.cachedQuantity,
+                    })
+                  )} 원`}
+                </div>
+              ),
           },
           ...Table.Preset.columnQuantity<Model.Stock>(
             (record) => record,

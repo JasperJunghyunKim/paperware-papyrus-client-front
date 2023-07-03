@@ -151,15 +151,30 @@ export default function Component(props: Props) {
         </Form>
         {searched && (
           <Form form={formCreate} layout="vertical" onFinish={cmdSendRequest}>
-            {searched?.company && (
+            {searched?.company ? (
               <Form.Item label="거래처명 (사업자등록증기준)">
                 <Input value={searched.company.businessName} disabled />
+              </Form.Item>
+            ) : (
+              <Form.Item
+                name="businessName"
+                label="거래처명(사업자등록증기준)"
+                rules={[
+                  {
+                    required: true,
+                    message: "거래처명(사업자등록증기준)을 입력해주세요.",
+                  },
+                ]}
+              >
+                <Input disabled={!!searched.company} />
               </Form.Item>
             )}
             <Form.Item
               name="partnerNickname"
-              label="거래처명"
-              rules={[{ required: true, message: "거래처명을 입력해주세요." }]}
+              label="거래처명(별칭)"
+              rules={[
+                { required: true, message: "거래처명(별칭)을 입력해주세요." },
+              ]}
             >
               <Input />
             </Form.Item>

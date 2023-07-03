@@ -67,7 +67,7 @@ export default function Component(props: Props) {
       await apiUpdateCompany.mutateAsync({
         id: item.data.id,
         data: {
-          businessName: values.partnerNickname,
+          businessName: values.businessName,
           address: values.address,
           companyRegistrationNumber: values.companyRegistrationNumber,
           email: values.email,
@@ -101,6 +101,7 @@ export default function Component(props: Props) {
     form.setFieldsValue({
       targetCompanyId: item.data.id,
       companyRegistrationNumber: item.data.companyRegistrationNumber,
+      businessName: item.data.businessName,
       invoiceCode: item.data.invoiceCode,
       partnerNickname: partner?.partnerNickName ?? item.data.businessName,
       memo: partner?.memo,
@@ -142,8 +143,10 @@ export default function Component(props: Props) {
           </Form.Item>
           <Form.Item
             name="partnerNickname"
-            label="거래처명"
-            rules={[{ required: true, message: "거래처명을 입력해주세요." }]}
+            label="거래처명(별칭)"
+            rules={[
+              { required: true, message: "거래처명(별칭)을 입력해주세요." },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -159,6 +162,18 @@ export default function Component(props: Props) {
             />
           </div>
           <FormControl.Util.Split label="회사 정보" />
+          <Form.Item
+            name="businessName"
+            label="거래처명(사업자등록증기준)"
+            rules={[
+              {
+                required: true,
+                message: "거래처명(사업자등록증기준)을 입력해주세요.",
+              },
+            ]}
+          >
+            <Input disabled={!item.data?.managedById} />
+          </Form.Item>
           {!isVirtual && (
             <Form.Item
               name="invoiceCode"

@@ -572,6 +572,7 @@ function DataForm(props: DataFormProps) {
   }, [form, apiUpdateStock, props.initialOrder]);
 
   const apiUpdateAssignNormal = ApiHook.Trade.OrderStock.useUpdateStock();
+  const apiUpdateAssignDeposit = ApiHook.Trade.OrderDeposit.useUpdateStock();
   const apiUpdateAssignOutPro = ApiHook.Trade.OrderProcess.useUpdateStock();
   const cmdUpdateAssign = useCallback(async () => {
     const values =
@@ -584,6 +585,8 @@ function DataForm(props: DataFormProps) {
     const api =
       props.initialOrder.orderType === "OUTSOURCE_PROCESS"
         ? apiUpdateAssignOutPro
+        : props.initialOrder.orderType === "DEPOSIT"
+        ? apiUpdateAssignDeposit
         : apiUpdateAssignNormal;
 
     await api.mutateAsync({
@@ -592,7 +595,13 @@ function DataForm(props: DataFormProps) {
         ...values,
       },
     });
-  }, [form, apiUpdateAssignNormal, apiUpdateAssignOutPro, props.initialOrder]);
+  }, [
+    form,
+    apiUpdateAssignNormal,
+    apiUpdateAssignDeposit,
+    apiUpdateAssignOutPro,
+    props.initialOrder,
+  ]);
 
   const compactQuantity = stockGroupQuantity.data
     ? QuantityUtil.compact(stockGroupQuantity.data, stockGroupQuantity.data)
@@ -740,9 +749,9 @@ function DataForm(props: DataFormProps) {
               label="최종 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForPurchase
+              <FormControl.SelectLocationForSales
+                companyId={srcCompanyId}
                 disabled={!editable}
-                isPublic
               />
             </Form.Item>
           )}

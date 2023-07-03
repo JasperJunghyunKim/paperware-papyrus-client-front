@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, QuantityUtil, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
 import { Alert, Form } from "antd";
@@ -93,7 +93,7 @@ export default function Component(props: Props) {
   }, [
     props.targetStock,
     productId,
-    packaging,
+    packagingId,
     grammage,
     sizeX,
     sizeY,
@@ -206,17 +206,31 @@ export default function Component(props: Props) {
             <FormControl.SelectCert disabled />
           </Form.Item>
           {packaging && (
-            <Form.Item name="quantity" label="투입 수량">
-              <FormControl.Quantity
-                spec={{
-                  grammage: grammage,
-                  sizeX,
-                  sizeY,
-                  packaging,
-                }}
-                onlyPositive
-              />
-            </Form.Item>
+            <>
+              <Form.Item label={"실물 수량"}>
+                <FormControl.Quantity
+                  spec={{
+                    grammage,
+                    sizeX,
+                    sizeY,
+                    packaging,
+                  }}
+                  value={stock.data?.cachedQuantity}
+                  disabled
+                />
+              </Form.Item>
+              <Form.Item name="quantity" label="투입 수량">
+                <FormControl.Quantity
+                  spec={{
+                    grammage: grammage,
+                    sizeX,
+                    sizeY,
+                    packaging,
+                  }}
+                  onlyPositive
+                />
+              </Form.Item>
+            </>
           )}
           <Form.Item className="flex justify-end mt-4 ">
             <Button.Preset.Submit label="실투입 재고 등록" />
