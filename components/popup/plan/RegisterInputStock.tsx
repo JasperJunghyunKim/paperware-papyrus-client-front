@@ -66,7 +66,7 @@ export default function Component(props: Props) {
       productId: stock.data.product.id,
       packagingId: stock.data.packaging.id,
       grammage: stock.data.grammage,
-      sizeX: stock.data.sizeX,
+      sizeX: stock.data.sizeX ?? 0,
       sizeY: stock.data.sizeY ?? 0,
       paperColorGroupId: stock.data.paperColorGroup?.id,
       paperColorId: stock.data.paperColor?.id,
@@ -83,8 +83,8 @@ export default function Component(props: Props) {
       props.targetStock.product.id != productId ||
       props.targetStock.packaging.id != packagingId ||
       props.targetStock.grammage != grammage ||
-      props.targetStock.sizeX != sizeX ||
-      props.targetStock.sizeY != sizeY ||
+      props.targetStock.sizeX != (sizeX ?? 0) ||
+      props.targetStock.sizeY != (sizeY ?? 0) ||
       props.targetStock.paperColorGroup?.id != paperColorGroupId ||
       props.targetStock.paperColor?.id != paperColorId ||
       props.targetStock.paperPattern?.id != paperPatternId ||
