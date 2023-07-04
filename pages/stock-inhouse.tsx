@@ -114,16 +114,16 @@ export default function Component() {
           ),
           ...Table.Preset.columnQuantity<Model.StockGroup>(
             (record) => record,
-            (record) => (record.warehouse ? record.totalQuantity : 0),
-            { prefix: "실물" }
-          ),
-          ...Table.Preset.columnQuantity<Model.StockGroup>(
-            (record) => record,
             (record) =>
               record.warehouse
                 ? record.availableQuantity
                 : record.storingQuantity,
             { prefix: "가용" }
+          ),
+          ...Table.Preset.columnQuantity<Model.StockGroup>(
+            (record) => record,
+            (record) => (record.warehouse ? record.totalQuantity : 0),
+            { prefix: "실물" }
           ),
         ]}
       />
@@ -280,11 +280,6 @@ export default function Component() {
             (record) => record,
             (record) => record.cachedQuantity,
             { prefix: "실물" }
-          ),
-          ...Table.Preset.columnQuantity<Model.Stock>(
-            (record) => record,
-            (record) => record.cachedQuantityAvailable,
-            { prefix: "가용" }
           ),
         ]}
       />

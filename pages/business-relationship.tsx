@@ -159,10 +159,6 @@ export default function Component() {
             dataIndex: ["faxNo"],
             render: (value) => Util.formatPhoneNo(value),
           },
-          {
-            title: "이메일",
-            dataIndex: ["email"],
-          },
         ]}
       />
       <Popup.Company.BusinessRelationshipReceived

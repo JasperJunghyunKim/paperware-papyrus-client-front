@@ -86,8 +86,8 @@ export default function Component(props: Props) {
       <Form.Item name="manufacturerId" label="제지사">
         <FormControl.SelectManufacturer disabled />
       </Form.Item>
-      <Form.Item name="packagingType" label="포장 유형">
-        <FormControl.SelectPackagingType disabled />
+      <Form.Item name="packagingType" label="포장">
+        <FormControl.SelectPackagingType showNone />
       </Form.Item>
       <Form.Item name="grammage" label="평량" rootClassName="flex-1">
         <Number

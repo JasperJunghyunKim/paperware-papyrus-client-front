@@ -76,7 +76,7 @@ export default function Component(props: Props) {
       formCreate.setFieldsValue({
         phoneNo: searched.company.phoneNo,
         faxNo: searched.company.faxNo,
-        email: searched.company.email,
+        representative: searched.company.representative,
         invoiceCode: searched.company.invoiceCode,
         address: searched.company.address,
       });
@@ -209,13 +209,13 @@ export default function Component(props: Props) {
                 disabled={!!searched?.company && !isVirtual}
               />
             </Form.Item>
+            <Form.Item name="representative" label="대표자">
+              <Input disabled={!!searched?.company && !isVirtual} />
+            </Form.Item>
             <Form.Item name="phoneNo" label="전화번호">
               <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
             <Form.Item name="faxNo" label="팩스">
-              <Input disabled={!!searched?.company && !isVirtual} />
-            </Form.Item>
-            <Form.Item name="email" label="이메일">
               <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
             <Form.Item name="memo" label="비고">

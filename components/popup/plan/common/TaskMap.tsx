@@ -215,14 +215,13 @@ function Item(props: ItemProps) {
                   parentTaskId={props.data.value.id}
                 />
               )}
-              {props.data.childs.length === 0 &&
-                Util.inc(props.data.value.type, "CONVERTING", "GUILLOTINE") && (
-                  <AddNode
-                    type="RELEASE"
-                    plan={props.plan}
-                    parentTaskId={props.data.value.id}
-                  />
-                )}
+              {Util.inc(props.data.value.type, "CONVERTING", "GUILLOTINE") && (
+                <AddNode
+                  type="RELEASE"
+                  plan={props.plan}
+                  parentTaskId={props.data.value.id}
+                />
+              )}
             </div>
           )}
         </div>

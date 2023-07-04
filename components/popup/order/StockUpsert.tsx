@@ -23,6 +23,7 @@ import {
 import { CreateArrival } from ".";
 import { TaskMap } from "../plan/common";
 import { Enum } from "@/@shared/models";
+import dayjs from "dayjs";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -661,6 +662,7 @@ function DataForm(props: DataFormProps) {
         name="orderDate"
         label={props.isSales ? "매출일" : "매입일"}
         rules={REQUIRED_RULES}
+        initialValue={Util.dateToIso8601(dayjs())}
       >
         <FormControl.DatePicker disabled={!editable} />
       </Form.Item>
@@ -1238,9 +1240,64 @@ function RightSideOrder(props: RightSideOrderProps) {
               )}
             </Toolbar.Container>
             <div className="flex-1 overflow-y-scroll px-4 pb-4">
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col gap-y-2">
                 <Table.Default<Model.StockGroup>
                   data={list.data ?? undefined}
+                  keySelector={(record) => `${record.plan?.id}`}
+                  selection="none"
+                  columns={[
+                    {
+                      title: "작업 구분",
+                      render: (value: Model.StockGroup) => (
+                        <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
+                      ),
+                    },
+                    {
+                      title: "작업 번호",
+                      dataIndex: ["stock", "initialOrder", "orderNo"],
+                      render: (value) => (
+                        <div className="flex">
+                          <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                            {value}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "거래처",
+                      dataIndex: ["orderCompanyInfo", "businessName"],
+                    },
+                    {
+                      title: "도착 예정일",
+                      dataIndex: ["orderInfo", "wantedDate"],
+                      render: (value) => Util.formatIso8601ToLocalDate(value),
+                    },
+                    {
+                      title: "도착지",
+                      dataIndex: ["orderStock", "dstLocation", "name"],
+                    },
+                    ...Table.Preset.columnStockGroup<Model.StockGroup>(
+                      (p) => p // TODO
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      (p) => p.nonStoringQuantity,
+                      { prefix: "배정" }
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      (p) => p.storingQuantity,
+                      { prefix: "입고" }
+                    ),
+                    ...Table.Preset.columnQuantity<Model.StockGroup>(
+                      (p) => p, // TODO
+                      (p) => p.totalQuantity,
+                      { prefix: "전체" }
+                    ),
+                  ]}
+                />
+                <Table.Default<Model.StockGroup>
+                  data={undefined}
                   page={page}
                   setPage={setPage}
                   keySelector={(record) => `${record.plan?.id}`}
@@ -1499,6 +1556,9 @@ function RightSideSales(props: RightSideSalesProps) {
             )}
           </div>
         </div>
+        <div className="flex-1 bg-green-100">
+          원지 입고 현황 (외주재단매출) | 원지 출고 현황 (외주재단매입)
+        </div>
       </div>
       <div className="basis-px bg-gray-200" />
       {props.order &&
@@ -1510,11 +1570,6 @@ function RightSideSales(props: RightSideSalesProps) {
         ) : (
           <BasePricePanel order={props.order} orderId={props.order.id} />
         ))}
-      {/* 
-import Monad (IO)
-
-board = 
-      */}
     </div>
   );
 }

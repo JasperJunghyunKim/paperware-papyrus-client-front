@@ -70,11 +70,10 @@ export default function Component(props: Props) {
           businessName: values.businessName,
           address: values.address,
           companyRegistrationNumber: values.companyRegistrationNumber,
-          email: values.email,
           faxNo: values.faxNo,
           invoiceCode: "",
           phoneNo: values.phoneNo,
-          representative: "",
+          representative: values.representative,
         },
       });
     },
@@ -108,7 +107,7 @@ export default function Component(props: Props) {
       address: item.data.address,
       phoneNo: item.data.phoneNo,
       faxNo: item.data.faxNo,
-      email: item.data.email,
+      representative: item.data.representative,
       type: type,
     });
     setLastType(type);
@@ -183,6 +182,9 @@ export default function Component(props: Props) {
               <Input disabled />
             </Form.Item>
           )}
+          <Form.Item name="representative" label="대표자">
+            <Input disabled={!isVirtual} />
+          </Form.Item>
           <Form.Item name="address" label="주소">
             <FormControl.Address disabled={!isVirtual} />
           </Form.Item>
@@ -190,9 +192,6 @@ export default function Component(props: Props) {
             <Input disabled={!isVirtual} />
           </Form.Item>
           <Form.Item name="faxNo" label="팩스">
-            <Input disabled={!isVirtual} />
-          </Form.Item>
-          <Form.Item name="email" label="이메일">
             <Input disabled={!isVirtual} />
           </Form.Item>
           {isVirtual && (

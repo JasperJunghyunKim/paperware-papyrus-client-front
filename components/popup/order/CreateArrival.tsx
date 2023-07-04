@@ -78,7 +78,7 @@ export default function Component(props: Props) {
       open={!!props.open}
     >
       <div className="flex-1 p-4">
-        <Form form={form} onFinish={cmd} layout="vertical">
+        <Form form={form} layout="vertical">
           <Form.Item
             name="packagingId"
             label="포장"
@@ -179,7 +179,11 @@ export default function Component(props: Props) {
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit label="도착 재고 추가" />
+            <Button.Default
+              label="도착 재고 추가"
+              type="primary"
+              onClick={async () => await cmd(form.getFieldsValue())}
+            />
           </Form.Item>
         </Form>
       </div>
