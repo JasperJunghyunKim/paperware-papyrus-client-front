@@ -249,3 +249,33 @@ export function useUpdateStockArrivalPrice() {
     }
   );
 }
+
+export function useGetStockGroupHistory(params: {
+  query: Partial<Api.StockGroupHistoryQuery>;
+}) {
+  return useQuery(
+    [
+      "stockInhouse",
+      "stockGroupHistory",
+      params.query.warehouseId,
+      params.query.productId,
+      params.query.packagingId,
+      params.query.grammage,
+      params.query.sizeX,
+      params.query.sizeY,
+      params.query.paperColorGroupId,
+      params.query.paperColorId,
+      params.query.paperPatternId,
+      params.query.paperCertId,
+    ],
+    async () => {
+      const resp = await axios.get<Api.StockGroupHistoryResponse>(
+        `${API_HOST}/stock/group/history`,
+        {
+          params: params.query,
+        }
+      );
+      return resp.data;
+    }
+  );
+}

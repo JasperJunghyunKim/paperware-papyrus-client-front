@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function useGetList(params: { query: Partial<Api.PlanListQuery> }) {
   return useQuery(
-    ["plan", "list", params.query.skip, params.query.take],
+    ["plan", "list", params.query.skip, params.query.take, params.query.type],
     async () => {
       const resp = await axios.get<Api.PlanListResponse>(
         `${API_HOST}/working/plan`,

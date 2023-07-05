@@ -55,6 +55,9 @@ export default function Component(props: Props) {
       >
         <FormControl.SelectPartner />
       </Form.Item>
+      <Form.Item name="packagingType" label="포장">
+        <FormControl.SelectPackagingType showNone />
+      </Form.Item>
       <Form.Item name="paperDomainId" label="제품 유형">
         <FormControl.SelectPaperDomain />
       </Form.Item>
@@ -66,9 +69,6 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item name="manufacturerId" label="제지사">
         <FormControl.SelectManufacturer />
-      </Form.Item>
-      <Form.Item name="packagingType" label="포장">
-        <FormControl.SelectPackagingType showNone />
       </Form.Item>
       <Form.Item name="grammage" label="평량" rootClassName="flex-1">
         <Number min={0} max={9999} precision={0} unit={Util.UNIT_GPM} />

@@ -1,4 +1,5 @@
 export * as Button from "./button";
+export * as Banner from "./banner";
 export * as Layout from "./layout";
 export * as Logo from "./logo";
 export * as Popup from "./popup";

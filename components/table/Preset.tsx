@@ -1,12 +1,13 @@
 import { Model } from "@/@shared";
 import DiscountRate from "@/@shared/models/discount-rate";
-import { ApiHook, PaperUtil, Util } from "@/common";
+import { ApiHook, PaperUtil, PriceUtil, Util } from "@/common";
 import { Quantity } from "@/common/paperUtil";
 import { ColumnType } from "antd/lib/table/interface";
 import classNames from "classnames";
 import _ from "lodash";
-import { TbHome, TbHomeLink } from "react-icons/tb";
+import { TbHome, TbHomeLink, TbRefresh } from "react-icons/tb";
 import { Icon } from "..";
+import { match } from "ts-pattern";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
@@ -113,110 +114,6 @@ export function columnStockGroup<T>(
     {
       title: "인증",
       render: (_value: any, record: T) => getStock(record)?.paperCert?.name,
-    },
-  ];
-}
-
-export function columnStock<T>(
-  getStock: (record: T) => Model.Stock,
-  path: string[]
-): ColumnType<T>[] {
-  return [
-    {
-      title: "재고 번호",
-      dataIndex: [...path, "serial"],
-      render: (value) => <div className="font-fixed">{value}</div>,
-    },
-    {
-      title: "제품 유형",
-      dataIndex: [...path, "product", "paperDomain", "name"],
-    },
-    {
-      title: "지군",
-      dataIndex: [...path, "product", "paperGroup", "name"],
-    },
-    {
-      title: "지종",
-      dataIndex: [...path, "product", "paperType", "name"],
-    },
-    {
-      title: "제지사",
-      dataIndex: [...path, "product", "manufacturer", "name"],
-    },
-    ...columnPackagingType<T>((p: any) => p.packaging),
-    {
-      title: "평량",
-      dataIndex: [...path, "grammage"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} ${
-          Util.UNIT_GPM
-        }`}</div>
-      ),
-    },
-    {
-      title: "규격",
-      render: (_value: any, record: T) => (
-        <div className="text-right font-fixed">
-          {
-            Util.findPaperSize(getStock(record).sizeX, getStock(record).sizeY)
-              ?.name
-          }
-        </div>
-      ),
-    },
-    {
-      title: "지폭",
-      dataIndex: [...path, "sizeX"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} mm`}</div>
-      ),
-    },
-    {
-      title: "지장",
-      dataIndex: [...path, "sizeY"],
-      render: (value: number, record: T) =>
-        getStock(record)?.packaging.type !== "ROLL" ? (
-          <div className="text-right font-fixed">{`${Util.comma(
-            value
-          )} mm`}</div>
-        ) : null,
-    },
-    {
-      title: "색군",
-      dataIndex: [...path, "paperColorGroup", "name"],
-    },
-    {
-      title: "색상",
-      dataIndex: [...path, "paperColor", "name"],
-    },
-    {
-      title: "무늬",
-      dataIndex: [...path, "paperPattern", "name"],
-    },
-    {
-      title: "인증",
-      dataIndex: [...path, "paperCert", "name"],
-    },
-    {
-      title: "고시가",
-      dataIndex: [...path, "stockPrice", "price"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} 원`}</div>
-      ),
-    },
-    {
-      title: "할인율",
-      dataIndex: [...path, "stockPrice", "discountRate"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} %`}</div>
-      ),
-    },
-    {
-      title: "단가",
-      dataIndex: [...path, "stockPrice", "unitPrice"],
-      render: (value: number) => (
-        <div className="text-right font-fixed">{`${Util.comma(value)} 원`}</div>
-      ),
     },
   ];
 }
@@ -430,5 +327,192 @@ export function columnPackagingType<T>(
         );
       },
     },
+  ];
+}
+
+export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
+  return [
+    {
+      title: "거래처",
+      dataIndex: ["initialOrder", "dstCompany", "businessName"],
+    },
+    {
+      title: "금액 동기화",
+      render: (_, record) =>
+        record.isSyncPrice && (
+          <div className="flex items-center text-green-600 gap-x-1">
+            <TbRefresh />
+            금액 동기화
+          </div>
+        ),
+    },
+    {
+      title: "재고 번호",
+      dataIndex: "serial",
+      render: (value) => (
+        <div className="flex">
+          <div className="flex font-fixed bg-yellow-100 px-1 text-yellow-800 rounded-md border border-solid border-yellow-300">
+            {Util.formatSerial(value)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "작업 구분",
+      render: (_, record) => (
+        <div>{Util.formatPlanType(record.initialPlan.type)}</div>
+      ),
+    },
+    {
+      title: "고시가",
+      render: (_, record) =>
+        record.stockPrice &&
+        record.stockPrice.officialPriceType !== "NONE" && (
+          <div className="flex items-center gap-x-2">
+            <div className="flex-initial rounded text-white px-1 bg-blue-500">
+              {Util.formatOfficialPriceType(
+                record.stockPrice.officialPriceType
+              )}
+            </div>
+            <div className="flex-1 font-fixed text-right whitespace-pre">
+              {`${Util.comma(
+                record.stockPrice.officialPrice
+              )} ${Util.formatPriceUnit(
+                record.stockPrice.officialPriceUnit
+              ).padEnd(6)}`}
+            </div>
+          </div>
+        ),
+    },
+    {
+      title: "할인율",
+      render: (_, record) =>
+        record.stockPrice &&
+        record.stockPrice.officialPriceType !== "NONE" && (
+          <div className="flex items-center gap-x-2">
+            <div
+              className={classNames("flex-initial rounded text-white px-1", {
+                "bg-gray-500": record.stockPrice.discountType === "NONE",
+                "bg-blue-500": record.stockPrice.discountType !== "NONE",
+              })}
+            >
+              {Util.formatDiscountType(record.stockPrice.discountType)}
+            </div>
+            <div className="flex-1 font-fixed text-right whitespace-pre">
+              {`${Util.comma(
+                record.stockPrice.discountType === "MANUAL_NONE"
+                  ? record.stockPrice.discountPrice
+                  : (1 -
+                      PriceUtil.convertPrice({
+                        srcUnit: record.stockPrice.unitPriceUnit,
+                        dstUnit: record.stockPrice.officialPriceUnit,
+                        origPrice: record.stockPrice.unitPrice,
+                        spec: record,
+                      }) /
+                        record.stockPrice.officialPrice) *
+                      100
+              )} %`}
+            </div>
+          </div>
+        ),
+    },
+    {
+      title: "단가",
+      render: (_, record) =>
+        record.stockPrice && (
+          <div className="font-fixed text-right">
+            {`${Util.comma(
+              record.stockPrice.discountType === "NONE"
+                ? record.stockPrice.unitPrice
+                : PriceUtil.convertPrice({
+                    srcUnit: record.stockPrice.officialPriceUnit,
+                    dstUnit: record.stockPrice.unitPriceUnit,
+                    origPrice: record.stockPrice.officialPrice,
+                    spec: record,
+                  }) *
+                    (1 - record.stockPrice.discountPrice / 100)
+            )} ${Util.formatPriceUnit(record.stockPrice.unitPriceUnit)}`}
+          </div>
+        ),
+    },
+    {
+      title: "공급가",
+      render: (_, record) =>
+        record.stockPrice && (
+          <div className="font-fixed text-right">
+            {`${Util.comma(
+              PriceUtil.calcSupplyPrice({
+                spec: record,
+                price: record.stockPrice,
+                quantity: record.cachedQuantity,
+              })
+            )} 원`}
+          </div>
+        ),
+    },
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) => record.cachedQuantity,
+      { prefix: "실물" }
+    ),
+  ];
+}
+
+export function stockGroup<T extends Model.StockGroup>(): ColumnType<T>[] {
+  const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
+
+  return [
+    {
+      title: "거래처",
+      dataIndex: [
+        "plan",
+        "orderStock",
+        "order",
+        "partnerCompany",
+        "businessName",
+      ],
+      render: (_, record) =>
+        partners.data?.items.find(
+          (p) =>
+            p.companyRegistrationNumber ===
+            record.plan?.orderStock?.order.partnerCompany
+              .companyRegistrationNumber
+        )?.partnerNickName ??
+        record.plan?.orderStock?.order.partnerCompany.businessName,
+    },
+    {
+      title: "도착지",
+      render: (_, record) =>
+        record.plan?.orderStock?.dstLocation.name ??
+        record.plan?.planShipping?.dstLocation.name,
+    },
+    {
+      title: "예정일",
+      render: (_, record) => (
+        <div className="font-fixed">
+          {Util.formatIso8601ToLocalDate(
+            record.plan?.orderStock?.wantedDate ??
+              record.plan?.planShipping?.wantedDate ??
+              null
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "창고",
+      dataIndex: ["warehouse", "name"],
+    },
+    ...columnStockGroup<T>((record) => record),
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) =>
+        record.warehouse ? record.availableQuantity : record.storingQuantity,
+      { prefix: "가용" }
+    ),
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) => (record.warehouse ? record.totalQuantity : 0),
+      { prefix: "실물" }
+    ),
   ];
 }

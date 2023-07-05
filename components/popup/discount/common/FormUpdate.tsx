@@ -74,6 +74,9 @@ export default function Component(props: Props) {
         <Button.Preset.Submit label="내용 저장" hidden={!props.edit} />
       </div>
       <div className="h-px bg-gray-200" />
+      <Form.Item name="packagingType" label="포장">
+        <FormControl.SelectPackagingType showNone />
+      </Form.Item>
       <Form.Item name="paperDomainId" label="제품 유형">
         <FormControl.SelectPaperDomain disabled />
       </Form.Item>
@@ -85,9 +88,6 @@ export default function Component(props: Props) {
       </Form.Item>
       <Form.Item name="manufacturerId" label="제지사">
         <FormControl.SelectManufacturer disabled />
-      </Form.Item>
-      <Form.Item name="packagingType" label="포장">
-        <FormControl.SelectPackagingType showNone />
       </Form.Item>
       <Form.Item name="grammage" label="평량" rootClassName="flex-1">
         <Number
@@ -171,9 +171,6 @@ export default function Component(props: Props) {
             <Select options={PRICE_UNIT_OPTIONS} rootClassName="flex-1" />
           </Form.Item>
         </div>
-      </Form.Item>
-      <Form.Item className="flex justify-end">
-        <Button.Preset.Submit label="할인율 추가" />
       </Form.Item>
       <div className="h-16" />
     </Form>

@@ -75,90 +75,92 @@ export default function Component(props: Props) {
                 ),
               },
               {
-                title: "포장",
-                dataIndex: ["packaging", "type"],
-                render: (value, record) => (
-                  <div className="font-fixed flex gap-x-1">
-                    <div className="flex-initial flex flex-col justify-center text-lg">
-                      <Icon.PackagingType
-                        packagingType={record.packaging.type}
-                      />
-                    </div>
-                    <div className="flex-initial flex flex-col justify-center">
-                      {value}
-                    </div>
+                title: "도착지",
+                render: (_, record) =>
+                  record.plan?.orderStock?.dstLocation.name ??
+                  record.plan?.orderProcess?.srcLocation.name,
+              },
+              {
+                title: "예정일",
+                render: (_, record) => (
+                  <div className="font-fixed">
+                    {Util.formatIso8601ToLocalDate(
+                      record.plan?.orderStock?.wantedDate ??
+                        record.plan?.orderProcess?.srcWantedDate ??
+                        null
+                    )}
                   </div>
                 ),
               },
+              ...Table.Preset.columnPackagingType<Model.Invoice>(
+                (p) => p.packaging
+              ),
               {
-                title: "제품 유형",
-                dataIndex: ["product", "paperDomain", "name"],
+                title: "지종",
+                render: (_value: any, record: Model.Invoice) =>
+                  record.product.paperType.name,
               },
               {
                 title: "제지사",
-                dataIndex: ["product", "manufacturer", "name"],
-              },
-              {
-                title: "지군",
-                dataIndex: ["product", "paperGroup", "name"],
-              },
-              {
-                title: "지종",
-                dataIndex: ["product", "paperType", "name"],
+                render: (_value: any, record: Model.Invoice) =>
+                  record.product.manufacturer.name,
               },
               {
                 title: "평량",
-                dataIndex: "grammage",
-                render: (value) => (
+                render: (_value: any, record: Model.Invoice) => (
                   <div className="text-right font-fixed">{`${Util.comma(
-                    value
+                    record.grammage
                   )} ${Util.UNIT_GPM}`}</div>
                 ),
               },
               {
+                title: "규격",
+                render: (_value: any, record: Model.Invoice) => (
+                  <div className="font-fixed">
+                    {
+                      Util.findPaperSize(record.sizeX ?? 1, record.sizeY ?? 1)
+                        ?.name
+                    }
+                  </div>
+                ),
+              },
+              {
                 title: "지폭",
-                dataIndex: "sizeX",
-                render: (value) => (
+                render: (_value: any, record: Model.Invoice) => (
                   <div className="text-right font-fixed">{`${Util.comma(
-                    value
+                    record.sizeX
                   )} mm`}</div>
                 ),
               },
               {
                 title: "지장",
-                dataIndex: "sizeY",
-                render: (value, record) =>
-                  record.packaging.type !== "ROLL" ? (
+                render: (_value: any, record: Model.Invoice) =>
+                  record.packaging?.type !== "ROLL" && record.sizeY ? (
                     <div className="text-right font-fixed">{`${Util.comma(
-                      value
+                      record.sizeY
                     )} mm`}</div>
                   ) : null,
               },
               {
-                title: "색군",
-                dataIndex: ["paperColorGroup", "name"],
-              },
-              {
                 title: "색상",
-                dataIndex: ["paperColor", "name"],
+                render: (_value: any, record: Model.Invoice) =>
+                  record.paperColor?.name,
               },
               {
                 title: "무늬",
-                dataIndex: ["paperPattern", "name"],
+                render: (_value: any, record: Model.Invoice) =>
+                  record.paperPattern?.name,
               },
               {
                 title: "인증",
-                dataIndex: ["paperCert", "name"],
+                render: (_value: any, record: Model.Invoice) =>
+                  record.paperCert?.name,
               },
-              {
-                title: "수량",
-                dataIndex: "quantity",
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )}`}</div>
-                ),
-              },
+              ...Table.Preset.columnQuantity<Model.Invoice>(
+                (p) => p,
+                (p) => p.quantity,
+                {}
+              ),
             ]}
           />
         </div>

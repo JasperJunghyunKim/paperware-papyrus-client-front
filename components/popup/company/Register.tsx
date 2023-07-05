@@ -1,7 +1,7 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
-import { Alert, Form, Input, Radio } from "antd";
+import { Alert, Form, Input, InputNumber, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 
@@ -177,6 +177,19 @@ export default function Component(props: Props) {
               ]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              name="creditLimit"
+              label="여신 한도"
+              rules={[{ required: true, message: "여신 한도를 입력해주세요." }]}
+            >
+              <InputNumber
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value) => value?.replace(/(,*)/g, "") ?? ""}
+                rootClassName="w-full"
+              />
             </Form.Item>
             <Form.Item
               name="type"

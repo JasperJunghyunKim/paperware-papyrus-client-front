@@ -144,39 +144,83 @@ export default function Component(props: Props) {
             </div>
             <div className="basis-px bg-gray-300" />
             <div className="flex-initial p-4 flex gap-x-8">
-              <OrderItemProperty
-                label="작업 계획 번호"
-                content={data.data.planNo}
-              />
-              <OrderItemProperty
-                label="원지 창고"
-                content={data.data.assignStockEvent?.stock.warehouse?.name}
-              />
-              <OrderItemProperty
-                label="제품 유형"
-                content={
-                  data.data.assignStockEvent?.stock.product.paperDomain.name
-                }
-              />
-              <OrderItemProperty
-                label="제지사"
-                content={
-                  data.data.assignStockEvent?.stock.product.manufacturer.name
-                }
-              />
-              <OrderItemProperty
-                label="지군"
-                content={
-                  data.data.assignStockEvent?.stock.product.paperGroup.name
-                }
-              />
-              <OrderItemProperty
-                label="지종"
-                content={
-                  data.data.assignStockEvent?.stock.product.paperType.name
-                }
-              />
+              <OrderItemProperty label="작업 번호" content={data.data.planNo} />
             </div>
+            <div className="basis-px bg-gray-300" />
+            {data.data.assignStockEvent && (
+              <>
+                <div className="flex-initial p-4 flex gap-x-8">
+                  <OrderItemProperty
+                    label="(입고 예정) 도착지"
+                    content={""}
+                    type="highlight"
+                  />
+                  <OrderItemProperty
+                    label="(입고 예정) 도착 예정일"
+                    content={""}
+                    type="highlight"
+                  />
+                  <OrderItemProperty
+                    label="창고"
+                    content={data.data.assignStockEvent.stock.warehouse?.name}
+                  />
+                  <OrderItemProperty
+                    label="포장"
+                    content={`${
+                      data.data.assignStockEvent.stock.packaging.type
+                    } ─ ${
+                      data.data.assignStockEvent.stock.packaging.type === "SKID"
+                        ? ""
+                        : Util.formatPackaging(
+                            data.data.assignStockEvent.stock.packaging
+                          )
+                    }`}
+                  />
+                  <OrderItemProperty
+                    label="지종"
+                    content={
+                      data.data.assignStockEvent.stock.product.paperType.name
+                    }
+                  />
+                  <OrderItemProperty
+                    label="제지사"
+                    content={
+                      data.data.assignStockEvent.stock.product.manufacturer.name
+                    }
+                  />
+                  <OrderItemProperty
+                    label="평량"
+                    content={`${data.data.assignStockEvent.stock.grammage} ${Util.UNIT_GPM}`}
+                  />
+                  <OrderItemProperty
+                    label="지폭"
+                    content={`${data.data.assignStockEvent.stock.sizeX} mm`}
+                  />
+                  {data.data.assignStockEvent.stock.packaging.type !==
+                    "ROLL" && (
+                    <OrderItemProperty
+                      label="지장"
+                      content={`${data.data.assignStockEvent.stock.sizeY} mm`}
+                    />
+                  )}
+                  <OrderItemProperty
+                    label="색상"
+                    content={data.data.assignStockEvent.stock.paperColor?.name}
+                  />
+                  <OrderItemProperty
+                    label="무늬"
+                    content={
+                      data.data.assignStockEvent.stock.paperPattern?.name
+                    }
+                  />
+                  <OrderItemProperty
+                    label="인증"
+                    content={data.data.assignStockEvent.stock.paperCert?.name}
+                  />
+                  <OrderItemProperty label="사용 예정 수량" content={``} />
+                </div>
+              </>
+            )}
             <div className="flex-[0_0_1px] bg-gray-300" />
             <div className="flex-[1_0_0px] flex flex-col bg-slate-200 h-0">
               {data.data && data.data.assignStockEvent && (

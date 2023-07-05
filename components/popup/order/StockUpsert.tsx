@@ -1246,36 +1246,6 @@ function RightSideOrder(props: RightSideOrderProps) {
                   keySelector={(record) => `${record.plan?.id}`}
                   selection="none"
                   columns={[
-                    {
-                      title: "작업 구분",
-                      render: (value: Model.StockGroup) => (
-                        <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
-                      ),
-                    },
-                    {
-                      title: "작업 번호",
-                      dataIndex: ["stock", "initialOrder", "orderNo"],
-                      render: (value) => (
-                        <div className="flex">
-                          <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                            {value}
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "거래처",
-                      dataIndex: ["orderCompanyInfo", "businessName"],
-                    },
-                    {
-                      title: "도착 예정일",
-                      dataIndex: ["orderInfo", "wantedDate"],
-                      render: (value) => Util.formatIso8601ToLocalDate(value),
-                    },
-                    {
-                      title: "도착지",
-                      dataIndex: ["orderStock", "dstLocation", "name"],
-                    },
                     ...Table.Preset.columnStockGroup<Model.StockGroup>(
                       (p) => p // TODO
                     ),
@@ -1303,36 +1273,6 @@ function RightSideOrder(props: RightSideOrderProps) {
                   keySelector={(record) => `${record.plan?.id}`}
                   selection="none"
                   columns={[
-                    {
-                      title: "작업 구분",
-                      render: (value: Model.StockGroup) => (
-                        <div>{value.plan?.orderStock ? "정상 매입" : ""}</div>
-                      ),
-                    },
-                    {
-                      title: "작업 번호",
-                      dataIndex: ["stock", "initialOrder", "orderNo"],
-                      render: (value) => (
-                        <div className="flex">
-                          <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                            {value}
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "거래처",
-                      dataIndex: ["orderCompanyInfo", "businessName"],
-                    },
-                    {
-                      title: "도착 예정일",
-                      dataIndex: ["orderInfo", "wantedDate"],
-                      render: (value) => Util.formatIso8601ToLocalDate(value),
-                    },
-                    {
-                      title: "도착지",
-                      dataIndex: ["orderStock", "dstLocation", "name"],
-                    },
                     ...Table.Preset.columnStockGroup<Model.StockGroup>(
                       (p) => p // TODO
                     ),
