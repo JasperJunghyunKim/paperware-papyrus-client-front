@@ -1,12 +1,10 @@
 import { Model } from "@/@shared";
-import { ApiHook, PriceUtil, Util } from "@/common";
+import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { TbMapPin, TbMapPinFilled, TbRefresh } from "react-icons/tb";
-import { match } from "ts-pattern";
+import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 import { OpenType as DetailOpenType } from "../components/popup/stock/Detail";
 
 export default function Component() {

@@ -365,90 +365,126 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
     },
     {
       title: "고시가",
-      render: (_, record) =>
-        record.stockPrice &&
-        record.stockPrice.officialPriceType !== "NONE" && (
-          <div className="flex items-center gap-x-2">
-            <div className="flex-initial rounded text-white px-1 bg-blue-500">
-              {Util.formatOfficialPriceType(
-                record.stockPrice.officialPriceType
-              )}
+      render: (_, record) => {
+        const price =
+          record.initialPlan.orderStock?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.initialPlan.orderProcess?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.stockPrice;
+
+        return (
+          price &&
+          price.officialPriceType !== "NONE" && (
+            <div className="flex items-center gap-x-2">
+              <div className="flex-initial rounded text-white px-1 bg-blue-500">
+                {Util.formatOfficialPriceType(price.officialPriceType)}
+              </div>
+              <div className="flex-1 font-fixed text-right whitespace-pre">
+                {`${Util.comma(price.officialPrice)} ${Util.formatPriceUnit(
+                  price.officialPriceUnit
+                ).padEnd(6)}`}
+              </div>
             </div>
-            <div className="flex-1 font-fixed text-right whitespace-pre">
-              {`${Util.comma(
-                record.stockPrice.officialPrice
-              )} ${Util.formatPriceUnit(
-                record.stockPrice.officialPriceUnit
-              ).padEnd(6)}`}
-            </div>
-          </div>
-        ),
+          )
+        );
+      },
     },
     {
       title: "할인율",
-      render: (_, record) =>
-        record.stockPrice &&
-        record.stockPrice.officialPriceType !== "NONE" && (
-          <div className="flex items-center gap-x-2">
-            <div
-              className={classNames("flex-initial rounded text-white px-1", {
-                "bg-gray-500": record.stockPrice.discountType === "NONE",
-                "bg-blue-500": record.stockPrice.discountType !== "NONE",
-              })}
-            >
-              {Util.formatDiscountType(record.stockPrice.discountType)}
+      render: (_, record) => {
+        const price =
+          record.initialPlan.orderStock?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.initialPlan.orderProcess?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.stockPrice;
+
+        return (
+          price &&
+          price.officialPriceType !== "NONE" && (
+            <div className="flex items-center gap-x-2">
+              <div
+                className={classNames("flex-initial rounded text-white px-1", {
+                  "bg-gray-500": price.discountType === "NONE",
+                  "bg-blue-500": price.discountType !== "NONE",
+                })}
+              >
+                {Util.formatDiscountType(price.discountType)}
+              </div>
+              <div className="flex-1 font-fixed text-right whitespace-pre">
+                {`${Util.comma(
+                  price.discountType === "MANUAL_NONE"
+                    ? price.discountPrice
+                    : (1 -
+                        PriceUtil.convertPrice({
+                          srcUnit: price.unitPriceUnit,
+                          dstUnit: price.officialPriceUnit,
+                          origPrice: price.unitPrice,
+                          spec: record,
+                        }) /
+                          price.officialPrice) *
+                        100
+                )} %`}
+              </div>
             </div>
-            <div className="flex-1 font-fixed text-right whitespace-pre">
-              {`${Util.comma(
-                record.stockPrice.discountType === "MANUAL_NONE"
-                  ? record.stockPrice.discountPrice
-                  : (1 -
-                      PriceUtil.convertPrice({
-                        srcUnit: record.stockPrice.unitPriceUnit,
-                        dstUnit: record.stockPrice.officialPriceUnit,
-                        origPrice: record.stockPrice.unitPrice,
-                        spec: record,
-                      }) /
-                        record.stockPrice.officialPrice) *
-                      100
-              )} %`}
-            </div>
-          </div>
-        ),
+          )
+        );
+      },
     },
     {
       title: "단가",
-      render: (_, record) =>
-        record.stockPrice && (
-          <div className="font-fixed text-right">
-            {`${Util.comma(
-              record.stockPrice.discountType === "NONE"
-                ? record.stockPrice.unitPrice
-                : PriceUtil.convertPrice({
-                    srcUnit: record.stockPrice.officialPriceUnit,
-                    dstUnit: record.stockPrice.unitPriceUnit,
-                    origPrice: record.stockPrice.officialPrice,
-                    spec: record,
-                  }) *
-                    (1 - record.stockPrice.discountPrice / 100)
-            )} ${Util.formatPriceUnit(record.stockPrice.unitPriceUnit)}`}
-          </div>
-        ),
+      render: (_, record) => {
+        const price =
+          record.initialPlan.orderStock?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.initialPlan.orderProcess?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.stockPrice;
+
+        return (
+          price && (
+            <div className="font-fixed text-right">
+              {`${Util.comma(
+                price.discountType === "NONE"
+                  ? price.unitPrice
+                  : PriceUtil.convertPrice({
+                      srcUnit: price.officialPriceUnit,
+                      dstUnit: price.unitPriceUnit,
+                      origPrice: price.officialPrice,
+                      spec: record,
+                    }) *
+                      (1 - price.discountPrice / 100)
+              )} ${Util.formatPriceUnit(price.unitPriceUnit)}`}
+            </div>
+          )
+        );
+      },
     },
     {
       title: "공급가",
-      render: (_, record) =>
-        record.stockPrice && (
-          <div className="font-fixed text-right">
-            {`${Util.comma(
-              PriceUtil.calcSupplyPrice({
-                spec: record,
-                price: record.stockPrice,
-                quantity: record.cachedQuantity,
-              })
-            )} 원`}
-          </div>
-        ),
+      render: (_, record) => {
+        const price =
+          record.initialPlan.orderStock?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.initialPlan.orderProcess?.order.tradePrice.at(0)
+            ?.orderStockTradePrice ??
+          record.stockPrice;
+
+        return (
+          price && (
+            <div className="font-fixed text-right">
+              {`${Util.comma(
+                PriceUtil.calcSupplyPrice({
+                  spec: record,
+                  price: price,
+                  quantity: record.cachedQuantity,
+                })
+              )} 원`}
+            </div>
+          )
+        );
+      },
     },
     ...columnQuantity<T>(
       (record) => record,

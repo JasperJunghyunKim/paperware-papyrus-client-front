@@ -36,6 +36,7 @@ import {
   TbBookDownload,
   TbBookUpload,
   TbFunction,
+  TbCash,
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -140,6 +141,11 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "매입 할인율 설정",
         icon: <TbDiscount2 />,
         path: "/discount-purchase",
+      },
+      {
+        label: "전자세금계산서 목록",
+        icon: <TbCash />,
+        path: "/tax-invoice",
       },
       { path: null },
       {

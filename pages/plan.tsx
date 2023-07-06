@@ -93,9 +93,7 @@ export default function Component() {
           {
             title: "작업 유형",
             render: (_value: any, record: Model.Plan) => (
-              <div className="flex gap-x-2">
-                {record.orderStock ? "정상 매출" : "내부 재단"}
-              </div>
+              Util.formatPlanType(record.type)
             ),
           },
           {

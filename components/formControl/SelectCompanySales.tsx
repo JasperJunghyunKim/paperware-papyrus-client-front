@@ -11,6 +11,7 @@ interface Props {
   onChange?: (value: number) => void;
   disabled?: boolean;
   virtual?: boolean;
+  placeholder?: string;
 }
 
 export default function Component(props: Props) {
@@ -50,7 +51,7 @@ export default function Component(props: Props) {
         }}
         showSearch
         allowClear
-        placeholder="매출처 선택"
+        placeholder={props.placeholder ?? "매출처 선택"}
         disabled={props.disabled}
       />
     </div>

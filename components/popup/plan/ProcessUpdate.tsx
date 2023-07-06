@@ -47,14 +47,15 @@ export default function Component(props: Props) {
       <div className="flex-[1_0_0px] flex flex-col">
         {data.data && (
           <>
-            <Toolbar.Container rootClassName="p-2">
-              <div className="flex-1" />
-              <Toolbar.ButtonPreset.Continue
-                label="작업 지시"
-                onClick={async () => await cmdStart()}
-                disabled={data.data.status !== "PREPARING"}
-              />
-            </Toolbar.Container>
+            {data.data.status === "PREPARING" && (
+              <Toolbar.Container rootClassName="p-2">
+                <div className="flex-1" />
+                <Toolbar.ButtonPreset.Continue
+                  label="작업 지시"
+                  onClick={async () => await cmdStart()}
+                />
+              </Toolbar.Container>
+            )}
             <div className="basis-px bg-gray-300" />
             <div className="flex-initial p-4 flex gap-x-8">
               <OrderItemProperty

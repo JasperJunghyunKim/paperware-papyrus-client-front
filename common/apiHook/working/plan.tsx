@@ -77,6 +77,7 @@ export function useStart() {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
         await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries(["stockInhouse"]);
+        await queryClient.invalidateQueries(["order"]);
       },
     }
   );

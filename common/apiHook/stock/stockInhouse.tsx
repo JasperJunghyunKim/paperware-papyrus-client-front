@@ -269,6 +269,15 @@ export function useGetStockGroupHistory(params: {
       params.query.paperCertId,
     ],
     async () => {
+      if (
+        !params.query.productId ||
+        !params.query.packagingId ||
+        !params.query.grammage ||
+        !params.query.sizeX ||
+        !params.query.sizeY
+      ) {
+        return null;
+      }
       const resp = await axios.get<Api.StockGroupHistoryResponse>(
         `${API_HOST}/stock/group/history`,
         {
