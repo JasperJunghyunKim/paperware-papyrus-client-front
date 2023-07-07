@@ -1,7 +1,7 @@
 import { Api } from "@/@shared";
 import { ApiHook } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
-import { Alert, Form, Input, Radio } from "antd";
+import { Alert, Form, Input, InputNumber, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 
@@ -51,6 +51,7 @@ export default function Component(props: Props) {
         companyRegistrationNumber: values.companyRegistrationNumber,
         data: {
           companyRegistrationNumber: values.companyRegistrationNumber,
+          creditLimit: values.creditLimit,
           partnerNickname: values.partnerNickname,
           memo: values.memo,
         },
@@ -72,6 +73,8 @@ export default function Component(props: Props) {
           companyRegistrationNumber: values.companyRegistrationNumber,
           faxNo: values.faxNo,
           invoiceCode: "",
+          bizType: values.bizType,
+          bizItem: values.bizItem,
           phoneNo: values.phoneNo,
           representative: values.representative,
         },
@@ -103,11 +106,14 @@ export default function Component(props: Props) {
       businessName: item.data.businessName,
       invoiceCode: item.data.invoiceCode,
       partnerNickname: partner?.partnerNickName ?? item.data.businessName,
+      creditLimit: partner?.creditLimit,
       memo: partner?.memo,
       address: item.data.address,
       phoneNo: item.data.phoneNo,
       faxNo: item.data.faxNo,
       representative: item.data.representative,
+      bizType: item.data.bizType,
+      bizItem: item.data.bizItem,
       type: type,
     });
     setLastType(type);
@@ -149,6 +155,19 @@ export default function Component(props: Props) {
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            name="creditLimit"
+            label="여신 한도"
+            rules={[{ required: true, message: "여신 한도를 입력해주세요." }]}
+          >
+            <InputNumber
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value?.replace(/(,*)/g, "") ?? ""}
+              rootClassName="w-full"
+            />
+          </Form.Item>
           <Form.Item name="memo" label="비고">
             <Input.TextArea />
           </Form.Item>
@@ -182,16 +201,72 @@ export default function Component(props: Props) {
               <Input disabled />
             </Form.Item>
           )}
-          <Form.Item name="representative" label="대표자">
+          <Form.Item
+            name="representative"
+            label="대표자"
+            rules={[
+              {
+                required: true,
+                message: "대표자를 입력해주세요.",
+              },
+            ]}
+          >
             <Input disabled={!isVirtual} />
           </Form.Item>
-          <Form.Item name="address" label="주소">
+          <Form.Item
+            name="address"
+            label="주소"
+            rules={[{ required: true, message: "주소를 입력해주세요." }]}
+          >
             <FormControl.Address disabled={!isVirtual} />
           </Form.Item>
-          <Form.Item name="phoneNo" label="전화번호">
+          <Form.Item
+            name="phoneNo"
+            label="전화번호"
+            rules={[
+              { required: true, message: "전화번호를 입력해주세요." },
+              {
+                pattern: /^[0-9]{8,11}$/,
+                message: "전화번호는 8~11자리의 숫자여야 합니다.",
+              },
+            ]}
+          >
+            <Input disabled={!isVirtual} maxLength={14} />
+          </Form.Item>
+          <Form.Item
+            name="faxNo"
+            label="팩스"
+            rules={[
+              {
+                pattern: /^[0-9]{8,11}$/,
+                message: "팩스는 8~11자리의 숫자여야 합니다.",
+              },
+            ]}
+          >
+            <Input disabled={!isVirtual} maxLength={14} />
+          </Form.Item>
+          <Form.Item
+            name="bizType"
+            label="업태"
+            rules={[
+              {
+                required: true,
+                message: "업태를 입력해주세요.",
+              },
+            ]}
+          >
             <Input disabled={!isVirtual} />
           </Form.Item>
-          <Form.Item name="faxNo" label="팩스">
+          <Form.Item
+            name="bizItem"
+            label="업종"
+            rules={[
+              {
+                required: true,
+                message: "업종을 입력해주세요.",
+              },
+            ]}
+          >
             <Input disabled={!isVirtual} />
           </Form.Item>
           {isVirtual && (

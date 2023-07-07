@@ -18,6 +18,9 @@ export function useGetList(params: {
       params.query.dstCompanyId,
     ],
     async () => {
+      if (!params.query.srcCompanyId && !params.query.dstCompanyId) {
+        return null;
+      }
       const resp = await axios.get<Api.BusinessRelationshipListResponse>(
         `${API_HOST}/inhouse/business-relationship`,
         {

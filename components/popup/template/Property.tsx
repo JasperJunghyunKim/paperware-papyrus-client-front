@@ -1,4 +1,5 @@
 import { Modal } from "antd";
+import classNames from "classnames";
 import { PropsWithChildren } from "react";
 import { TbX } from "react-icons/tb";
 
@@ -8,6 +9,7 @@ export interface PropertyProps {
   onClose: (unit: false) => void;
   width?: string;
   height?: string;
+  hideScroll?: boolean;
 }
 
 export default function Component(props: PropsWithChildren<PropertyProps>) {
@@ -36,7 +38,11 @@ export default function Component(props: PropsWithChildren<PropertyProps>) {
             <TbX />
           </div>
         </div>
-        <div className="flex-1 overflow-y-scroll mb-1 flex">
+        <div
+          className={classNames("flex-1 mb-1 flex", {
+            "overflow-y-scroll": !props.hideScroll,
+          })}
+        >
           {props.children}
         </div>
       </div>

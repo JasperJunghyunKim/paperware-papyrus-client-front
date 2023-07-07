@@ -41,49 +41,7 @@ export default function Component(props: Props) {
             selected={selectedGroup}
             onSelectedChange={setSelectedGroup}
             selection="single"
-            columns={[
-              {
-                title: "거래처",
-                dataIndex: [
-                  "plan",
-                  "orderStock",
-                  "order",
-                  "partnerCompany",
-                  "businessName",
-                ],
-              },
-              {
-                title: "도착지",
-                dataIndex: ["plan", "orderStock", "dstLocation", "name"],
-              },
-              {
-                title: "예정일",
-                dataIndex: ["plan", "orderStock", "order", "wantedDate"],
-                render: (value) => (
-                  <div className="font-fixed">
-                    {Util.formatIso8601ToLocalDate(value)}
-                  </div>
-                ),
-              },
-              {
-                title: "창고",
-                dataIndex: ["warehouse", "name"],
-              },
-              ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                (record) => record
-              ),
-              ...Table.Preset.columnQuantity<Model.StockGroup>(
-                (record) => record,
-                (record) => QuantityUtil.compact(record, record).totalQuantity,
-                { prefix: "실물" }
-              ),
-              ...Table.Preset.columnQuantity<Model.StockGroup>(
-                (record) => record,
-                (record) =>
-                  QuantityUtil.compact(record, record).availableQuantity,
-                { prefix: "가용" }
-              ),
-            ]}
+            columns={Table.Preset.stockGroup()}
           />
         </div>
         <div className="basis-px bg-gray-200" />

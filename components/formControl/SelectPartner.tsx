@@ -8,8 +8,8 @@ import { v4 } from "uuid";
 
 export const selectPartnerAtom = atom<Model.Partner>({
   key: `select-partner-${v4()}`,
-  default: {} as Model.Partner
-})
+  default: {} as Model.Partner,
+});
 
 interface Props {
   isAll?: boolean;
@@ -27,15 +27,20 @@ export default function Component(props: Props) {
     const itemList = staticData.data?.reduce((acc: any[], crr, idx) => {
       if (idx === 0 && props.isAll) {
         acc.push({
-          label: <Item item={{
-            partnerNickName: "전체",
-            companyId: 0,
-            companyRegistrationNumber: '',
-            memo: '',
-          }} />,
-          text: '전체',
+          label: (
+            <Item
+              item={{
+                partnerNickName: "전체",
+                companyId: 0,
+                companyRegistrationNumber: "",
+                creditLimit: 0,
+                memo: "",
+              }}
+            />
+          ),
+          text: "전체",
           value: 0,
-        })
+        });
       }
 
       acc.push({
@@ -59,27 +64,34 @@ export default function Component(props: Props) {
     }
   }, [staticData, props]);
 
-  const onChange = useCallback((value: number | string) => {
-    const selectData = staticData.data?.filter((item) => item.companyRegistrationNumber === value)[0];
-    if (!isUndefined(selectData)) {
-      setSelectPartner(selectData);
-    }
-    props.onChange?.(value);
-  }, [props, setSelectPartner, staticData])
+  const onChange = useCallback(
+    (value: number | string) => {
+      const selectData = staticData.data?.filter(
+        (item) => item.companyRegistrationNumber === value
+      )[0];
+      if (!isUndefined(selectData)) {
+        setSelectPartner(selectData);
+      }
+      props.onChange?.(value);
+    },
+    [props, setSelectPartner, staticData]
+  );
 
   useEffect(() => {
     reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!isUndefined(props.value)) {
-      const list = options?.filter((item) => item.companyRegistrationNumber === props.value)[0];
+      const list = options?.filter(
+        (item) => item.companyRegistrationNumber === props.value
+      )[0];
       if (!isUndefined(list)) {
         setSelectPartner(list);
       }
     }
-  }, [props, setSelectPartner, staticData, options])
+  }, [props, setSelectPartner, staticData, options]);
 
   return (
     <div className="flex flex-col gap-y-1">

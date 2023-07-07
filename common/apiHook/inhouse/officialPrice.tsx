@@ -115,12 +115,7 @@ export function useGetMappingList(params: {
       params.query.paperCertId,
     ],
     async () => {
-      if (
-        !params.query.productId ||
-        !params.query.grammage ||
-        !params.query.sizeX ||
-        !params.query.sizeY
-      ) {
+      if (!params.query.productId || !params.query.grammage) {
         return null;
       }
 

@@ -1,7 +1,7 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
-import { Alert, Form, Input, Radio } from "antd";
+import { Alert, Form, Input, InputNumber, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 
@@ -56,17 +56,12 @@ export default function Component(props: Props) {
         return;
       }
 
-      const resp = await apiSearch.mutateAsync({ data: values });
+      try {
+        const resp = await apiSearch.mutateAsync({ data: values });
 
-      // if (resp.partner) {
-      //   Util.warn(
-      //     `'${resp.partner.partnerNickName} (사업자등록번호: ${resp.partner.companyRegistrationNumber})'는 이미 등록된 거래처입니다.`
-      //   );
-      //   setSearched(null);
-      //   return;
-      // }
-      setSearched(resp);
-      form.setFieldValue("isVirtual", resp.company ? false : true);
+        setSearched(resp);
+        form.setFieldValue("isVirtual", resp.company ? false : true);
+      } catch {}
     },
     [apiSearch, me]
   );
@@ -179,6 +174,19 @@ export default function Component(props: Props) {
               <Input />
             </Form.Item>
             <Form.Item
+              name="creditLimit"
+              label="여신 한도"
+              rules={[{ required: true, message: "여신 한도를 입력해주세요." }]}
+            >
+              <InputNumber
+                formatter={(value) =>
+                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value) => value?.replace(/(,*)/g, "") ?? ""}
+                rootClassName="w-full"
+              />
+            </Form.Item>
+            <Form.Item
               name="type"
               label="거래 관계"
               rules={[{ required: true, message: "거래 관계를 선택해주세요." }]}
@@ -204,18 +212,67 @@ export default function Component(props: Props) {
                 <Input disabled={!!searched?.company && !isVirtual} />
               </Form.Item>
             )}
-            <Form.Item name="address" label="주소">
+            <Form.Item
+              name="address"
+              label="주소"
+              rules={[{ required: true, message: "주소를 입력해주세요." }]}
+            >
               <FormControl.Address
                 disabled={!!searched?.company && !isVirtual}
               />
             </Form.Item>
-            <Form.Item name="representative" label="대표자">
+            <Form.Item
+              name="representative"
+              label="대표자"
+              rules={[{ required: true, message: "대표자를 입력해주세요." }]}
+            >
               <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
-            <Form.Item name="phoneNo" label="전화번호">
+            <Form.Item
+              name="phoneNo"
+              label="전화번호"
+              rules={[
+                { required: true, message: "전화번호를 입력해주세요." },
+                {
+                  pattern: /^[0-9]{8,11}$/,
+                  message: "전화번호는 8~11자리의 숫자여야 합니다.",
+                },
+              ]}
+            >
+              <Input
+                disabled={!!searched?.company && !isVirtual}
+                maxLength={11}
+              />
+            </Form.Item>
+            <Form.Item
+              name="faxNo"
+              label="팩스"
+              rules={[
+                {
+                  pattern: /^[0-9]{8,11}$/,
+                  message: "팩스번호는 8~11자리의 숫자여야 합니다.",
+                },
+              ]}
+            >
+              <Input
+                disabled={!!searched?.company && !isVirtual}
+                maxLength={11}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="bizType"
+              label="업태"
+              rules={[{ required: true, message: "업태를 입력해주세요." }]}
+            >
               <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
-            <Form.Item name="faxNo" label="팩스">
+
+            <Form.Item
+              name="bizItem"
+              label="업종"
+              rules={[{ required: true, message: "업종을 입력해주세요." }]}
+            >
               <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
             <Form.Item name="memo" label="비고">

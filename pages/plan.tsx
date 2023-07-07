@@ -93,9 +93,7 @@ export default function Component() {
           {
             title: "작업 유형",
             render: (_value: any, record: Model.Plan) => (
-              <div className="flex gap-x-2">
-                {record.orderStock ? "정상 매출" : "내부 재단"}
-              </div>
+              Util.formatPlanType(record.type)
             ),
           },
           {
@@ -133,12 +131,8 @@ export default function Component() {
           },
           {
             title: "창고",
-            dataIndex: [
-              "targetStockGroupEvent",
-              "stockGroup",
-              "warehouse",
-              "name",
-            ],
+            render: (_, record) =>
+              record.assignStockEvent?.stock.warehouse?.name,
           },
           ...Table.Preset.columnStockGroup<Model.Plan>(
             (record) => record.assignStockEvent?.stock

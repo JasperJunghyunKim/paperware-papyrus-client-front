@@ -5,6 +5,7 @@ import {
   TbList,
   TbPencil,
   TbPlus,
+  TbPrinter,
   TbSearch,
   TbSend,
 } from "react-icons/tb";
@@ -22,6 +23,19 @@ export function Create(props: BaseProps) {
   return (
     <Button
       icon={<TbPlus />}
+      label={props.label}
+      type="default"
+      onClick={props.onClick}
+      disabled={props.disabled}
+      tooltip={props.tooltip}
+    />
+  );
+}
+
+export function Print(props: BaseProps) {
+  return (
+    <Button
+      icon={<TbPrinter />}
       label={props.label}
       type="default"
       onClick={props.onClick}

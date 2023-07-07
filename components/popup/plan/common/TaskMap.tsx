@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { ApiHook, PaperUtil, Util } from "@/common";
 import { Icon } from "@/components";
-import { ConfigProvider, InputNumber } from "antd";
+import { ConfigProvider, Input, InputNumber } from "antd";
 import classNames from "classnames";
 import { useCallback, useState } from "react";
 import { TbCirclePlus, TbX } from "react-icons/tb";
@@ -273,6 +273,7 @@ function AddNode(props: AddNodeProps) {
             planId: props.plan.id,
             parentTaskId: props.parentTaskId,
             quantity: 0,
+            memo: "",
           },
         });
         break;
@@ -307,17 +308,17 @@ function AddNode(props: AddNodeProps) {
   );
 }
 
-interface MiniFormProps {
+interface MiniFormProps<T> {
   label: string;
-  value: number;
-  onChange?: (value: number) => void;
+  value: T;
+  onChange?: (value: T) => void;
   unit?: string;
   disabled?: boolean;
   precision?: number;
   min?: number;
   max?: number;
 }
-function MiniFormNumber(props: MiniFormProps) {
+function MiniFormNumber(props: MiniFormProps<number>) {
   return (
     <div className="flex-initial flex">
       <div className="basis-16 flex flex-col justify-center">{props.label}</div>
@@ -333,6 +334,25 @@ function MiniFormNumber(props: MiniFormProps) {
           disabled={props.disabled}
         />
       </div>
+    </div>
+  );
+}
+function MiniFormString(props: MiniFormProps<string>) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <Input.TextArea
+        placeholder={`${props.label}를 입력해주세요.`}
+        value={props.value}
+        onChange={(p) => props.onChange?.(p.target.value ?? "")}
+        disabled={props.disabled}
+        classNames={{
+          textarea: "flex-auto w-full h-auto rounded-none resize-none",
+        }}
+        autoSize={{
+          minRows: 2,
+          maxRows: 12,
+        }}
+      />
     </div>
   );
 }
@@ -427,8 +447,10 @@ interface ConvertingProps {
 function ConvertingNode(props: ConvertingProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
   const [initialH, setInitialH] = useState(props.data.sizeY);
+  const [initialM, setInitialM] = useState(props.data.memo);
   const [w, setW] = useState(props.data.sizeX);
   const [h, setH] = useState(props.data.sizeY);
+  const [m, setM] = useState(props.data.memo);
 
   const apiUpdate = ApiHook.Working.Task.useUpdateConverting();
   const cmdUpdate = useCallback(async () => {
@@ -437,12 +459,13 @@ function ConvertingNode(props: ConvertingProps) {
       data: {
         sizeX: w,
         sizeY: h,
-        memo: "",
+        memo: m,
       },
     });
     setInitialW(w);
     setInitialH(h);
-  }, [props.taskId, w, h, apiUpdate]);
+    setInitialM(m);
+  }, [props.taskId, w, h, m, apiUpdate]);
 
   const apiStart = ApiHook.Working.Task.useStart();
   const cmdStart = useCallback(async () => {
@@ -475,8 +498,8 @@ function ConvertingNode(props: ConvertingProps) {
   }, [props.plan.id, props.taskId, apiFinish]);
 
   const isChanged = useCallback(() => {
-    return initialW !== w || initialH !== h;
-  }, [initialW, initialH, w, h]);
+    return initialW !== w || initialH !== h || initialM !== m;
+  }, [initialW, initialH, initialM, w, h, m]);
 
   return (
     <div className="flex-1 flex flex-col gap-y-2">
@@ -496,6 +519,12 @@ function ConvertingNode(props: ConvertingProps) {
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
+            disabled={props.plan.status !== "PREPARING"}
+          />
+          <MiniFormString
+            label="메모"
+            value={m}
+            onChange={(p) => setM(p)}
             disabled={props.plan.status !== "PREPARING"}
           />
           {props.plan.status === "PREPARING" && isChanged() && (
@@ -536,8 +565,10 @@ interface GuillotineProps {
 function GuillotineNode(props: GuillotineProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
   const [initialH, setInitialH] = useState(props.data.sizeY);
+  const [initialM, setInitialM] = useState(props.data.memo);
   const [w, setW] = useState(props.data.sizeX);
   const [h, setH] = useState(props.data.sizeY);
+  const [m, setM] = useState(props.data.memo);
 
   const apiUpdate = ApiHook.Working.Task.useUpdateGuillotine();
   const cmdUpdate = useCallback(async () => {
@@ -546,12 +577,13 @@ function GuillotineNode(props: GuillotineProps) {
       data: {
         sizeX: w,
         sizeY: h,
-        memo: "",
+        memo: m,
       },
     });
     setInitialW(w);
     setInitialH(h);
-  }, [props.taskId, w, h, apiUpdate]);
+    setInitialM(m);
+  }, [props.taskId, w, h, m, apiUpdate]);
 
   const apiStart = ApiHook.Working.Task.useStart();
   const cmdStart = useCallback(async () => {
@@ -584,8 +616,8 @@ function GuillotineNode(props: GuillotineProps) {
   }, [props.plan.id, props.taskId, apiFinish]);
 
   const isChanged = useCallback(() => {
-    return initialW !== w || initialH !== h;
-  }, [initialW, initialH, w, h]);
+    return initialW !== w || initialH !== h || initialM !== m;
+  }, [initialW, initialH, initialM, w, h, m]);
 
   return (
     <div className="flex-1 flex flex-col gap-y-2">
@@ -605,6 +637,12 @@ function GuillotineNode(props: GuillotineProps) {
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
+            disabled={props.plan.status !== "PREPARING"}
+          />
+          <MiniFormString
+            label="메모"
+            value={m}
+            onChange={(p) => setM(p)}
             disabled={props.plan.status !== "PREPARING"}
           />
           {isChanged() && (
@@ -644,7 +682,9 @@ interface QuantityProps {
 }
 function QuantityNode(props: QuantityProps) {
   const [initialQ, setInitialQ] = useState(props.data.quantity);
+  const [initialM, setInitialM] = useState(props.data.memo);
   const [q, setQ] = useState(props.data.quantity);
+  const [m, setM] = useState(props.data.memo);
 
   const apiUpdate = ApiHook.Working.Task.useUpdateQuantity();
   const cmdUpdate = useCallback(async () => {
@@ -652,10 +692,12 @@ function QuantityNode(props: QuantityProps) {
       taskId: props.taskId,
       data: {
         quantity: q,
+        memo: m,
       },
     });
     setInitialQ(q);
-  }, [props.taskId, q, apiUpdate]);
+    setInitialM(m);
+  }, [props.taskId, q, m, apiUpdate]);
 
   const apiFinish = ApiHook.Working.Task.useFinish();
   const cmdFinish = useCallback(async () => {
@@ -668,8 +710,8 @@ function QuantityNode(props: QuantityProps) {
   }, [props.plan.id, props.taskId, apiFinish]);
 
   const isChanged = useCallback(() => {
-    return initialQ !== q;
-  }, [initialQ, q]);
+    return initialQ !== q || initialM !== m;
+  }, [initialQ, initialM, q, m]);
 
   const packaging: PaperUtil.Packaging | null = props.parent
     ? {
@@ -807,6 +849,12 @@ function QuantityNode(props: QuantityProps) {
               />
             </>
           )}
+          <MiniFormString
+            label="메모"
+            value={m}
+            onChange={(p) => setM(p)}
+            disabled={props.plan.status !== "PREPARING"}
+          />
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
           )}

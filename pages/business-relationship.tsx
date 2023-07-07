@@ -159,6 +159,14 @@ export default function Component() {
             dataIndex: ["faxNo"],
             render: (value) => Util.formatPhoneNo(value),
           },
+          {
+            title: "업태",
+            dataIndex: ["bizType"],
+          },
+          {
+            title: "업종",
+            dataIndex: ["bizItem"],
+          },
         ]}
       />
       <Popup.Company.BusinessRelationshipReceived

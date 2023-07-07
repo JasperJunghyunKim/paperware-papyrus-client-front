@@ -362,6 +362,12 @@ export function formatIso8601ToLocalDate(date: string | null) {
   return !date ? "" : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd)");
 }
 
+export function formatIso8601ToLocalDateTime(date: string | null) {
+  return !date
+    ? ""
+    : dayjs(date).locale("ko").format("YYYY-MM-DD (ddd) HH:mm:ss");
+}
+
 export function falsyToUndefined<T>(
   value: T | false | null | undefined
 ): T | undefined {
@@ -739,4 +745,20 @@ export function assignQuantityFromOrder(order: Model.Order) {
     order.orderProcess?.quantity ??
     order.orderDeposit?.quantity
   );
+}
+
+export function formatPlanType(value: Model.Enum.PlanType) {
+  return match(value)
+    .with("INHOUSE_CREATE", () => "신규 등록")
+    .with("INHOUSE_MODIFY", () => "재고 수정")
+    .with("INHOUSE_PROCESS", () => "내부 공정")
+    .with("INHOUSE_RELOCATION", () => "재고 이고")
+    .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
+    .with("TRADE_NORMAL_BUYER", () => "정상 매입")
+    .with("TRADE_NORMAL_SELLER", () => "정상 매출")
+    .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 재단 매입")
+    .with("TRADE_OUTSOURCE_PROCESS_SELLER", () => "외주 재단 매출")
+    .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
+    .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
+    .otherwise(() => "");
 }

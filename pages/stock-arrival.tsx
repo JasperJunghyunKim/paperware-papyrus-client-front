@@ -77,7 +77,7 @@ export default function Component() {
                 {match(record.plan?.planType)
                   .with("INHOUSE_CREATE", () => "신규 등록")
                   .with("INHOUSE_MODIFY", () => "재고 수정")
-                  .with("INHOUSE_PROCESS", () => "내부 재단")
+                  .with("INHOUSE_PROCESS", () => "내부 공정")
                   .with("INHOUSE_RELOCATION", () => "재고 이고")
                   .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
                   .with("TRADE_NORMAL_BUYER", () => "정상 매입")
