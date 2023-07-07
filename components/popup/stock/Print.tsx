@@ -195,3 +195,4 @@ const Document = React.forwardRef(
     );
   }
 );
+Document.displayName = "Document";
