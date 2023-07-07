@@ -73,6 +73,8 @@ export default function Component(props: Props) {
           companyRegistrationNumber: values.companyRegistrationNumber,
           faxNo: values.faxNo,
           invoiceCode: "",
+          bizType: values.bizType,
+          bizItem: values.bizItem,
           phoneNo: values.phoneNo,
           representative: values.representative,
         },
@@ -110,6 +112,8 @@ export default function Component(props: Props) {
       phoneNo: item.data.phoneNo,
       faxNo: item.data.faxNo,
       representative: item.data.representative,
+      bizType: item.data.bizType,
+      bizItem: item.data.bizItem,
       type: type,
     });
     setLastType(type);
@@ -240,6 +244,30 @@ export default function Component(props: Props) {
             ]}
           >
             <Input disabled={!isVirtual} maxLength={14} />
+          </Form.Item>
+          <Form.Item
+            name="bizType"
+            label="업태"
+            rules={[
+              {
+                required: true,
+                message: "업태를 입력해주세요.",
+              },
+            ]}
+          >
+            <Input disabled={!isVirtual} />
+          </Form.Item>
+          <Form.Item
+            name="bizItem"
+            label="업종"
+            rules={[
+              {
+                required: true,
+                message: "업종을 입력해주세요.",
+              },
+            ]}
+          >
+            <Input disabled={!isVirtual} />
           </Form.Item>
           {isVirtual && (
             <div className="flex justify-end">

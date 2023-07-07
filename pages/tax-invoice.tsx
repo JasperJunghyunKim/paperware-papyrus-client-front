@@ -8,7 +8,7 @@ import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import { useCallback, useState } from "react";
-import { TbCash } from "react-icons/tb";
+import { TbCash, TbPencil, TbSend } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -28,6 +28,12 @@ export default function Component() {
           onClick={() => setOpenCreate(true)}
         />
         <div className="flex-1" />
+        {only && (
+          <Toolbar.ButtonPreset.Update
+            label="전자세금계산서 상세"
+            onClick={() => setOpenUpdate(only.id)}
+          />
+        )}
       </Toolbar.Container>
       <Table.Default
         data={list.data}
@@ -112,6 +118,7 @@ function PopupCreate(props: PopupCreateProps) {
           selectedCompany.dstCompany.companyRegistrationNumber,
       },
     });
+    props.onClose(false);
     props.onCreated(result.id);
   }, [apiCreate, form, selectedCompany]);
 
@@ -217,7 +224,161 @@ function PopupUpdate(props: PopupUpdateProps) {
       width="1200px"
       height="calc(100vh - 100px)"
     >
-      TODO
+      <div className="w-full h-full flex flex-col">
+        <div className="flex-initial flex">
+          <table className="w-full h-full bg-gray-50 red">
+            <tr>
+              <td
+                rowSpan={6}
+                className="bg-red-100 text-center font-bold vtext"
+              >
+                공급자
+              </td>
+              <td className="bg-red-50 text-red-700 req">등록번호</td>
+              <td>356-87-01989</td>
+              <td className="bg-red-50 text-red-700">종사업장 번호</td>
+              <td>0000</td>
+            </tr>
+            <tr>
+              <td className="bg-red-50 text-red-700 req">상호</td>
+              <td>주식회사 택배바다</td>
+              <td className="bg-red-50 text-red-700 req">성명</td>
+              <td>김택배</td>
+            </tr>
+            <tr>
+              <td className="bg-red-50 text-red-700 req">사업장</td>
+              <td colSpan={3}>서울특별시 강남구 테헤란로 427</td>
+            </tr>
+            <tr>
+              <td className="bg-red-50 text-red-700">업태</td>
+              <td>택배업</td>
+              <td className="bg-red-50 text-red-700">종목</td>
+              <td>택배업</td>
+            </tr>
+            <tr>
+              <td className="bg-red-50 text-red-700">이메일</td>
+              <td colSpan={3}>
+                <Input className="w-full" />
+              </td>
+            </tr>
+          </table>
+          <table className="w-full h-full bg-gray-50 blue">
+            <tr>
+              <td
+                rowSpan={6}
+                className="bg-blue-100 text-center font-bold vtext"
+              >
+                공급받는자
+              </td>
+              <td className="bg-blue-50 text-blue-800 req">등록번호</td>
+              <td>356-87-01989</td>
+              <td className="bg-blue-50 text-blue-800">종사업장 번호</td>
+              <td>0000</td>
+            </tr>
+            <tr>
+              <td className="bg-blue-50 text-blue-800 req">상호</td>
+              <td>주식회사 택배바다</td>
+              <td className="bg-blue-50 text-blue-800 req">성명</td>
+              <td>김택배</td>
+            </tr>
+            <tr>
+              <td className="bg-blue-50 text-blue-800">사업장</td>
+              <td colSpan={3}>서울특별시 강남구 테헤란로 427</td>
+            </tr>
+            <tr>
+              <td className="bg-blue-50 text-blue-800">업태</td>
+              <td>택배업</td>
+              <td className="bg-blue-50 text-blue-800">종목</td>
+              <td>택배업</td>
+            </tr>
+            <tr>
+              <td className="bg-blue-50 text-blue-800">이메일 1</td>
+              <td colSpan={3}>
+                <Input className="w-full" />
+              </td>
+            </tr>
+            <tr>
+              <td className="bg-blue-50 text-blue-800">이메일 2</td>
+              <td colSpan={3}>
+                <Input className="w-full" />
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div className="flex-initial flex">
+          <table className="w-full h-full bg-gray-50 gray">
+            <tr>
+              <td width="200px" className="bg-gray-100 text-gray-700 req">
+                작성일자
+              </td>
+              <td colSpan={5}>2021-09-01</td>
+            </tr>
+            <tr>
+              <td className="bg-gray-100 text-gray-700">비고</td>
+              <td colSpan={5}>
+                <Input.TextArea
+                  className="w-full"
+                  autoSize={{
+                    minRows: 2,
+                    maxRows: 2,
+                  }}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td className="bg-gray-100 text-gray-700">합계금액</td>
+              <td className="text-right">100,000</td>
+              <td className="bg-gray-100 text-gray-700">공급가액</td>
+              <td className="text-right">100,000</td>
+              <td className="bg-gray-100 text-gray-700">세액</td>
+              <td className="text-right">100,000</td>
+            </tr>
+          </table>
+        </div>
+        <div className="flex-1"></div>
+        <div className="flex-initial basis-px bg-gray-300" />
+        <div className="flex-initial p-2 flex justify-center gap-2">
+          <Button.Default icon={<TbPencil />} label="수정" />
+          <Button.Default
+            icon={<TbSend />}
+            label="계산서 발행"
+            type="primary"
+          />
+        </div>
+      </div>
+      <style jsx>{`
+        .red table,
+        .red tr,
+        .red td {
+          border-collapse: collapse;
+          border: 1px solid #ffaaaa;
+          padding: 10px;
+        }
+        .blue table,
+        .blue tr,
+        .blue td {
+          border-collapse: collapse;
+          border: 1px solid #ccccff;
+          padding: 10px;
+        }
+        .gray table,
+        .gray tr,
+        .gray td {
+          border-collapse: collapse;
+          border: 1px solid #cccccc;
+          padding: 10px;
+        }
+        .vtext {
+          writing-mode: vertical-lr;
+          width: 42px;
+          letter-spacing: 5px;
+        }
+        .req::before {
+          content: "*";
+          color: red;
+          margin-right: 4px;
+        }
+      `}</style>
     </Popup.Template.Property>
   );
 }

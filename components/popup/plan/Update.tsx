@@ -232,7 +232,7 @@ export default function Component(props: Props) {
                 />
               )}
             </div>
-            {data.data.status === "PROGRESSING" && (
+            {data.data.status === "PROGRESSING" && !data.data.orderProcess && (
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
                 <div className="flex-initial basis-64 flex h-0">

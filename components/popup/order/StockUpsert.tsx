@@ -2,7 +2,7 @@ import { Api, Model } from "@/@shared";
 import { OrderStatus } from "@/@shared/models/enum";
 import { ApiHook, PaperUtil, QuantityUtil, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { mine } from "@/common/util";
+import { mine, only } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
 import { Alert, Form, Input, Select, Steps, Switch } from "antd";
@@ -1096,12 +1096,34 @@ function RightSideOrder(props: RightSideOrderProps) {
     props.order && Util.inc<OrderStatus>(props.order.status, "ACCEPTED");
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Stock.StockInhouse.useGetGroupList({
+  const groupList = ApiHook.Stock.StockInhouse.useGetGroupList({
     query: {
       ...page,
-      planId: props.order
+      initialPlanId: props.order
         ? Util.planFromOrder(props.order, me.data?.companyId)?.id
         : undefined,
+      isZeroQuantityIncluded: "true",
+    },
+  });
+
+  const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
+  const onlyGroup = Util.only(selectedGroup);
+
+  const stockList = ApiHook.Stock.StockInhouse.useGetList({
+    query: {
+      initialPlanId: props.order
+        ? Util.planFromOrder(props.order, me.data?.companyId)?.id
+        : undefined,
+      isZeroQuantityIncluded: "true",
+      productId: onlyGroup?.product.id ?? undefined,
+      packagingId: onlyGroup?.packaging.id ?? undefined,
+      grammage: onlyGroup?.grammage ?? undefined,
+      sizeX: onlyGroup?.sizeX ?? undefined,
+      sizeY: onlyGroup?.sizeY ?? undefined,
+      paperColorGroupId: onlyGroup?.paperColorGroup?.id ?? undefined,
+      paperColorId: onlyGroup?.paperColor?.id ?? undefined,
+      paperPatternId: onlyGroup?.paperPattern?.id ?? undefined,
+      paperCertId: onlyGroup?.paperCert?.id ?? undefined,
     },
   });
 
@@ -1242,9 +1264,11 @@ function RightSideOrder(props: RightSideOrderProps) {
             <div className="flex-1 overflow-y-scroll px-4 pb-4">
               <div className="flex-1 flex flex-col gap-y-2">
                 <Table.Default<Model.StockGroup>
-                  data={list.data ?? undefined}
-                  keySelector={(record) => `${record.plan?.id}`}
-                  selection="none"
+                  data={groupList.data ?? undefined}
+                  keySelector={Util.keyOfStockGroup}
+                  selection="single"
+                  selected={selectedGroup}
+                  onSelectedChange={setSelectedGroup}
                   columns={[
                     ...Table.Preset.columnStockGroup<Model.StockGroup>(
                       (p) => p // TODO
@@ -1266,33 +1290,21 @@ function RightSideOrder(props: RightSideOrderProps) {
                     ),
                   ]}
                 />
-                <Table.Default<Model.StockGroup>
-                  data={undefined}
-                  page={page}
-                  setPage={setPage}
-                  keySelector={(record) => `${record.plan?.id}`}
-                  selection="none"
-                  columns={[
-                    ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                      (p) => p // TODO
-                    ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.nonStoringQuantity,
-                      { prefix: "배정" }
-                    ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.storingQuantity,
-                      { prefix: "입고" }
-                    ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.totalQuantity,
-                      { prefix: "전체" }
-                    ),
-                  ]}
-                />
+                {onlyGroup && !onlyGroup.plan ? (
+                  <Table.Default<Model.Stock>
+                    data={stockList.data ?? undefined}
+                    page={page}
+                    setPage={setPage}
+                    keySelector={(record) => `${record.id}`}
+                    selection="none"
+                    columns={[...Table.Preset.columnStock()]}
+                  />
+                ) : (
+                  <Alert
+                    type="info"
+                    message="아직 입고처리 되지 않은 예정재고입니다."
+                  />
+                )}
               </div>
             </div>
           </>

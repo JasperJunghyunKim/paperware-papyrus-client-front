@@ -56,17 +56,12 @@ export default function Component(props: Props) {
         return;
       }
 
-      const resp = await apiSearch.mutateAsync({ data: values });
+      try {
+        const resp = await apiSearch.mutateAsync({ data: values });
 
-      // if (resp.partner) {
-      //   Util.warn(
-      //     `'${resp.partner.partnerNickName} (사업자등록번호: ${resp.partner.companyRegistrationNumber})'는 이미 등록된 거래처입니다.`
-      //   );
-      //   setSearched(null);
-      //   return;
-      // }
-      setSearched(resp);
-      form.setFieldValue("isVirtual", resp.company ? false : true);
+        setSearched(resp);
+        form.setFieldValue("isVirtual", resp.company ? false : true);
+      } catch {}
     },
     [apiSearch, me]
   );
@@ -263,6 +258,22 @@ export default function Component(props: Props) {
                 disabled={!!searched?.company && !isVirtual}
                 maxLength={11}
               />
+            </Form.Item>
+
+            <Form.Item
+              name="bizType"
+              label="업태"
+              rules={[{ required: true, message: "업태를 입력해주세요." }]}
+            >
+              <Input disabled={!!searched?.company && !isVirtual} />
+            </Form.Item>
+
+            <Form.Item
+              name="bizItem"
+              label="업종"
+              rules={[{ required: true, message: "업종을 입력해주세요." }]}
+            >
+              <Input disabled={!!searched?.company && !isVirtual} />
             </Form.Item>
             <Form.Item name="memo" label="비고">
               <Input.TextArea />
