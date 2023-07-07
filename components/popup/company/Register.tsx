@@ -73,6 +73,8 @@ export default function Component(props: Props) {
         faxNo: searched.company.faxNo,
         representative: searched.company.representative,
         invoiceCode: searched.company.invoiceCode,
+        bizType: searched.company.bizType,
+        bizItem: searched.company.bizItem,
         address: searched.company.address,
       });
     }
