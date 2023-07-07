@@ -39,6 +39,7 @@ interface Props {
   plan: Model.Plan;
   packagingType: Model.Enum.PackagingType;
   readonly?: boolean;
+  disabled?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -46,6 +47,11 @@ export default function Component(props: Props) {
     planId: props.plan.id,
   });
   const converted = convert(tasks.data ?? []);
+  const modifidable =
+    props.plan.status === "PREPARING" &&
+    (props.plan.type === "INHOUSE_PROCESS" ||
+      props.plan.type === "TRADE_NORMAL_SELLER");
+
   return (
     <div className="w-auto h-full flex">
       <div className="flex-1 flex flex-col p-4 overflow-scroll">
@@ -58,10 +64,11 @@ export default function Component(props: Props) {
               edge={false}
               parent={null}
               readonly={!!props.readonly}
+              disabled={!!props.disabled}
             />
           ))}
         </div>
-        {props.plan.status === "PREPARING" && (
+        {modifidable && (
           <>
             {props.packagingType === "ROLL" && (
               <AddNode
@@ -91,6 +98,7 @@ interface ItemProps {
   parent: TempDataType | null;
   edge: boolean;
   readonly: boolean;
+  disabled: boolean;
 }
 
 function Item(props: ItemProps) {
@@ -129,7 +137,7 @@ function Item(props: ItemProps) {
             <div className="flex-1">
               {Util.taskTypeToString(props.data.value.type)}
             </div>
-            {props.plan.status === "PREPARING" && (
+            {props.plan.status === "PREPARING" && !props.readonly && (
               <div
                 className="flex-initial flex flex-col justify-center text-2xl cursor-pointer hover:text-red-600"
                 onClick={() => cmdDelete()}
@@ -167,6 +175,7 @@ function Item(props: ItemProps) {
                 current={props.data}
                 parent={props.parent}
                 readonly={props.readonly}
+                disabled={props.disabled}
               />
             )}
             {props.data.value.taskGuillotine && (
@@ -177,6 +186,7 @@ function Item(props: ItemProps) {
                 current={props.data}
                 parent={props.parent}
                 readonly={props.readonly}
+                disabled={props.disabled}
               />
             )}
             {props.data.value.taskQuantity && (
@@ -187,6 +197,7 @@ function Item(props: ItemProps) {
                 current={props.data}
                 parent={props.parent}
                 readonly={props.readonly}
+                disabled={props.disabled}
               />
             )}
           </div>
@@ -202,6 +213,7 @@ function Item(props: ItemProps) {
                   edge={true}
                   parent={props.data}
                   readonly={props.readonly}
+                  disabled={props.disabled}
                 />
               );
             })}
@@ -443,6 +455,7 @@ interface ConvertingProps {
   current: TempDataType;
   parent: TempDataType | null;
   readonly: boolean;
+  disabled: boolean;
 }
 function ConvertingNode(props: ConvertingProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
@@ -512,20 +525,20 @@ function ConvertingNode(props: ConvertingProps) {
             value={w}
             onChange={(p) => setW(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           <MiniFormNumber
             label="공정 지장"
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           <MiniFormString
             label="메모"
             value={m}
             onChange={(p) => setM(p)}
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           {props.plan.status === "PREPARING" && isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
@@ -561,6 +574,7 @@ interface GuillotineProps {
   current: TempDataType;
   parent: TempDataType | null;
   readonly: boolean;
+  disabled: boolean;
 }
 function GuillotineNode(props: GuillotineProps) {
   const [initialW, setInitialW] = useState(props.data.sizeX);
@@ -630,20 +644,20 @@ function GuillotineNode(props: GuillotineProps) {
             value={w}
             onChange={(p) => setW(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           <MiniFormNumber
             label="공정 지장"
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           <MiniFormString
             label="메모"
             value={m}
             onChange={(p) => setM(p)}
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={props.plan.status !== "PREPARING" || props.disabled}
           />
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
@@ -679,6 +693,7 @@ interface QuantityProps {
   current: TempDataType;
   parent: TempDataType | null;
   readonly: boolean;
+  disabled: boolean;
 }
 function QuantityNode(props: QuantityProps) {
   const [initialQ, setInitialQ] = useState(props.data.quantity);
@@ -789,7 +804,7 @@ function QuantityNode(props: QuantityProps) {
                 label="중량"
                 value={Util.gramsToTon(q ?? 0)}
                 unit="T"
-                disabled={props.plan.status !== "PREPARING"}
+                disabled={props.plan.status !== "PREPARING" || props.disabled}
                 onChange={(p) => setQ(Util.tonToGrams(p ?? 0))}
                 precision={3}
               />
@@ -808,7 +823,7 @@ function QuantityNode(props: QuantityProps) {
                 value={q}
                 onChange={(p) => setQ(p ?? 0)}
                 unit="BOX"
-                disabled={props.plan.status !== "PREPARING"}
+                disabled={props.plan.status !== "PREPARING" || props.disabled}
                 max={999999999}
               />
               <MiniFormNumber
@@ -827,7 +842,7 @@ function QuantityNode(props: QuantityProps) {
                 value={q / 500}
                 onChange={(p) => setQ((p ?? 0) * 500)}
                 unit="R"
-                disabled={props.plan.status !== "PREPARING"}
+                disabled={props.plan.status !== "PREPARING" || props.disabled}
                 max={999999999}
                 precision={3}
               />
@@ -836,7 +851,7 @@ function QuantityNode(props: QuantityProps) {
                 value={q}
                 onChange={(p) => setQ(p ?? 0)}
                 unit="매"
-                disabled={props.plan.status !== "PREPARING"}
+                disabled={props.plan.status !== "PREPARING" || props.disabled}
                 max={999999999}
               />
               <MiniFormNumber

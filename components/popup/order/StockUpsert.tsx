@@ -1127,6 +1127,13 @@ function RightSideOrder(props: RightSideOrderProps) {
     },
   });
 
+  const plan = ApiHook.Working.Plan.useGetItem({
+    id:
+      (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
+        mine(me.data)
+      )?.id ?? null,
+  });
+
   const apiRequest = ApiHook.Trade.Common.useRequest();
   const cmdRequest = useCallback(async () => {
     if (!props.order) return;
@@ -1181,6 +1188,15 @@ function RightSideOrder(props: RightSideOrderProps) {
       orderId: props.order.id,
     });
   }, [apiReset, props.order]);
+
+  const apiPlanStart = ApiHook.Working.Plan.useStart();
+  const cmdPlanStart = useCallback(async () => {
+    if (!plan.data) return;
+    if (!(await Util.confirm("작업을 지시하시겠습니까?"))) return;
+    await apiPlanStart.mutateAsync({
+      id: plan.data.id,
+    });
+  }, [apiPlanStart, props.order, plan.data]);
 
   const isVirtual = !!props.order?.dstCompany.managedById;
   const status = !props.order
@@ -1260,6 +1276,13 @@ function RightSideOrder(props: RightSideOrderProps) {
                   onClick={cmdReset}
                 />
               )}
+              {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
+                plan.data.status === "PREPARING" && (
+                  <Toolbar.ButtonPreset.Continue
+                    label="작업 지시"
+                    onClick={cmdPlanStart}
+                  />
+                )}
             </Toolbar.Container>
             <div className="flex-1 overflow-y-scroll px-4 pb-4">
               <div className="flex-1 flex flex-col gap-y-2">
@@ -1290,21 +1313,38 @@ function RightSideOrder(props: RightSideOrderProps) {
                     ),
                   ]}
                 />
-                {onlyGroup && !onlyGroup.plan ? (
-                  <Table.Default<Model.Stock>
-                    data={stockList.data ?? undefined}
-                    page={page}
-                    setPage={setPage}
-                    keySelector={(record) => `${record.id}`}
-                    selection="none"
-                    columns={[...Table.Preset.columnStock()]}
-                  />
-                ) : (
-                  <Alert
-                    type="info"
-                    message="아직 입고처리 되지 않은 예정재고입니다."
-                  />
-                )}
+                {onlyGroup &&
+                  (!onlyGroup.plan ? (
+                    <Table.Default<Model.Stock>
+                      data={stockList.data ?? undefined}
+                      page={page}
+                      setPage={setPage}
+                      keySelector={(record) => `${record.id}`}
+                      selection="none"
+                      columns={[...Table.Preset.columnStock()]}
+                    />
+                  ) : (
+                    <Alert
+                      type="info"
+                      message="아직 입고처리 되지 않은 예정재고입니다."
+                    />
+                  ))}
+              </div>
+            </div>
+            <div className="flex-initial basis-px bg-gray-200" />
+            <div className="flex-1 flex h-0">
+              <div className="flex-1 bg-slate-100">
+                {plan.data?.assignStockEvent &&
+                  plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" && (
+                    <TaskMap
+                      plan={plan.data}
+                      packagingType={
+                        plan.data.assignStockEvent.stock.packaging.type
+                      }
+                      readonly
+                      disabled
+                    />
+                  )}
               </div>
             </div>
           </>

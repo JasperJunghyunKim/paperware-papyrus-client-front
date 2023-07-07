@@ -7,7 +7,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import { TbHome, TbHomeLink, TbRefresh } from "react-icons/tb";
 import { Icon } from "..";
-import { match } from "ts-pattern";
 
 export function columnStockGroup<T>(
   getStock: (record: T) =>
@@ -124,6 +123,7 @@ export function columnQuantity<T>(
   options?: {
     prefix?: string;
     negative?: boolean;
+    delta?: boolean;
   }
 ): ColumnType<T>[] {
   const spec = (record: T): PaperUtil.QuantitySpec | null => {
@@ -144,6 +144,15 @@ export function columnQuantity<T>(
       ? PaperUtil.convertQuantity(stock, (options?.negative ? -1 : 1) * value)
       : null;
   };
+
+  const deltaSign = (quantity: number | null | undefined) =>
+    quantity && options?.delta
+      ? quantity < 0
+        ? "▼"
+        : quantity > 0
+        ? "▲"
+        : ""
+      : "";
 
   const format =
     (type: "packed" | "unpacked" | "weight") => (quantity: Quantity | null) => {
@@ -178,30 +187,54 @@ export function columnQuantity<T>(
     {
       title: `${options?.prefix ?? ""} 수량`.trim(),
       render: (_value: any, record: T) => (
-        <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(getValue(record)) && record
-            ? format("packed")(getQuantity(getValue(record) ?? 0, record))
-            : ""}
+        <div
+          className={classNames("flex justify-between", {
+            "text-red-500": options?.delta && (getValue(record) ?? 0) < 0,
+            "text-blue-500": options?.delta && (getValue(record) ?? 0) > 0,
+          })}
+        >
+          <div className="flex-initial">{deltaSign(getValue(record))}</div>
+          <div className="text-right font-fixed whitespace-pre">
+            {_.isFinite(getValue(record)) && record
+              ? format("packed")(getQuantity(getValue(record) ?? 0, record))
+              : ""}
+          </div>
         </div>
       ),
     },
     {
       title: ``,
       render: (_value: any, record: T) => (
-        <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(getValue(record)) && record
-            ? format("unpacked")(getQuantity(getValue(record) ?? 0, record))
-            : ""}
+        <div
+          className={classNames("flex justify-between", {
+            "text-red-500": options?.delta && (getValue(record) ?? 0) < 0,
+            "text-blue-500": options?.delta && (getValue(record) ?? 0) > 0,
+          })}
+        >
+          <div className="flex-initial">{deltaSign(getValue(record))}</div>
+          <div className="text-right font-fixed whitespace-pre">
+            {_.isFinite(getValue(record)) && record
+              ? format("unpacked")(getQuantity(getValue(record) ?? 0, record))
+              : ""}
+          </div>
         </div>
       ),
     },
     {
       title: `${options?.prefix ?? ""} 중량`.trim(),
       render: (_value: any, record: T) => (
-        <div className="text-right font-fixed whitespace-pre">
-          {_.isFinite(getValue(record)) && record
-            ? format("weight")(getQuantity(getValue(record) ?? 0, record))
-            : ""}
+        <div
+          className={classNames("flex justify-between", {
+            "text-red-500": options?.delta && (getValue(record) ?? 0) < 0,
+            "text-blue-500": options?.delta && (getValue(record) ?? 0) > 0,
+          })}
+        >
+          <div className="flex-initial">{deltaSign(getValue(record))}</div>
+          <div className="text-right font-fixed whitespace-pre">
+            {_.isFinite(getValue(record)) && record
+              ? format("weight")(getQuantity(getValue(record) ?? 0, record))
+              : ""}
+          </div>
         </div>
       ),
     },
@@ -254,6 +287,30 @@ export function useColumnPartner<T>(
             {partners.data?.find((p) => p.companyRegistrationNumber == value)
               ?.partnerNickName ??
               options?.fallback?.(record) ??
+              ""}
+          </div>
+        );
+      },
+    },
+  ];
+}
+
+export function useColumnPartner2<T>(options: {
+  title?: string;
+  getValue: (record: T) => string | null | undefined;
+}): ColumnType<T>[] {
+  const partners = ApiHook.Partner.Partner.useGetList();
+
+  return [
+    {
+      title: options?.title ?? "거래처",
+      render: (_: string, record: T) => {
+        return (
+          <div>
+            {partners.data?.find(
+              (p) => p.companyRegistrationNumber == options?.getValue(record)
+            )?.partnerNickName ??
+              options?.getValue?.(record) ??
               ""}
           </div>
         );

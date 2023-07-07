@@ -1,6 +1,5 @@
 import { Model } from "@/@shared";
 import { StockEvent } from "@/@shared/models";
-import { PaginationResponse } from "@/@shared/models/pagination";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Banner, Popup, Table } from "@/components";
@@ -70,8 +69,12 @@ export default function Component(props: Props) {
             keySelector={(p) => p.id}
             columns={[
               {
-                title: "구분",
-                render: (_, record) => <div>{""}</div>,
+                title: "작업 구분",
+                render: (_, record) => (
+                  <div>
+                    {Util.formatPlanType(record.stock.initialPlan.type)}
+                  </div>
+                ),
               },
               {
                 title: "입출고일시",
@@ -83,17 +86,32 @@ export default function Component(props: Props) {
               },
               {
                 title: "작업번호",
-                render: (_, record) => <div>{""}</div>,
+                render: (_, record) => (
+                  <div className="font-fixed">
+                    {Util.formatSerial(record.stock.initialPlan.planNo)}
+                  </div>
+                ),
               },
-              {
-                title: "거래처",
-                render: (_, record) => <div>{""}</div>,
-              },
+              ...Table.Preset.useColumnPartner2<StockEventType>({
+                getValue: (record) =>
+                  record.stock.initialPlan.orderStock?.order.srcCompany
+                    .companyRegistrationNumber ??
+                  record.stock.initialPlan.orderProcess?.order.srcCompany
+                    .companyRegistrationNumber,
+              }),
               ...Table.Preset.columnQuantity<StockEventType>(
                 (_) => item.data?.stockInfo,
                 (record) => record.change,
                 {
                   prefix: "변동",
+                  delta: true,
+                }
+              ),
+              ...Table.Preset.columnQuantity<StockEventType>(
+                (_) => item.data?.stockInfo,
+                (record) => record.remainingQuantity,
+                {
+                  prefix: "잔여",
                 }
               ),
             ]}
