@@ -16,7 +16,7 @@ export function useGetList(params: {
       params.query.companyRegistrationNumber,
     ],
     async () => {
-      if (!params.query.companyRegistrationNumber) return null;
+      if (!params.query.type) return null;
 
       const resp = await axios.get<Api.DepositListResponse>(
         `${API_HOST}/deposit`,

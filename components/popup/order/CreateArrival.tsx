@@ -146,14 +146,6 @@ export default function Component(props: Props) {
           </Form.Item>
           {packaging && (
             <>
-              <Form.Item
-                name="isSyncPrice"
-                label="매입 동기화"
-                valuePropName="checked"
-                initialValue={false}
-              >
-                <Switch />
-              </Form.Item>
               <Form.Item name="stockPrice" label="재고 금액">
                 <FormControl.StockPrice
                   spec={{

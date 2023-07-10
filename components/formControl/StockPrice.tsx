@@ -525,7 +525,7 @@ export default function Component(props: Props) {
           }
           options={unitOptions}
           rootClassName="flex-[1_0_0px]"
-          disabled={props.disabled || props.value?.discountType !== "NONE"}
+          disabled={props.disabled}
         />
       </div>
       {props.discountSpec && (

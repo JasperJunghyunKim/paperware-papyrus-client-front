@@ -39,37 +39,6 @@ export function useGetItem(params: { id: number | null }) {
   });
 }
 
-export function useGetOrderStockArrivalList(params: {
-  orderId: number | null;
-  query: Partial<Api.OrderStockArrivalListQuery>;
-}) {
-  return useQuery(
-    [
-      "order",
-      "item",
-      params.orderId,
-      "arrival",
-      "list",
-      params.orderId,
-      params.query.skip,
-      params.query.take,
-    ],
-    async () => {
-      if (!params.orderId) {
-        return null;
-      }
-
-      const resp = await axios.get<Api.OrderStockArrivalListResponse>(
-        `${API_HOST}/order/stock/${params.orderId}/arrival`,
-        {
-          params: params.query,
-        }
-      );
-      return resp.data;
-    }
-  );
-}
-
 export function useRequest() {
   const queryClient = useQueryClient();
 
@@ -195,6 +164,22 @@ export function useReset() {
   );
 }
 
+export function useGetArrivalList(params: { planId: number | null }) {
+  return useQuery(
+    ["stockInhouse", "arrival", "list", params.planId],
+    async () => {
+      if (!params.planId) {
+        return null;
+      }
+
+      const resp = await axios.get<Api.PlanStockGroupListResponse>(
+        `${API_HOST}/stock/group/plan/${params.planId}`
+      );
+      return resp.data;
+    }
+  );
+}
+
 export function useCreateArrival() {
   const queryClient = useQueryClient();
 
@@ -212,14 +197,30 @@ export function useCreateArrival() {
     },
     {
       onSuccess: async (_data, variables) => {
-        await queryClient.invalidateQueries(["order", "list"]);
-        await queryClient.invalidateQueries([
-          "order",
-          "item",
-          variables.orderId,
-        ]);
+        await queryClient.invalidateQueries(["order"]);
         await queryClient.invalidateQueries(["stockInhouse"]);
-        message.info("입고 재고를 추가했습니다.");
+        message.info("입고 예정 재고를 추가했습니다.");
+      },
+    }
+  );
+}
+
+export function useDeleteArrival() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "arrival", "delete"],
+    async (params: { query: Api.ArrivalStockDeleteQuery }) => {
+      const resp = await axios.delete(`${API_HOST}/stock/arrival`, {
+        params: params.query,
+      });
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order"]);
+        await queryClient.invalidateQueries(["stockInhouse"]);
+        message.info("입고 예정 재고를 삭제했습니다.");
       },
     }
   );
@@ -258,6 +259,7 @@ export function useUpdateTradePrice() {
           "item",
           variables.orderId,
         ]);
+        await queryClient.invalidateQueries(["order", "tradePrice"]);
         message.info("거래가격을 저장했습니다.");
       },
     }

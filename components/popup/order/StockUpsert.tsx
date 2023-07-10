@@ -6,7 +6,7 @@ import { usePage } from "@/common/hook";
 import { mine } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Form, Input, Select, Steps, Switch } from "antd";
+import { Alert, Checkbox, Form, Input, Select, Steps, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
@@ -15,6 +15,8 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   TbAB,
   TbBrandMixpanel,
+  TbCircleCheck,
+  TbDots,
   TbHandStop,
   TbInfoCircle,
   TbRubberStamp,
@@ -1096,17 +1098,15 @@ function RightSideOrder(props: RightSideOrderProps) {
     props.order && Util.inc<OrderStatus>(props.order.status, "ACCEPTED");
 
   const [page, setPage] = usePage();
-  const groupList = ApiHook.Stock.StockInhouse.useGetGroupList({
-    query: {
-      ...page,
-      initialPlanId: props.order
-        ? Util.planFromOrder(props.order, me.data?.companyId)?.id
-        : undefined,
-      isZeroQuantityIncluded: "true",
-    },
+  const groupList = ApiHook.Trade.Common.useGetArrivalList({
+    planId: props.order
+      ? Util.planFromOrder(props.order, me.data?.companyId)?.id ?? null
+      : null,
   });
 
-  const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<Model.PlanStockGroup[]>(
+    []
+  );
   const onlyGroup = Util.only(selectedGroup);
 
   const stockList = ApiHook.Stock.StockInhouse.useGetList({
@@ -1198,6 +1198,28 @@ function RightSideOrder(props: RightSideOrderProps) {
     });
   }, [apiPlanStart, props.order, plan.data]);
 
+  const apiDelete = ApiHook.Trade.Common.useDeleteArrival();
+  const cmdDelete = useCallback(async () => {
+    if (!onlyGroup || !plan.data) return;
+    if (!(await Util.confirm("예정 재고를 삭제하시겠습니까?"))) return;
+    await apiDelete.mutateAsync({
+      query: {
+        planId: plan.data.id,
+        productId: onlyGroup.product.id,
+        packagingId: onlyGroup.packaging.id,
+        grammage: onlyGroup.grammage,
+        sizeX: onlyGroup.sizeX,
+        sizeY: onlyGroup.sizeY,
+        paperColorGroupId: onlyGroup.paperColorGroup?.id,
+        paperColorId: onlyGroup.paperColor?.id,
+        paperPatternId: onlyGroup.paperPattern?.id,
+        paperCertId: onlyGroup.paperCert?.id,
+      },
+    });
+
+    setSelectedGroup([]);
+  }, [apiDelete, onlyGroup]);
+
   const isVirtual = !!props.order?.dstCompany.managedById;
   const status = !props.order
     ? 0
@@ -1225,7 +1247,7 @@ function RightSideOrder(props: RightSideOrderProps) {
           <>
             <Toolbar.Container rootClassName="p-4">
               <Toolbar.ButtonPreset.Create
-                label="입고 정보 추가"
+                label="예정 재고 추가"
                 disabled={!accepted}
                 tooltip={
                   !accepted
@@ -1237,43 +1259,10 @@ function RightSideOrder(props: RightSideOrderProps) {
               <div className="flex-1 flex flex-col justify-center select-none mx-8">
                 <Steps items={steps} current={status} />
               </div>
-              {props.order?.status === "ORDER_PREPARING" && (
+              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
                 <Toolbar.ButtonPreset.Delete
-                  label="주문 삭제"
-                  onClick={cmdCancel}
-                />
-              )}
-              {!isVirtual && props.order?.status === "ORDER_PREPARING" && (
-                <Toolbar.ButtonPreset.Send
-                  label="발주 요청"
-                  onClick={cmdRequest}
-                />
-              )}
-              {isVirtual && props.order?.status === "ORDER_PREPARING" && (
-                <Toolbar.ButtonPreset.Continue
-                  label="매입 등록"
-                  onClick={cmdAccept(isVirtual)}
-                />
-              )}
-              {props.order?.status === "OFFER_REQUESTED" && (
-                <Toolbar.ButtonPreset.Reject
-                  label="재고 거절"
-                  onClick={cmdReject}
-                />
-              )}
-              {props.order?.status === "OFFER_REQUESTED" && (
-                <Toolbar.ButtonPreset.Continue
-                  label="재고 승인"
-                  onClick={cmdAccept(isVirtual)}
-                />
-              )}
-              {props.order?.status === "ORDER_REQUESTED" && (
-                <Toolbar.ButtonPreset.Send label="발주 요청" disabled />
-              )}
-              {props.order?.status === "ORDER_REJECTED" && (
-                <Toolbar.ButtonPreset.Continue
-                  label="주문 재입력"
-                  onClick={cmdReset}
+                  label="예정 재고 삭제"
+                  onClick={cmdDelete}
                 />
               )}
               {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
@@ -1286,30 +1275,30 @@ function RightSideOrder(props: RightSideOrderProps) {
             </Toolbar.Container>
             <div className="flex-1 overflow-y-scroll px-4 pb-4">
               <div className="flex-1 flex flex-col gap-y-2">
-                <Table.Default<Model.StockGroup>
+                <Table.Default<Model.PlanStockGroup>
                   data={groupList.data ?? undefined}
                   keySelector={Util.keyOfStockGroup}
                   selection="single"
                   selected={selectedGroup}
                   onSelectedChange={setSelectedGroup}
                   columns={[
-                    ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                      (p) => p // TODO
+                    {
+                      title: "구분",
+                      render: (record: Model.PlanStockGroup) =>
+                        !!record.plan?.orderStock?.isDirectShipping ||
+                        !!record.plan?.orderProcess?.isSrcDirectShipping
+                          ? "직송"
+                          : record.plan
+                          ? "입고 전"
+                          : "입고 완료",
+                    },
+                    ...Table.Preset.columnStockGroup<Model.PlanStockGroup>(
+                      (p) => p
                     ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.nonStoringQuantity,
-                      { prefix: "배정" }
-                    ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.storingQuantity,
-                      { prefix: "입고" }
-                    ),
-                    ...Table.Preset.columnQuantity<Model.StockGroup>(
-                      (p) => p, // TODO
-                      (p) => p.totalQuantity,
-                      { prefix: "전체" }
+                    ...Table.Preset.columnQuantity<Model.PlanStockGroup>(
+                      (p) => p,
+                      (p) => p.quantity,
+                      { prefix: "" }
                     ),
                   ]}
                 />
@@ -1548,9 +1537,25 @@ function RightSideSales(props: RightSideSalesProps) {
             )}
           </div>
         </div>
-        <div className="flex-1 bg-green-100">
-          원지 입고 현황 (외주재단매출) | 원지 출고 현황 (외주재단매입)
-        </div>
+        {props.order?.orderType === "OUTSOURCE_PROCESS" &&
+          plan.data?.assignStockEvent && (
+            <>
+              <div className="basis-px bg-gray-200" />
+              <div className="flex-initial p-4 text-lg font-bold text-slate-800 flex justify-center items-center gap-x-4">
+                {plan.data.assignStockEvent?.stock.warehouse ? (
+                  <TbCircleCheck className="flex-initial text-2xl" />
+                ) : (
+                  <TbDots className="flex-initial text-2xl" />
+                )}
+                <div className="flex-initial basis-0.5 bg-slate-200 h-2/3" />
+                <div className="flex-initial">
+                  {plan.data.assignStockEvent?.stock.warehouse
+                    ? "원지 입고 완료"
+                    : "원지 입고 대기중"}
+                </div>
+              </div>
+            </>
+          )}
       </div>
       <div className="basis-px bg-gray-200" />
       {props.order &&
@@ -1597,6 +1602,10 @@ function PricePanel(props: PricePanelProps) {
         }
       : null;
 
+  const altBundle = useWatch<Model.OrderStockTradeAltBundle>(
+    ["orderStockTradeAltBundle"],
+    form
+  );
   const altSizeX = useWatch<number>(
     ["orderStockTradeAltBundle", "altSizeX"],
     form
@@ -1614,6 +1623,7 @@ function PricePanel(props: PricePanelProps) {
     ["stockPrice", "unitPriceUnit"],
     form
   );
+  const isSyncPrice = useWatch<boolean>(["isSyncPrice"], form);
 
   const me = ApiHook.Auth.useGetMe();
 
@@ -1730,6 +1740,7 @@ function PricePanel(props: PricePanelProps) {
         },
         suppliedPrice: values.suppliedPrice ?? 0,
         vatPrice: values.vatPrice ?? 0,
+        isSyncPrice: values.isSyncPrice,
       },
     });
   }, [props.order, me.data, form, apiUpdate]);
@@ -1817,23 +1828,32 @@ function PricePanel(props: PricePanelProps) {
       tradePrice.data?.orderStockTradePrice ??
       tradePrice.data?.orderDepositTradePrice;
     if (tradePrice.data && priceData) {
-      form.setFieldsValue({
-        stockPrice: priceData,
-        processPrice: priceData.processPrice,
-        suppliedPrice: tradePrice.data.suppliedPrice,
-        vatPrice: tradePrice.data.vatPrice,
-      });
+      if (tradePrice.data.orderStockTradePrice?.orderStockTradeAltBundle) {
+        form.setFieldsValue({
+          orderStockTradeAltBundle:
+            tradePrice.data.orderStockTradePrice?.orderStockTradeAltBundle,
+          stockPrice: priceData,
+          processPrice: priceData.processPrice,
+          suppliedPrice: tradePrice.data.suppliedPrice,
+          vatPrice: tradePrice.data.vatPrice,
+        });
+      } else {
+        form.setFieldsValue({
+          stockPrice: priceData,
+          processPrice: priceData.processPrice,
+          suppliedPrice: tradePrice.data.suppliedPrice,
+          vatPrice: tradePrice.data.vatPrice,
+        });
+      }
     } else if (assignSpec) {
       form.setFieldsValue({
-        stockPrice: FormControl.Util.Price.initialStockPrice(
-          assignSpec.packaging.type
-        ),
+        stockPrice: FormControl.Util.Price.initialStockPrice("ROLL"),
         processPrice: 0,
         suppliedPrice: 0,
         vatPrice: 0,
       });
     }
-  }, [props.orderId, deposit.data, tradePrice.data, form, assignSpec]);
+  }, [props.orderId, deposit.data, tradePrice.data, form]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">
@@ -2008,6 +2028,7 @@ function PricePanel(props: PricePanelProps) {
               <Alert
                 message="단가 대체 규격을 수정하면 거래 금액정보가 초기화됩니다."
                 type="info"
+                rootClassName="mb-2"
               />
               <Form.Item label="거래 단가" name={["stockPrice"]}>
                 {positiveCompany && assignSpec && (
@@ -2127,16 +2148,29 @@ function PricePanel(props: PricePanelProps) {
             disabled
           />
         </Form.Item>
+        {props.order.orderType === "NORMAL" && !altBundle && (
+          <>
+            <Form.Item
+              label="재고 금액 덮어쓰기"
+              name={["isSyncPrice"]}
+              valuePropName="checked"
+              initialValue={true}
+            >
+              <Checkbox>재고 금액 덮어쓰기</Checkbox>
+            </Form.Item>
+            {isSyncPrice && (
+              <Alert
+                message={`정상매입 원지 정보와 동일한 스펙의 예정 재고의 재고 금액에 매입 금액을 덮어씌웁니다.`}
+                type="info"
+              />
+            )}
+          </>
+        )}
         <div className="flex-initial flex justify-end mt-4 gap-x-2">
           <Button.Default
             type="secondary"
             label="금액 정보 저장"
             onClick={cmdUpdate}
-          />
-          <Button.Default
-            type="primary"
-            icon={<TbRubberStamp />}
-            label="거래 마감"
           />
         </div>
         <div className="h-8" />

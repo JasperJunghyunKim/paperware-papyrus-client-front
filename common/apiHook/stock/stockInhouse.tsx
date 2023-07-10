@@ -32,6 +32,8 @@ export function useGetList(params: { query?: Partial<Api.StockListQuery> }) {
     [
       "stockInhouse",
       "list",
+      params.query?.initialPlanId,
+      params.query?.isZeroQuantityIncluded,
       params.query?.warehouseId,
       params.query?.planId,
       params.query?.productId,

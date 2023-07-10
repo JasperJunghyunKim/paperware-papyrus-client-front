@@ -14,6 +14,7 @@ export function columnStockGroup<T>(
     | undefined
     | Model.StockGroup
     | Model.Stock
+    | Model.PlanStockGroup
     | {
         product: Model.Product;
         packaging?: Model.Packaging;
@@ -423,12 +424,7 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
     {
       title: "고시가",
       render: (_, record) => {
-        const price =
-          record.initialPlan.orderStock?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.initialPlan.orderProcess?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.stockPrice;
+        const price = record.stockPrice;
 
         return (
           price &&
@@ -450,12 +446,7 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
     {
       title: "할인율",
       render: (_, record) => {
-        const price =
-          record.initialPlan.orderStock?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.initialPlan.orderProcess?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.stockPrice;
+        const price = record.stockPrice;
 
         return (
           price &&
@@ -492,12 +483,7 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
     {
       title: "단가",
       render: (_, record) => {
-        const price =
-          record.initialPlan.orderStock?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.initialPlan.orderProcess?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.stockPrice;
+        const price = record.stockPrice;
 
         return (
           price && (
@@ -521,12 +507,7 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
     {
       title: "공급가",
       render: (_, record) => {
-        const price =
-          record.initialPlan.orderStock?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.initialPlan.orderProcess?.order.tradePrice.at(0)
-            ?.orderStockTradePrice ??
-          record.stockPrice;
+        const price = record.stockPrice;
 
         return (
           price && (

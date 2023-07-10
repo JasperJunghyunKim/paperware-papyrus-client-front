@@ -34,7 +34,14 @@ export function useGetListForSales(params: {
   query: Partial<Api.LocationForSalesListQuery>;
 }) {
   return useQuery(
-    ["inhouse", "location", "sales", params.query.skip, params.query.take],
+    [
+      "inhouse",
+      "location",
+      "sales",
+      params.query.skip,
+      params.query.take,
+      params.query.targetCompanyId,
+    ],
     async () => {
       if (!params.query.targetCompanyId) {
         return null;

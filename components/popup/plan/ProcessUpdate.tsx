@@ -218,7 +218,6 @@ function Collapse(props: CollapseProps) {
 
     await apiUpdate.mutateAsync({
       data: {
-        isSyncPrice: false,
         planId: planId,
         productId: stock.product.id,
         grammage: stock.grammage,

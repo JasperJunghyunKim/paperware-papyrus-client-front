@@ -39,7 +39,7 @@ export default function Component(props: Props) {
 
     return [
       {
-        label: "매출처 도착지",
+        label: "거래처 도착지",
         options: b ?? [],
       },
       {

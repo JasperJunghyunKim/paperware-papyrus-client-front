@@ -707,7 +707,19 @@ export const mine =
     return x && y && x?.companyId === y?.companyId;
   };
 
-export const keyOfStockGroup = (record: Model.StockGroup) => {
+export const keyOfStockGroup = (record: {
+  warehouse: { id: number } | null;
+  product: { id: number };
+  packaging: { id: number };
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+  paperColorGroup: { id: number } | null;
+  paperColor: { id: number } | null;
+  paperPattern: { id: number } | null;
+  paperCert: { id: number } | null;
+  plan: { id: number } | null;
+}) => {
   return `${record.product.id} ${record.sizeX} ${record.sizeY} ${
     record.grammage
   } ${record.packaging.id} ${record.paperColorGroup?.id ?? "_"} ${

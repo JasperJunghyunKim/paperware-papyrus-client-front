@@ -50,7 +50,8 @@ export default function Component(props: Props) {
   const modifidable =
     props.plan.status === "PREPARING" &&
     (props.plan.type === "INHOUSE_PROCESS" ||
-      props.plan.type === "TRADE_NORMAL_SELLER");
+      props.plan.type === "TRADE_NORMAL_SELLER" ||
+      props.plan.type === "TRADE_OUTSOURCE_PROCESS_SELLER");
 
   return (
     <div className="w-auto h-full flex">
