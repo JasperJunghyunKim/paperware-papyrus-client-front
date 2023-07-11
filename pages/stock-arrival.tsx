@@ -95,13 +95,14 @@ export default function Component() {
           },
           {
             title: "작업 번호",
-            render: (value, record) => (
-              <div className="flex">
-                <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                  {record.plan?.planNo}
+            render: (value, record) =>
+              record.plan && (
+                <div className="flex">
+                  <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                    {Util.formatSerial(record.plan?.planNo)}
+                  </div>
                 </div>
-              </div>
-            ),
+              ),
           },
           {
             title: "거래처",

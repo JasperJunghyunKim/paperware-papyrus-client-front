@@ -8,6 +8,7 @@ interface Props<T> {
   columns: ColumnType<T>[];
   keySelector: (record: T) => string | number;
   borderless?: boolean;
+  className?: string;
 }
 
 export default function Component<T extends object>(props: Props<T>) {
@@ -54,7 +55,7 @@ export default function Component<T extends object>(props: Props<T>) {
       pagination={false}
       dataSource={props.data ?? []}
       components={components}
-      tableLayout="auto"
+      rootClassName={props.className}
     />
   );
 }

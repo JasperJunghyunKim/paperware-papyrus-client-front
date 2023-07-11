@@ -1,9 +1,15 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, PaperUtil, Util } from "@/common";
 import { Button, Popup, Table, Toolbar } from "@/components";
 import { Input, Steps } from "antd";
 import classNames from "classnames";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { RegisterInputStock } from ".";
 import { OpenType } from "./RegisterInputStock";
 import { TaskMap } from "./common";
@@ -33,9 +39,7 @@ export default function Component(props: Props) {
 
   const apiStart = ApiHook.Working.Plan.useStart();
   const cmdStart = useCallback(async () => {
-    if (!data.data) {
-      return;
-    }
+    if (!data.data) return;
 
     await apiStart.mutateAsync({
       id: data.data.id,
@@ -44,14 +48,28 @@ export default function Component(props: Props) {
 
   const apiComplete = ApiHook.Working.Plan.useComplete();
   const cmdComplete = useCallback(async () => {
-    if (!data.data) {
-      return;
-    }
+    if (!data.data) return;
 
     await apiComplete.mutateAsync({
       id: data.data.id,
     });
   }, [props.open, data.data]);
+
+  const apiDeleteInputStock = ApiHook.Working.Plan.useDeleteInputStock();
+  const cmdDeleteInputStock = useCallback(
+    async (stockId: number) => {
+      if (!data.data || !props.open) return;
+      if (!(await Util.confirm("실투입을 해제하시겠습니까?"))) return;
+
+      await apiDeleteInputStock.mutateAsync({
+        id: props.open,
+        data: {
+          stockId: stockId,
+        },
+      });
+    },
+    [props.open, data.data]
+  );
 
   const isAllCompleted = useCallback(() => {
     if (!tasks.data) {
@@ -86,6 +104,24 @@ export default function Component(props: Props) {
     },
     [data.data, inputStocks.data, me.data]
   );
+
+  const assignTons = useMemo(() => {
+    return Util.gramsToTon(data.data?.assignStockEvent?.change ?? 0);
+  }, [data.data]);
+
+  const totalTons = useMemo(() => {
+    return Util.gramsToTon(
+      inputStocks.data?.items.reduce(
+        (p, c) =>
+          p - (PaperUtil.convertQuantity(c.stock, c.change)?.grams ?? 0),
+        0
+      ) ?? 0
+    );
+  }, [inputStocks.data]);
+
+  const deltaTons = useMemo(() => {
+    return totalTons - assignTons;
+  }, [assignTons, totalTons]);
 
   return (
     <Popup.Template.Full
@@ -217,7 +253,10 @@ export default function Component(props: Props) {
                     label="인증"
                     content={data.data.assignStockEvent.stock.paperCert?.name}
                   />
-                  <OrderItemProperty label="사용 예정 수량" content={``} />
+                  <OrderItemProperty
+                    label="사용 예정 수량"
+                    content={`${Util.comma(-assignTons, 3)} T`}
+                  />
                 </div>
               </>
             )}
@@ -240,7 +279,7 @@ export default function Component(props: Props) {
                     <Table.Default<Model.StockEvent>
                       data={inputStocks.data}
                       keySelector={(record) => `${record.id}`}
-                      selection="single"
+                      selection="none"
                       columns={[
                         {
                           title: "재고 번호",
@@ -253,18 +292,55 @@ export default function Component(props: Props) {
                             </div>
                           ),
                         },
+                        ...Table.Preset.columnStockGroupCompact<Model.StockEvent>(
+                          (record) => record.stock
+                        ),
+                        {
+                          title: "전량 사용",
+                          render: (record: Model.StockEvent) => (
+                            <div className="text-blue-600">
+                              {record.useRemainder ? "전량 사용" : ""}
+                            </div>
+                          ),
+                        },
                         ...Table.Preset.columnQuantity<Model.StockEvent>(
                           (record) => record.stock,
                           (record) => record.change,
-                          { prefix: "사용", negative: true }
+                          { prefix: "실투입", negative: true }
                         ),
-                        ...Table.Preset.columnQuantity<Model.StockEvent>(
-                          (record) => record.stock,
-                          (record) => record.stock.cachedQuantity,
-                          { prefix: "총" }
-                        ),
+                        {
+                          render: (record: Model.StockEvent) => (
+                            <div className="flex gap-x-1 h-8">
+                              <button className="flex-initial bg-blue-500 text-white rounded-sm px-2">
+                                수량 수정
+                              </button>
+                              <button
+                                className="flex-initial bg-red-500 text-white rounded-sm px-2"
+                                onClick={() =>
+                                  cmdDeleteInputStock(record.stock.id)
+                                }
+                              >
+                                실투입 해제
+                              </button>
+                            </div>
+                          ),
+                          width: "0px",
+                          fixed: "right",
+                        },
                       ]}
+                      className="flex-1"
                     />
+                    <div className="basis-px bg-gray-300" />
+                    <div className="flex-initial p-2 flex justify-end items-center font-fixed gap-x-4">
+                      <div className="flex-initial">
+                        {`실투입 중량 합계: ${Util.comma(
+                          totalTons,
+                          3
+                        )} T (${Util.comma(deltaTons, 3)} T ${
+                          deltaTons > 0 ? "초과" : "미달"
+                        })`}
+                      </div>
+                    </div>
                   </div>
                   <div className="basis-px bg-gray-300" />
                   <div className="flex-[0_0_400px] flex flex-col gap-y-2 p-2 bg-yellow-50">

@@ -1,5 +1,6 @@
 import { Api } from "@/@shared";
 import { API_HOST } from "@/common/const";
+import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
@@ -119,6 +120,53 @@ export function useRegisterInputStock() {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["plan", "item", variables.id]);
         await queryClient.invalidateQueries(["plan", "list"]);
+        message.success("실투입이 등록 되었습니다.");
+      },
+    }
+  );
+}
+
+export function useUpdateInputStock() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["plan", "updateInputStock"],
+    async (params: { id: number; data: Api.UpdateInputStockRequest }) => {
+      const resp = await axios.put(
+        `${API_HOST}/working/plan/${params.id}/input-stock`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
+        message.success("실투입 수량이 수정되었습니다.");
+      },
+    }
+  );
+}
+
+export function useDeleteInputStock() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["plan", "deleteInputStock"],
+    async (params: { id: number; data: Api.DeleteInputStockRequest }) => {
+      const resp = await axios.delete(
+        `${API_HOST}/working/plan/${params.id}/input-stock`,
+        {
+          data: params.data,
+        }
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
+        message.success("실투입이 해제되었습니다.");
       },
     }
   );

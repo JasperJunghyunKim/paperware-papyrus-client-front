@@ -118,6 +118,75 @@ export function columnStockGroup<T>(
   ];
 }
 
+export function columnStockGroupCompact<T>(
+  getStock: (record: T) =>
+    | null
+    | undefined
+    | Model.StockGroup
+    | Model.Stock
+    | Model.PlanStockGroup
+    | {
+        product: Model.Product;
+        packaging?: Model.Packaging;
+        grammage: number;
+        sizeX: number | null;
+        sizeY: number | null;
+        paperColorGroup: Model.PaperColorGroup | null;
+        paperColor: Model.PaperColor | null;
+        paperPattern: Model.PaperPattern | null;
+        paperCert: Model.PaperCert | null;
+      },
+  options?: {
+    excludePackaging?: boolean;
+  }
+): ColumnType<T>[] {
+  return [
+    ...(options?.excludePackaging
+      ? []
+      : [...columnPackagingType<T>((p) => getStock(p)?.packaging)]),
+    {
+      title: "지군",
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.paperGroup.name,
+    },
+    {
+      title: "지종",
+      render: (_value: any, record: T) =>
+        getStock(record)?.product.paperType.name,
+    },
+    {
+      title: "평량",
+      render: (_value: any, record: T) =>
+        getStock(record) && (
+          <div className="text-right font-fixed">{`${Util.comma(
+            getStock(record)?.grammage
+          )} ${Util.UNIT_GPM}`}</div>
+        ),
+    },
+    {
+      title: "지폭",
+      render: (_value: any, record: T) =>
+        getStock(record) &&
+        getStock(record)?.sizeX && (
+          <div className="text-right font-fixed">{`${Util.comma(
+            getStock(record)?.sizeX
+          )} mm`}</div>
+        ),
+    },
+    {
+      title: "지장",
+      render: (_value: any, record: T) =>
+        getStock(record) &&
+        getStock(record)?.packaging?.type !== "ROLL" &&
+        getStock(record)?.sizeY ? (
+          <div className="text-right font-fixed">{`${Util.comma(
+            getStock(record)?.sizeY
+          )} mm`}</div>
+        ) : null,
+    },
+  ];
+}
+
 export function columnQuantity<T>(
   getStock: (record: T) => null | undefined | PaperUtil.QuantitySpec,
   getValue: (record: T) => null | undefined | number,

@@ -16,6 +16,7 @@ interface Props<T> {
   selection?: "none" | "single" | "multiple";
   expandable?: ExpandableConfig<T>;
   borderless?: boolean;
+  className?: string;
 }
 
 export default function Component<T extends object>(props: Props<T>) {
@@ -90,6 +91,7 @@ export default function Component<T extends object>(props: Props<T>) {
       dataSource={props.data?.items}
       components={components}
       tableLayout="auto"
+      className={props.className}
     />
   );
 }
