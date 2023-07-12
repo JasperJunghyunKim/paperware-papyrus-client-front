@@ -190,3 +190,24 @@ export function useGetInputList(params: {
     return resp.data;
   });
 }
+
+export function useGetInputItem(params: {
+  key: {
+    planId: number;
+    stockId: number;
+  } | null;
+}) {
+  return useQuery(
+    ["plan", "item", params.key?.planId, "input-stock", params.key?.stockId],
+    async () => {
+      if (!params.key) {
+        return null;
+      }
+
+      const resp = await axios.get<Api.InputStockResponse>(
+        `${API_HOST}/working/plan/${params.key.planId}/input-stock/${params.key.stockId}`
+      );
+      return resp.data;
+    }
+  );
+}

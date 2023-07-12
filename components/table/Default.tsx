@@ -61,7 +61,14 @@ export default function Component<T extends object>(props: Props<T>) {
           ? {
               position: ["bottomCenter"],
               size: "default",
-              pageSize: 100,
+              pageSize: props.page.take,
+              total: props.data?.total ?? 0,
+              onChange: (page, pageSize) => {
+                props.setPage?.({
+                  skip: (page - 1) * pageSize ?? 100,
+                  take: pageSize ?? 100,
+                });
+              },
             }
           : false
       }

@@ -1,4 +1,5 @@
 import { BusinessRelationshipCompact } from "@/@shared/models";
+import PartnerTaxManager from "@/@shared/models/partner-tax-manager";
 import { API_HOST } from "@/common/const";
 import { Api } from "@shared";
 import { message } from "antd";
@@ -189,6 +190,107 @@ export function useDeactive() {
         await queryClient.invalidateQueries([
           "inhouse",
           "business-relationship",
+        ]);
+      },
+    }
+  );
+}
+
+export function useGetTaxManagerList(params: {
+  companyRegistrationNumber: string | null;
+}) {
+  return useQuery(
+    ["inhouse", "partner", "taxManager", params.companyRegistrationNumber],
+    async () => {
+      if (!params.companyRegistrationNumber) return null;
+
+      const resp = await axios.get<Api.PartnerTaxManagerListResponse>(
+        `${API_HOST}/partner/${params.companyRegistrationNumber}/tax-manager`
+      );
+      return resp.data;
+    }
+  );
+}
+
+export function useGetTaxManagerItem(params: { id: number | null }) {
+  return useQuery(["inhouse", "partner", "taxManager", params.id], async () => {
+    if (!params.id) return null;
+
+    const resp = await axios.get<PartnerTaxManager>(
+      `${API_HOST}/partner/tax-manager/${params.id}`
+    );
+    return resp.data;
+  });
+}
+
+export function useCreateTaxManager() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { data: Api.PartnerTaxManagerCreateRequest }) => {
+      const resp = await axios.post(
+        `${API_HOST}/partner/tax-manager`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        message.info("세금계산서담당자가 등록되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "partner",
+          "taxManager",
+        ]);
+      },
+    }
+  );
+}
+
+export function useUpdateTaxManager() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: {
+      id: number;
+      data: Api.PartnerTaxManagerUpdateRequest;
+    }) => {
+      const resp = await axios.put(
+        `${API_HOST}/partner/tax-manager/${params.id}`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        message.info("세금계산서담당자가 수정되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "partner",
+          "taxManager",
+        ]);
+      },
+    }
+  );
+}
+
+export function useDeleteTaxManager() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { id: number }) => {
+      const resp = await axios.delete(
+        `${API_HOST}/partner/tax-manager/${params.id}`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        message.info("세금계산서담당자가 삭제되었습니다.");
+        await queryClient.invalidateQueries([
+          "inhouse",
+          "partner",
+          "taxManager",
         ]);
       },
     }

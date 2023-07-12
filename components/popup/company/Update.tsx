@@ -1,7 +1,8 @@
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
+import PartnerTaxManager from "@/@shared/models/partner-tax-manager";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup, Table } from "@/components";
-import { Alert, Form, Input, InputNumber, Radio } from "antd";
+import { Alert, Checkbox, Form, Input, InputNumber, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 import Collapsible from "react-collapsible";
@@ -22,6 +23,16 @@ export default function Component(props: Props) {
   const [lastType, setLastType] = useState<
     "NONE" | "SALES" | "PURCHASE" | "BOTH" | null
   >(null);
+
+  const [openTaxManagerAdd, setOpenTaxManagerAdd] = useState(false);
+  const [addTaxManagerName, setAddTaxManagerName] = useState("");
+  const [addTaxManagerPhoneNo, setAddTaxManagerPhoneNo] = useState("");
+  const [addTaxManagerEmail, setAddTaxManagerEmail] = useState("");
+  const [addTaxIsDefault, setAddTaxIsDefault] = useState(false);
+
+  const [openPopupUpdateTaxManager, setOpenPopupUpdateTaxManager] = useState<
+    TaxManagerId | false
+  >(false);
 
   const item = ApiHook.Inhouse.BusinessRelationship.useGetCompactItem({
     targetCompanyId: props.open ? props.open : null,
@@ -82,6 +93,54 @@ export default function Component(props: Props) {
       });
     },
     [apiUpdateCompany]
+  );
+
+  const taxManagers = ApiHook.Inhouse.BusinessRelationship.useGetTaxManagerList(
+    {
+      companyRegistrationNumber: item.data?.companyRegistrationNumber ?? null,
+    }
+  );
+
+  const apiCreateTaxManager =
+    ApiHook.Inhouse.BusinessRelationship.useCreateTaxManager();
+  const cmdCreateTaxManager = useCallback(async () => {
+    if (!item.data) return;
+
+    await apiCreateTaxManager.mutateAsync({
+      data: {
+        companyRegistrationNumber: item.data.companyRegistrationNumber,
+        isDefault: addTaxIsDefault,
+        name: addTaxManagerName,
+        phoneNo: addTaxManagerPhoneNo,
+        email: addTaxManagerEmail,
+      },
+    });
+
+    setAddTaxManagerName("");
+    setAddTaxManagerPhoneNo("");
+    setAddTaxManagerEmail("");
+    setAddTaxIsDefault(false);
+    setOpenTaxManagerAdd(false);
+  }, [
+    apiCreateTaxManager,
+    item.data,
+    addTaxIsDefault,
+    addTaxManagerName,
+    addTaxManagerPhoneNo,
+    addTaxManagerEmail,
+  ]);
+
+  const apiDeleteTaxManager =
+    ApiHook.Inhouse.BusinessRelationship.useDeleteTaxManager();
+  const cmdDeleteTaxManager = useCallback(
+    async (id: number) => {
+      if (!(await Util.confirm("삭제하시겠습니까?"))) return;
+
+      await apiDeleteTaxManager.mutateAsync({
+        id,
+      });
+    },
+    [apiDeleteTaxManager]
   );
 
   useEffect(() => {
@@ -286,11 +345,11 @@ export default function Component(props: Props) {
             </div>
           )}
           <FormControl.Util.Split label="세금계산서담당자" />
-          <Table.Simple
+          <Table.Simple<PartnerTaxManager>
             columns={[
               {
                 title: "이름",
-                render: (record: any) => (
+                render: (record: PartnerTaxManager) => (
                   <div className="flex gap-x-1 items-center">
                     <div className="flex-initial">{record.name}</div>
                     {record.isDefault && (
@@ -303,24 +362,25 @@ export default function Component(props: Props) {
               },
               {
                 title: "전화번호",
-                render: (record: any) => Util.formatPhoneNo(record.phoneNo),
+                render: (record: PartnerTaxManager) =>
+                  Util.formatPhoneNo(record.phoneNo),
               },
               {
                 title: "이메일",
-                render: (record: any) => record.email,
+                render: (record: PartnerTaxManager) => record.email,
               },
               {
-                render: (record: any) => (
+                render: (record: PartnerTaxManager) => (
                   <div className="flex gap-x-1">
                     <button
                       className="flex-initial bg-blue-500 text-white hover:bg-blue-600 rounded"
-                      onClick={() => {}}
+                      onClick={() => setOpenPopupUpdateTaxManager(record.id)}
                     >
                       수정
                     </button>
                     <button
                       className="flex-initial bg-red-500 text-white hover:bg-red-600 rounded"
-                      onClick={() => {}}
+                      onClick={() => cmdDeleteTaxManager(record.id)}
                     >
                       삭제
                     </button>
@@ -328,51 +388,79 @@ export default function Component(props: Props) {
                 ),
               },
             ]}
-            keySelector={(item: any) => item.id}
-            data={[
-              {
-                name: "김상훈",
-                phoneNo: "010-1234-5678",
-                email: "a@b.c",
-                isDefault: false,
-              },
-              {
-                name: "박덕자",
-                phoneNo: "010-1234-5678",
-                email: "strawberry@pineapple.watermelon",
-                isDefault: true,
-              },
-            ]}
+            keySelector={(item: PartnerTaxManager) => item.id}
+            data={taxManagers.data?.items}
           />
-          <Collapsible
-            transitionTime={50}
-            trigger={
-              <button className="mt-2 py-2 rounded-sm bg-gray-100 border border-solid border-gray-200 w-full">
-                세금계산서담당자 추가
-              </button>
-            }
-          >
-            <div className="mt-2 flex flex-col bg-gray-100 p-2 rounded-sm border border-solid border-gray-200">
-              <div className="flex-initial text-cyan-600 font-bold mb-2">
-                세금계산서담당자 추가
+          {(taxManagers.data?.items.length ?? 0) < 4 ? (
+            <Collapsible
+              transitionTime={50}
+              open={openTaxManagerAdd}
+              onOpening={() => setOpenTaxManagerAdd(true)}
+              onClosing={() => setOpenTaxManagerAdd(false)}
+              trigger={
+                <button className="mt-2 py-2 rounded-sm bg-gray-100 border border-solid border-gray-200 w-full">
+                  세금계산서담당자 추가
+                </button>
+              }
+            >
+              <div className="mt-2 flex flex-col bg-gray-100 p-2 rounded-sm border border-solid border-gray-200">
+                <div className="flex-initial text-cyan-600 font-bold mb-2">
+                  세금계산서담당자 추가
+                </div>
+                <Form.Item label="이름" required>
+                  <Input
+                    placeholder="이름"
+                    value={addTaxManagerName}
+                    onChange={(e) => setAddTaxManagerName(e.target.value)}
+                  />
+                </Form.Item>
+                <Form.Item label="전화번호" required>
+                  <Input
+                    placeholder="전화번호"
+                    value={addTaxManagerPhoneNo}
+                    onChange={(e) => setAddTaxManagerPhoneNo(e.target.value)}
+                    maxLength={11}
+                  />
+                </Form.Item>
+                <Form.Item label="이메일" required>
+                  <Input
+                    placeholder="이메일"
+                    value={addTaxManagerEmail}
+                    onChange={(e) => setAddTaxManagerEmail(e.target.value)}
+                  />
+                </Form.Item>
+                {addTaxIsDefault &&
+                  taxManagers.data?.items.some((p) => p.isDefault) && (
+                    <Alert
+                      message="대표 담당자는 최대 한 명만 지정할 수 있어 기존 대표 담당자를 대체하여 등록합니다."
+                      type="info"
+                      showIcon
+                      className="mb-2"
+                    />
+                  )}
+                <div className="flex justify-between items-center">
+                  <Checkbox
+                    checked={addTaxIsDefault}
+                    onChange={(e) => setAddTaxIsDefault(e.target.checked)}
+                    rootClassName="select-none"
+                  >
+                    대표 담당자 적용
+                  </Checkbox>
+                  <Button.Preset.Edit
+                    label={"세금계산서담당자 추가"}
+                    onClick={cmdCreateTaxManager}
+                  />
+                </div>
               </div>
-              <Form.Item label="이름" required>
-                <Input placeholder="이름" />
-              </Form.Item>
-              <Form.Item label="전화번호" required>
-                <Input placeholder="전화번호" />
-              </Form.Item>
-              <Form.Item label="이메일" required>
-                <Input placeholder="이메일" />
-              </Form.Item>
-              <div className="flex justify-end">
-                <Button.Preset.Edit
-                  label={"세금계산서담당자 추가"}
-                  onClick={() => {}}
-                />
-              </div>
-            </div>
-          </Collapsible>
+            </Collapsible>
+          ) : (
+            <Alert
+              message="세금계산서담당자는 최대 4명까지 등록할 수 있습니다."
+              type="info"
+              showIcon
+              className="mt-2"
+            />
+          )}
           <FormControl.Util.Split label="거래 관계" />
           <Form.Item name="type" label="거래 관계">
             <Radio.Group
@@ -415,6 +503,106 @@ export default function Component(props: Props) {
           <div className="h-16" />
         </Form>
       </div>
+      <PopupUpdateTaxManager
+        open={openPopupUpdateTaxManager}
+        onClose={setOpenPopupUpdateTaxManager}
+      />
+    </Popup.Template.Property>
+  );
+}
+
+type TaxManagerId = number;
+interface PopupUpdateTaxManagerProps {
+  open: TaxManagerId | false;
+  onClose: (unit: false) => void;
+}
+function PopupUpdateTaxManager(props: PopupUpdateTaxManagerProps) {
+  const [form] = useForm();
+
+  const item = ApiHook.Inhouse.BusinessRelationship.useGetTaxManagerItem({
+    id: props.open ? props.open : null,
+  });
+
+  useEffect(() => {
+    if (!item.data) return;
+
+    form.setFieldsValue({
+      name: item.data.name,
+      phoneNo: item.data.phoneNo,
+      email: item.data.email,
+      isDefault: item.data.isDefault,
+    });
+  }, [item.data, form]);
+
+  const apiUpdateTaxManager =
+    ApiHook.Inhouse.BusinessRelationship.useUpdateTaxManager();
+  const cmdUpdateTaxManager = useCallback(async () => {
+    if (!item.data) return;
+
+    const values = await form.validateFields();
+
+    await apiUpdateTaxManager.mutateAsync({
+      id: item.data.id,
+      data: values,
+    });
+
+    form.resetFields();
+    props.onClose(false);
+  }, [apiUpdateTaxManager, item.data, form]);
+
+  return (
+    <Popup.Template.Property
+      title="세금계산서담당자 수정"
+      height="auto"
+      {...props}
+      open={!!props.open}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        autoComplete="off"
+        rootClassName="w-full p-4"
+      >
+        <Form.Item
+          name="name"
+          label="이름"
+          rules={[{ required: true, message: "이름을 입력해주세요." }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="phoneNo"
+          label="전화번호"
+          rules={[
+            { required: true, message: "전화번호를 입력해주세요." },
+            {
+              pattern: /^[0-9]{8,11}$/,
+              message: "전화번호는 8~11자리의 숫자여야 합니다.",
+            },
+          ]}
+        >
+          <Input maxLength={11} />
+        </Form.Item>
+        <Form.Item
+          name="email"
+          label="이메일"
+          rules={[
+            { required: true, message: "이메일을 입력해주세요." },
+            {
+              type: "email",
+              message: "이메일 형식이 올바르지 않습니다.",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item name="isDefault" label="대표 담당자">
+          <Checkbox rootClassName="select-none">대표 담당자 적용</Checkbox>
+        </Form.Item>
+        <div className="flex justify-end">
+          <Button.Preset.Edit label={"저장"} onClick={cmdUpdateTaxManager} />
+        </div>
+      </Form>
     </Popup.Template.Property>
   );
 }

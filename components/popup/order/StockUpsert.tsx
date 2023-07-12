@@ -677,11 +677,11 @@ function DataForm(props: DataFormProps) {
               disabled={!editable}
             />
           </Form.Item>
-        ) : (
+        ) : dstCompanyId ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocationForPurchase disabled={!editable} />
           </Form.Item>
-        ))}
+        ) : null)}
       {orderType == "NORMAL" && (
         <>
           <Form.Item
@@ -1793,7 +1793,7 @@ function PricePanel(props: PricePanelProps) {
           : assignSpec.packaging.type
       )
     );
-  }, [altSizeX, altSizeY, assignSpec, form]);
+  }, [altSizeX, altSizeY, assignSpec?.packaging, form]);
 
   const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
     .filter((_) => me.data)

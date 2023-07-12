@@ -10,8 +10,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { RegisterInputStock } from ".";
-import { OpenType } from "./RegisterInputStock";
+import { RegisterInputStock, UpdateInputStock } from ".";
+import { OpenType as RegisterOpenType } from "./RegisterInputStock";
+import { OpenType as UpdateOpenType } from "./UpdateInputStock";
 import { TaskMap } from "./common";
 
 export interface Props {
@@ -22,7 +23,10 @@ export interface Props {
 export default function Component(props: Props) {
   const me = ApiHook.Auth.useGetMe();
   const [serial, setSerial] = useState<string>("");
-  const [openRegister, setOpenRegister] = useState<OpenType | false>(false);
+  const [openRegister, setOpenRegister] = useState<RegisterOpenType | false>(
+    false
+  );
+  const [openUpdate, setOpenUpdate] = useState<UpdateOpenType | false>(false);
 
   const data = ApiHook.Working.Plan.useGetItem({
     id: props.open ? props.open : null,
@@ -311,7 +315,19 @@ export default function Component(props: Props) {
                         {
                           render: (record: Model.StockEvent) => (
                             <div className="flex gap-x-1 h-8">
-                              <button className="flex-initial bg-blue-500 text-white rounded-sm px-2">
+                              <button
+                                className="flex-initial bg-blue-500 text-white rounded-sm px-2"
+                                onClick={() =>
+                                  setOpenUpdate(
+                                    data.data
+                                      ? {
+                                          planId: data.data.id,
+                                          stockId: record.stock.id,
+                                        }
+                                      : false
+                                  )
+                                }
+                              >
                                 수량 수정
                               </button>
                               <button
@@ -409,6 +425,10 @@ export default function Component(props: Props) {
         open={openRegister}
         onClose={() => setOpenRegister(false)}
         targetStock={data.data?.assignStockEvent?.stock}
+      />
+      <UpdateInputStock
+        open={openUpdate}
+        onClose={() => setOpenUpdate(false)}
       />
     </Popup.Template.Full>
   );
