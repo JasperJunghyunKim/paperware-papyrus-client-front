@@ -1,5 +1,8 @@
 import { Api } from "@/@shared";
-import { GetTaxInvoiceListQuery } from "@/@shared/api";
+import {
+  GetTaxInvoiceListQuery,
+  TaxInvoiceOrderListResponse,
+} from "@/@shared/api";
 import { API_HOST } from "@/common/const";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -75,4 +78,15 @@ export function useDelete() {
       },
     }
   );
+}
+
+export function useGetInvoiceOrderList(params: { id: number | null }) {
+  return useQuery(["taxInvoice", "invoiceOrderList"], async () => {
+    if (!params.id) return null;
+
+    const resp = await axios.get<TaxInvoiceOrderListResponse>(
+      `${API_HOST}/tax-invoice/${params.id}/order`
+    );
+    return resp.data;
+  });
 }

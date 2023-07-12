@@ -1,14 +1,14 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
+import { Button, FormControl, Icon, Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { Alert, Form, Input } from "antd";
+import { Alert, Form, Input, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import { useCallback, useState } from "react";
-import { TbCash, TbPencil, TbSend } from "react-icons/tb";
+import { TbCash, TbPencil, TbPlus, TbSend } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -114,8 +114,6 @@ function PopupCreate(props: PopupCreateProps) {
     const result = await apiCreate.mutateAsync({
       data: {
         ...values,
-        companyRegistrationNumber:
-          selectedCompany.dstCompany.companyRegistrationNumber,
       },
     });
     props.onClose(false);
@@ -176,6 +174,18 @@ function PopupCreate(props: PopupCreateProps) {
                 />
               </Form.Item>
             )}
+            <Form.Item
+              label="영수/청구"
+              name={["purposeType"]}
+              initialValue="RECEIPT"
+            >
+              <Radio.Group
+                options={[
+                  { label: "영수", value: "RECEIPT" },
+                  { label: "청구", value: "BILLING" },
+                ]}
+              />
+            </Form.Item>
           </Form>
         </div>
         <div className="flex justify-center">
@@ -216,13 +226,24 @@ interface PopupUpdateProps {
   onClose: (value: false) => void;
 }
 function PopupUpdate(props: PopupUpdateProps) {
+  const me = ApiHook.Auth.useGetMe();
+  const orders = ApiHook.Tax.TaxInvoice.useGetInvoiceOrderList({
+    id: props.open ? props.open : null,
+  });
+
+  const myTradePrice = useCallback(
+    (record: Model.Order) =>
+      record.tradePrice.find((p) => p.companyId === me.data?.companyId),
+    [me]
+  );
+
   return (
     <Popup.Template.Property
       title={`전자세금계산서 작성`}
       open={props.open !== false}
       onClose={() => props.onClose(false)}
       width="1200px"
-      height="calc(100vh - 100px)"
+      height="calc(100vh - 40px)"
     >
       <div className="w-full h-full flex flex-col">
         <div className="flex-initial flex">
@@ -257,9 +278,7 @@ function PopupUpdate(props: PopupUpdateProps) {
             </tr>
             <tr>
               <td className="bg-red-50 text-red-700">이메일</td>
-              <td colSpan={3}>
-                <Input className="w-full" />
-              </td>
+              <td colSpan={3}>read@std.io</td>
             </tr>
           </table>
           <table className="w-full h-full bg-gray-50 blue">
@@ -311,7 +330,11 @@ function PopupUpdate(props: PopupUpdateProps) {
               <td width="200px" className="bg-gray-100 text-gray-700 req">
                 작성일자
               </td>
-              <td colSpan={5}>2021-09-01</td>
+              <td colSpan={5}>
+                <div className="w-64">
+                  <FormControl.DatePicker />
+                </div>
+              </td>
             </tr>
             <tr>
               <td className="bg-gray-100 text-gray-700">비고</td>
@@ -335,9 +358,93 @@ function PopupUpdate(props: PopupUpdateProps) {
             </tr>
           </table>
         </div>
-        <div className="flex-1"></div>
-        <div className="flex-initial basis-px bg-gray-300" />
+        <div className="flex-1">
+          <Table.Default<Model.Order>
+            columns={[
+              {
+                title: "월",
+                render: (record) => dayjs(record.orderDate).format("MM"),
+              },
+              {
+                title: "일",
+                render: (record) => dayjs(record.orderDate).format("DD"),
+              },
+              {
+                title: "품목명",
+                render: (record) => record.product.name,
+              },
+              { title: "규격" },
+              { title: "수량" },
+              { title: "단가" },
+              {
+                title: "공급가액",
+                render: (record: Model.Order) =>
+                  myTradePrice(record)?.suppliedPrice,
+              },
+              {
+                title: "세액",
+                render: (record: Model.Order) => myTradePrice(record)?.vatPrice,
+              },
+              {
+                title: "합계",
+                render: (record: Model.Order) =>
+                  (myTradePrice(record)?.suppliedPrice ?? 0) +
+                  (myTradePrice(record)?.vatPrice ?? 0),
+              },
+              {
+                title: "비고",
+                render: (record: Model.Order) => record.memo,
+              },
+            ]}
+            data={orders.data}
+            keySelector={(p) => p.id}
+            className="h-full"
+          />
+        </div>
+        <div className="flex-initial flex">
+          <table className="w-full h-full bg-gray-50 gray">
+            <tr>
+              <td width={80} className="bg-gray-100 text-gray-700">
+                현금
+              </td>
+              <td>
+                <FormControl.Number min={0} max={9999999999} />
+              </td>
+              <td width={80} className="bg-gray-100 text-gray-700">
+                수표
+              </td>
+              <td>
+                <FormControl.Number min={0} max={9999999999} />
+              </td>
+              <td width={80} className="bg-gray-100 text-gray-700">
+                어음
+              </td>
+              <td>
+                <FormControl.Number min={0} max={9999999999} />
+              </td>
+              <td width={90} className="bg-gray-100 text-gray-700">
+                외상미수금
+              </td>
+              <td>
+                <FormControl.Number min={0} max={9999999999} />
+              </td>
+              <td width={100} className="bg-gray-100 text-gray-700">
+                영수/청구
+              </td>
+              <td style={{ padding: "0px 8px" }}>
+                <Radio.Group
+                  options={[
+                    { label: "영수", value: "RECEIPT" },
+                    { label: "청구", value: "BILLING" },
+                  ]}
+                />
+              </td>
+            </tr>
+          </table>
+        </div>
         <div className="flex-initial p-2 flex justify-center gap-2">
+          <Button.Default icon={<TbPlus />} label="품목 추가" />
+          <div className="flex-1" />
           <Button.Default icon={<TbPencil />} label="수정" />
           <Button.Default
             icon={<TbSend />}
@@ -379,6 +486,18 @@ function PopupUpdate(props: PopupUpdateProps) {
           margin-right: 4px;
         }
       `}</style>
+    </Popup.Template.Property>
+  );
+}
+
+function PopupOrders(props: { open: boolean; onClose: (unit: false) => void }) {
+  return (
+    <Popup.Template.Property
+      title="주문 목록"
+      open={props.open}
+      onClose={() => props.onClose(false)}
+    >
+      asdf
     </Popup.Template.Property>
   );
 }
