@@ -21,7 +21,6 @@ export default function Component() {
   const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
 
   const onlyGroup = Util.only(selectedGroup);
-  const [page, setPage] = usePage();
   const list = ApiHook.Stock.StockInhouse.useGetList({
     query: {
       productId: onlyGroup?.product.id,
@@ -90,11 +89,11 @@ export default function Component() {
         onSelectedChange={setSelectedGroup}
         selection="single"
         columns={Table.Preset.stockGroup()}
+        page={groupPage}
+        setPage={setGroupPage}
       />
       <Table.Default<Model.Stock>
         data={list.data}
-        page={groupPage}
-        setPage={setGroupPage}
         keySelector={(record) => `${record.id}`}
         selected={selected}
         onSelectedChange={setSelected}

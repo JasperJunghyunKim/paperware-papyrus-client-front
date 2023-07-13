@@ -34,6 +34,8 @@ export default function Component() {
         selected={selectedGroup}
         onSelectedChange={setSelectedGroup}
         selection="single"
+        page={groupPage}
+        setPage={setGroupPage}
         columns={[
           {
             title: "매입처",

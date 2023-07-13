@@ -735,17 +735,6 @@ function DataForm(props: DataFormProps) {
           >
             <FormControl.DatePicker disabled={!editable} />
           </Form.Item>
-          {props.isSales && (
-            <Form.Item
-              name="isDstDirectShipping"
-              label="원지 직송 여부"
-              valuePropName="checked"
-              rules={REQUIRED_RULES}
-              initialValue={false}
-            >
-              <Switch disabled={!editable} />
-            </Form.Item>
-          )}
           <FormControl.Util.Split label="주문 배송 정보" />
           {props.isSales && srcCompanyId && (
             <Form.Item
@@ -2219,7 +2208,7 @@ function BasePricePanel(props: BasePricePanelProps) {
   const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   useEffect(() => {
-    if (tradePrice.data && tradePrice.data.orderStockTradePrice) {
+    if (tradePrice.data) {
       form.setFieldsValue({
         suppliedPrice: tradePrice.data.suppliedPrice,
         vatPrice: tradePrice.data.vatPrice,

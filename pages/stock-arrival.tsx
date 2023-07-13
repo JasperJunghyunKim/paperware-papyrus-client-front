@@ -14,6 +14,7 @@ export default function Component() {
   const list = ApiHook.Stock.StockInhouse.useGetGroupList({
     query: {
       planId: "any",
+      orderProcessIncluded: "true",
       ...page,
     },
   });
@@ -99,29 +100,43 @@ export default function Component() {
               record.plan && (
                 <div className="flex">
                   <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                    {Util.formatSerial(record.plan?.planNo)}
+                    {Util.formatSerial(
+                      record.plan.orderStock?.order.orderNo ??
+                        record.plan.orderProcess?.order.orderNo ??
+                        record.plan?.planNo
+                    )}
                   </div>
                 </div>
               ),
           },
-          {
+          ...Table.Preset.useColumnPartner2<RecordType>({
             title: "거래처",
-            render: (_, record) => "",
-          },
+            getValue: (record: RecordType) =>
+              record.plan?.orderStock?.order.partnerCompany
+                .companyRegistrationNumber,
+          }),
           {
             title: "도착지",
             render: (_, record) =>
-              record.plan?.orderStock?.dstLocation.name ??
-              record.plan?.planShipping?.dstLocation.name,
+              record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                ? record.plan?.orderProcess?.dstLocation.name
+                : record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                ? record.plan?.orderProcess?.srcLocation.name
+                : record.plan?.orderStock?.dstLocation.name ??
+                  record.plan?.planShipping?.dstLocation.name,
           },
           {
             title: "예정일",
             render: (_, record) => (
               <div className="font-fixed">
                 {Util.formatIso8601ToLocalDate(
-                  record.plan?.orderStock?.wantedDate ??
-                    record.plan?.planShipping?.wantedDate ??
-                    null
+                  record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                    ? record.plan.orderProcess?.dstWantedDate ?? null
+                    : record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                    ? record.plan.orderProcess?.srcWantedDate ?? null
+                    : record.plan?.orderStock?.wantedDate ??
+                      record.plan?.planShipping?.wantedDate ??
+                      null
                 )}
               </div>
             ),

@@ -1,14 +1,24 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
+import { emptyStringToUndefined } from "@/common/util";
 import { Button, FormControl, Icon, Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { Alert, Form, Input, Radio } from "antd";
+import { Alert, Form, Input, Radio, Select } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
-import { useCallback, useState } from "react";
-import { TbCash, TbPencil, TbPlus, TbSend } from "react-icons/tb";
+import { Mode } from "fs";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  TbArrowBack,
+  TbCash,
+  TbCheck,
+  TbEraser,
+  TbPencil,
+  TbPlus,
+  TbSend,
+} from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -20,6 +30,18 @@ export default function Component() {
 
   const only = Util.only(selected);
 
+  const apiDelete = ApiHook.Tax.TaxInvoice.useDelete();
+  const cmdDelete = useCallback(async () => {
+    if (!only) return;
+    if (!(await Util.confirm("선택한 전자세금계산서를 삭제하시겠습니까?")))
+      return;
+
+    await apiDelete.mutateAsync({
+      id: only.id,
+    });
+    setSelected([]);
+  }, [apiDelete, only]);
+
   return (
     <Page title="전자세금계산서 목록">
       <Toolbar.Container>
@@ -29,10 +51,16 @@ export default function Component() {
         />
         <div className="flex-1" />
         {only && (
-          <Toolbar.ButtonPreset.Update
-            label="전자세금계산서 상세"
-            onClick={() => setOpenUpdate(only.id)}
-          />
+          <>
+            <Toolbar.ButtonPreset.Delete
+              label="전자세금계산서 삭제"
+              onClick={cmdDelete}
+            />
+            <Toolbar.ButtonPreset.Update
+              label="전자세금계산서 상세"
+              onClick={() => setOpenUpdate(only.id)}
+            />
+          </>
         )}
       </Toolbar.Container>
       <Table.Default
@@ -40,39 +68,84 @@ export default function Component() {
         page={page}
         setPage={setPage}
         keySelector={(record) => record.id}
+        selection="single"
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          { title: "국세청 승인번호" },
-          { title: "상태" },
+          {
+            title: "국세청 승인번호",
+            render: (record: Model.TaxInvoice) => record.invoicerMgtKey,
+          },
+          {
+            title: "상태",
+            render: (record: Model.TaxInvoice) =>
+              Util.taxInvoiceStatusToString(record.status),
+          },
           {
             title: "작성일자",
-            render: (record) => Util.formatIso8601ToLocalDate(record.writeDate),
+            render: (record: Model.TaxInvoice) =>
+              Util.formatIso8601ToLocalDate(record.writeDate),
           },
-          { title: "발급일자" },
-          { title: "전송일자" },
+          {
+            title: "발급일자",
+            render: (record: Model.TaxInvoice) =>
+              Util.formatIso8601ToLocalDate(record.issuedDate),
+          },
+          {
+            title: "전송일자",
+            render: (record: Model.TaxInvoice) =>
+              Util.formatIso8601ToLocalDate(record.sendedDate),
+          },
           {
             title: "공급받는자 등록번호",
-            render: (record) => (
+            render: (record: Model.TaxInvoice) => (
               <div className="font-fixed">
                 {Util.formatCompanyRegistrationNo(
-                  record.companyRegistrationNumber
+                  record.srcCompanyRegistrationNumber
                 )}
               </div>
             ),
           },
-          ...Table.Preset.useColumnPartner<any>(["companyRegistrationNumber"], {
+          {
             title: "상호",
-          }),
-          { title: "대표자명" },
-          { title: "품목명" },
-          { title: "합계금액" },
-          { title: "공급가액" },
-          { title: "세액" },
-          { title: "영수/청구" },
-          { title: "비고" },
-          { title: "공급받는자 이메일1" },
-          { title: "공급받는자 이메일2" },
+            render: (record: Model.TaxInvoice) => record.srcCompanyName,
+          },
+          {
+            title: "대표자명",
+            render: (record: Model.TaxInvoice) =>
+              record.srcCompanyRepresentative,
+          },
+          {
+            title: "품목명",
+            render: (record: Model.TaxInvoice) => record.item,
+          },
+          {
+            title: "합계금액",
+            render: (record: Model.TaxInvoice) => Util.comma(record.totalPrice),
+          },
+          {
+            title: "공급가액",
+            render: (record: Model.TaxInvoice) =>
+              Util.comma(record.suppliedPrice),
+          },
+          {
+            title: "세액",
+            render: (record: Model.TaxInvoice) => Util.comma(record.vatPrice),
+          },
+          {
+            title: "영수/청구",
+            render: (record: Model.TaxInvoice) =>
+              Util.taxInvoicePurposeTypeToString(record.purposeType),
+          },
+          { title: "비고", render: (record: Model.TaxInvoice) => record.memo },
+          {
+            title: "공급받는자 이메일1",
+            render: (record: Model.TaxInvoice) => record.srcEmail,
+          },
+          {
+            title: "공급받는자 이메일2",
+            render: (record: Model.TaxInvoice) => record.srcEmail2,
+          },
         ]}
       />
       <PopupCreate
@@ -182,7 +255,7 @@ function PopupCreate(props: PopupCreateProps) {
               <Radio.Group
                 options={[
                   { label: "영수", value: "RECEIPT" },
-                  { label: "청구", value: "BILLING" },
+                  { label: "청구", value: "CHARGE" },
                 ]}
               />
             </Form.Item>
@@ -227,9 +300,90 @@ interface PopupUpdateProps {
 }
 function PopupUpdate(props: PopupUpdateProps) {
   const me = ApiHook.Auth.useGetMe();
+
+  const [edit, setEdit] = useState(false);
+  const [openPopupOrders, setOpenPopupOrders] = useState<
+    PopupOrdersOpenType | false
+  >(false);
+
+  const [writeDate, setWriteDate] = useState<string | undefined>(
+    dayjs().toISOString()
+  );
+  const [dstEmail, setDstEmail] = useState<string>();
+  const [srcEmail, setSrcEmail] = useState<string>();
+  const [srcEmail2, setSrcEmail2] = useState<string>();
+  const [memo, setMemo] = useState<string>("");
+  const [cash, setCash] = useState<number>();
+  const [check, setCheck] = useState<number>();
+  const [note, setNote] = useState<number>();
+  const [credit, setCredit] = useState<number>();
+  const [purposeType, setPurposeType] =
+    useState<Model.Enum.TaxInvoicePurposeType>("CHARGE");
+
+  const taxInvoice = ApiHook.Tax.TaxInvoice.useGetItem({
+    id: props.open ? props.open : null,
+  });
   const orders = ApiHook.Tax.TaxInvoice.useGetInvoiceOrderList({
     id: props.open ? props.open : null,
   });
+
+  const [selectedOrders, setSelectedOrders] = useState<Model.Order[]>([]);
+
+  const apiUpdate = ApiHook.Tax.TaxInvoice.useUpdate();
+  const cmdUpdate = useCallback(async () => {
+    if (!taxInvoice.data || !writeDate) return;
+    if (!(await Util.confirm("전자세금계산서 수정 내용을 저장하시겠습니까?")))
+      return;
+
+    await apiUpdate.mutateAsync({
+      id: taxInvoice.data.id,
+      data: {
+        writeDate,
+        dstEmail: emptyStringToUndefined(dstEmail),
+        srcEmail: emptyStringToUndefined(srcEmail),
+        srcEmail2: emptyStringToUndefined(srcEmail2),
+        memo,
+        cash,
+        check,
+        note,
+        credit,
+        purposeType,
+      },
+    });
+    setEdit(false);
+  }, [
+    apiUpdate,
+    writeDate,
+    dstEmail,
+    srcEmail,
+    srcEmail2,
+    memo,
+    cash,
+    check,
+    note,
+    credit,
+    purposeType,
+    taxInvoice.data,
+  ]);
+
+  const apiDeleteInvoiceOrder = ApiHook.Tax.TaxInvoice.useDeleteInvoiceOrder();
+  const cmdDeleteInvoiceOrder = useCallback(async () => {
+    if (!taxInvoice.data || !selectedOrders.length) return;
+    if (
+      !(await Util.confirm(
+        `선택한 ${selectedOrders.length}개 품목을 목록에서 삭제하시겠습니까?`
+      ))
+    )
+      return;
+
+    await apiDeleteInvoiceOrder.mutateAsync({
+      id: taxInvoice.data.id,
+      data: {
+        orderIds: selectedOrders.map((p) => p.id),
+      },
+    });
+    setSelectedOrders([]);
+  }, [apiDeleteInvoiceOrder, selectedOrders, taxInvoice.data]);
 
   const myTradePrice = useCallback(
     (record: Model.Order) =>
@@ -237,9 +391,26 @@ function PopupUpdate(props: PopupUpdateProps) {
     [me]
   );
 
+  const reset = useCallback(() => {
+    if (!taxInvoice.data) return;
+
+    setWriteDate(taxInvoice.data.writeDate);
+    setDstEmail(taxInvoice.data.dstEmail);
+    setSrcEmail(taxInvoice.data.srcEmail);
+    setSrcEmail2(taxInvoice.data.srcEmail2);
+    setMemo(taxInvoice.data.memo);
+    setPurposeType(taxInvoice.data.purposeType);
+
+    setEdit(false);
+  }, [taxInvoice.data]);
+
+  useEffect(() => {
+    reset();
+  }, [reset]);
+
   return (
     <Popup.Template.Property
-      title={`전자세금계산서 작성`}
+      title={`전자세금계산서 상세`}
       open={props.open !== false}
       onClose={() => props.onClose(false)}
       width="1200px"
@@ -256,29 +427,41 @@ function PopupUpdate(props: PopupUpdateProps) {
                 공급자
               </td>
               <td className="bg-red-50 text-red-700 req">등록번호</td>
-              <td>356-87-01989</td>
+              <td>
+                {Util.formatCompanyRegistrationNo(
+                  taxInvoice.data?.dstCompanyRegistrationNumber
+                )}
+              </td>
               <td className="bg-red-50 text-red-700">종사업장 번호</td>
-              <td>0000</td>
+              <td></td>
             </tr>
             <tr>
               <td className="bg-red-50 text-red-700 req">상호</td>
-              <td>주식회사 택배바다</td>
+              <td>{taxInvoice.data?.dstCompanyName}</td>
               <td className="bg-red-50 text-red-700 req">성명</td>
-              <td>김택배</td>
+              <td>{taxInvoice.data?.dstCompanyRepresentative}</td>
             </tr>
             <tr>
               <td className="bg-red-50 text-red-700 req">사업장</td>
-              <td colSpan={3}>서울특별시 강남구 테헤란로 427</td>
+              <td colSpan={3}>
+                {Util.formatAddress(taxInvoice.data?.dstCompanyAddress)}
+              </td>
             </tr>
             <tr>
               <td className="bg-red-50 text-red-700">업태</td>
-              <td>택배업</td>
+              <td>{taxInvoice.data?.dstCompanyBizType}</td>
               <td className="bg-red-50 text-red-700">종목</td>
-              <td>택배업</td>
+              <td>{taxInvoice.data?.dstCompanyBizItem}</td>
             </tr>
             <tr>
               <td className="bg-red-50 text-red-700">이메일</td>
-              <td colSpan={3}>read@std.io</td>
+              <td colSpan={3}>
+                <Input
+                  value={dstEmail}
+                  onChange={(e) => setDstEmail(e.target.value)}
+                  disabled={!edit}
+                />
+              </td>
             </tr>
           </table>
           <table className="w-full h-full bg-gray-50 blue">
@@ -290,36 +473,60 @@ function PopupUpdate(props: PopupUpdateProps) {
                 공급받는자
               </td>
               <td className="bg-blue-50 text-blue-800 req">등록번호</td>
-              <td>356-87-01989</td>
+              <td>
+                {Util.formatCompanyRegistrationNo(
+                  taxInvoice.data?.srcCompanyRegistrationNumber
+                )}
+              </td>
               <td className="bg-blue-50 text-blue-800">종사업장 번호</td>
-              <td>0000</td>
+              <td></td>
             </tr>
             <tr>
               <td className="bg-blue-50 text-blue-800 req">상호</td>
-              <td>주식회사 택배바다</td>
+              <td>{taxInvoice.data?.srcCompanyName}</td>
               <td className="bg-blue-50 text-blue-800 req">성명</td>
-              <td>김택배</td>
+              <td>{taxInvoice.data?.srcCompanyRepresentative}</td>
             </tr>
             <tr>
               <td className="bg-blue-50 text-blue-800">사업장</td>
-              <td colSpan={3}>서울특별시 강남구 테헤란로 427</td>
+              <td colSpan={3}>
+                {Util.formatAddress(taxInvoice.data?.srcCompanyAddress)}
+              </td>
             </tr>
             <tr>
               <td className="bg-blue-50 text-blue-800">업태</td>
-              <td>택배업</td>
+              <td>{taxInvoice.data?.srcCompanyBizType}</td>
               <td className="bg-blue-50 text-blue-800">종목</td>
-              <td>택배업</td>
+              <td>{taxInvoice.data?.srcCompanyBizItem}</td>
             </tr>
             <tr>
               <td className="bg-blue-50 text-blue-800">이메일 1</td>
               <td colSpan={3}>
-                <Input className="w-full" />
+                {taxInvoice.data && (
+                  <SelectTaxInvoiceManagerEmail
+                    companyRegistrationNumber={
+                      taxInvoice.data?.srcCompanyRegistrationNumber
+                    }
+                    value={srcEmail}
+                    onChange={setSrcEmail}
+                    disabled={!edit}
+                  />
+                )}
               </td>
             </tr>
             <tr>
               <td className="bg-blue-50 text-blue-800">이메일 2</td>
               <td colSpan={3}>
-                <Input className="w-full" />
+                {taxInvoice.data && (
+                  <SelectTaxInvoiceManagerEmail
+                    companyRegistrationNumber={
+                      taxInvoice.data?.srcCompanyRegistrationNumber
+                    }
+                    value={srcEmail2}
+                    onChange={setSrcEmail2}
+                    disabled={!edit}
+                  />
+                )}
               </td>
             </tr>
           </table>
@@ -332,7 +539,11 @@ function PopupUpdate(props: PopupUpdateProps) {
               </td>
               <td colSpan={5}>
                 <div className="w-64">
-                  <FormControl.DatePicker />
+                  <FormControl.DatePicker
+                    value={writeDate}
+                    onChange={(p) => setWriteDate(p ?? undefined)}
+                    disabled={!edit}
+                  />
                 </div>
               </td>
             </tr>
@@ -345,16 +556,47 @@ function PopupUpdate(props: PopupUpdateProps) {
                     minRows: 2,
                     maxRows: 2,
                   }}
+                  maxLength={400}
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  disabled={!edit}
                 />
               </td>
             </tr>
             <tr>
               <td className="bg-gray-100 text-gray-700">합계금액</td>
-              <td className="text-right">100,000</td>
+              <td className="text-right font-fixed">
+                {Util.comma(
+                  orders.data?.items.reduce(
+                    (p, c) =>
+                      p +
+                      (myTradePrice(c)?.suppliedPrice ?? 0) +
+                      (myTradePrice(c)?.vatPrice ?? 0),
+                    0
+                  )
+                )}{" "}
+                원
+              </td>
               <td className="bg-gray-100 text-gray-700">공급가액</td>
-              <td className="text-right">100,000</td>
+              <td className="text-right">
+                {Util.comma(
+                  orders.data?.items.reduce(
+                    (p, c) => p + (myTradePrice(c)?.suppliedPrice ?? 0),
+                    0
+                  )
+                )}{" "}
+                원
+              </td>
               <td className="bg-gray-100 text-gray-700">세액</td>
-              <td className="text-right">100,000</td>
+              <td className="text-right">
+                {Util.comma(
+                  orders.data?.items.reduce(
+                    (p, c) => p + (myTradePrice(c)?.vatPrice ?? 0),
+                    0
+                  )
+                )}{" "}
+                원
+              </td>
             </tr>
           </table>
         </div>
@@ -371,25 +613,36 @@ function PopupUpdate(props: PopupUpdateProps) {
               },
               {
                 title: "품목명",
-                render: (record) => record.product.name,
+                render: (record: Model.Order) => getOrderItem(record),
               },
               { title: "규격" },
               { title: "수량" },
               { title: "단가" },
               {
                 title: "공급가액",
-                render: (record: Model.Order) =>
-                  myTradePrice(record)?.suppliedPrice,
+                render: (record: Model.Order) => (
+                  <div className="font-fixed text-right">
+                    {Util.comma(myTradePrice(record)?.suppliedPrice)} 원
+                  </div>
+                ),
               },
               {
                 title: "세액",
-                render: (record: Model.Order) => myTradePrice(record)?.vatPrice,
+                render: (record: Model.Order) => (
+                  <div className="font-fixed text-right">
+                    {Util.comma(myTradePrice(record)?.vatPrice)} 원
+                  </div>
+                ),
               },
               {
                 title: "합계",
-                render: (record: Model.Order) =>
-                  (myTradePrice(record)?.suppliedPrice ?? 0) +
-                  (myTradePrice(record)?.vatPrice ?? 0),
+                render: (record: Model.Order) => (
+                  <div className="font-fixed text-right">
+                    {(myTradePrice(record)?.suppliedPrice ?? 0) +
+                      (myTradePrice(record)?.vatPrice ?? 0)}{" "}
+                    원
+                  </div>
+                ),
               },
               {
                 title: "비고",
@@ -398,6 +651,9 @@ function PopupUpdate(props: PopupUpdateProps) {
             ]}
             data={orders.data}
             keySelector={(p) => p.id}
+            selection="multiple"
+            selected={selectedOrders}
+            onSelectedChange={setSelectedOrders}
             className="h-full"
           />
         </div>
@@ -408,25 +664,49 @@ function PopupUpdate(props: PopupUpdateProps) {
                 현금
               </td>
               <td>
-                <FormControl.Number min={0} max={9999999999} />
+                <FormControl.Number
+                  min={0}
+                  max={9999999999}
+                  value={cash}
+                  onChange={(p) => setCash(p ?? undefined)}
+                  disabled={!edit}
+                />
               </td>
               <td width={80} className="bg-gray-100 text-gray-700">
                 수표
               </td>
               <td>
-                <FormControl.Number min={0} max={9999999999} />
+                <FormControl.Number
+                  min={0}
+                  max={9999999999}
+                  value={check}
+                  onChange={(p) => setCheck(p ?? undefined)}
+                  disabled={!edit}
+                />
               </td>
               <td width={80} className="bg-gray-100 text-gray-700">
                 어음
               </td>
               <td>
-                <FormControl.Number min={0} max={9999999999} />
+                <FormControl.Number
+                  min={0}
+                  max={9999999999}
+                  value={note}
+                  onChange={(p) => setNote(p ?? undefined)}
+                  disabled={!edit}
+                />
               </td>
               <td width={90} className="bg-gray-100 text-gray-700">
                 외상미수금
               </td>
               <td>
-                <FormControl.Number min={0} max={9999999999} />
+                <FormControl.Number
+                  min={0}
+                  max={9999999999}
+                  value={credit}
+                  onChange={(p) => setCredit(p ?? undefined)}
+                  disabled={!edit}
+                />
               </td>
               <td width={100} className="bg-gray-100 text-gray-700">
                 영수/청구
@@ -435,24 +715,71 @@ function PopupUpdate(props: PopupUpdateProps) {
                 <Radio.Group
                   options={[
                     { label: "영수", value: "RECEIPT" },
-                    { label: "청구", value: "BILLING" },
+                    { label: "청구", value: "CHARGE" },
                   ]}
+                  value={purposeType}
+                  onChange={(e) => setPurposeType(e.target.value)}
+                  disabled={!edit}
                 />
               </td>
             </tr>
           </table>
         </div>
         <div className="flex-initial p-2 flex justify-center gap-2">
-          <Button.Default icon={<TbPlus />} label="품목 추가" />
-          <div className="flex-1" />
-          <Button.Default icon={<TbPencil />} label="수정" />
-          <Button.Default
-            icon={<TbSend />}
-            label="계산서 발행"
-            type="primary"
-          />
+          {edit ? (
+            <>
+              <Button.Default
+                icon={<TbArrowBack />}
+                label="취소"
+                onClick={reset}
+              />
+              <Button.Default
+                icon={<TbCheck />}
+                label="내용 저장"
+                type="primary"
+                onClick={cmdUpdate}
+              />
+            </>
+          ) : taxInvoice.data && taxInvoice.data?.status === "PREPARING" ? (
+            <>
+              <Button.Default
+                icon={<TbPlus />}
+                label="품목 추가"
+                onClick={() =>
+                  setOpenPopupOrders({
+                    taxInvoiceId: taxInvoice.data.id,
+                    writeDate: taxInvoice.data.writeDate,
+                    srcCompanyRegistrationNumber:
+                      taxInvoice.data.srcCompanyRegistrationNumber,
+                  })
+                }
+              />
+              {selectedOrders.length > 0 ? (
+                <Button.Default
+                  icon={<TbEraser />}
+                  label="품목 삭제"
+                  onClick={cmdDeleteInvoiceOrder}
+                />
+              ) : null}
+              <div className="flex-1" />
+              <Button.Default
+                icon={<TbPencil />}
+                label="내용 수정"
+                onClick={() => setEdit(true)}
+              />
+              <Button.Default
+                icon={<TbSend />}
+                label="계산서 발행"
+                type="primary"
+              />
+            </>
+          ) : null}
         </div>
       </div>
+      <PopupOrders
+        open={openPopupOrders}
+        onClose={() => setOpenPopupOrders(false)}
+      />
       <style jsx>{`
         .red table,
         .red tr,
@@ -490,14 +817,293 @@ function PopupUpdate(props: PopupUpdateProps) {
   );
 }
 
-function PopupOrders(props: { open: boolean; onClose: (unit: false) => void }) {
+type PopupOrdersOpenType = {
+  taxInvoiceId: number;
+  writeDate: string;
+  srcCompanyRegistrationNumber: string;
+};
+function PopupOrders(props: {
+  open: PopupOrdersOpenType | false;
+  onClose: (unit: false) => void;
+}) {
+  const me = ApiHook.Auth.useGetMe();
+  const [page, setPage] = usePage();
+  const orders = ApiHook.Trade.Common.useGetList({
+    query:
+      props.open && me.data
+        ? {
+            dstCompanyId: me.data.companyId,
+            year: dayjs(props.open.writeDate).format("YYYY"),
+            month: dayjs(props.open.writeDate).format("M"),
+            bookClosed: "false",
+            srcCompanyRegistrationNumber:
+              props.open.srcCompanyRegistrationNumber,
+            skip: page.skip,
+            take: page.take,
+          }
+        : null,
+  });
+  const [selected, setSelected] = useState<Model.Order[]>([]);
+
+  const partnerColumn = Table.Preset.useColumnPartner<Model.Order>(
+    ["srcCompany", "companyRegistrationNumber"],
+    { title: "매출처", fallback: (record) => record.srcCompany.businessName }
+  );
+
+  const apiSubmit = ApiHook.Tax.TaxInvoice.useRegisterInvoiceOrder();
+  const cmdSubmit = useCallback(async () => {
+    if (!props.open) return;
+    if (selected.length === 0) return;
+    if (!(await Util.confirm("품목을 추가하시겠습니까?"))) return;
+
+    await apiSubmit.mutateAsync({
+      id: props.open.taxInvoiceId,
+      data: {
+        orderIds: selected.map((p) => p.id),
+      },
+    });
+    props.onClose(false);
+  }, [selected]);
+
+  useEffect(() => {
+    if (!props.open) return;
+    setSelected([]);
+    setPage({ skip: 0, take: 100 });
+  }, [props.open]);
+
   return (
     <Popup.Template.Property
-      title="주문 목록"
-      open={props.open}
+      title="품목 추가"
+      open={!!props.open}
       onClose={() => props.onClose(false)}
+      width="calc(100vw - 200px)"
+      height="calc(100vh - 120px)"
     >
-      asdf
+      <div className="flex flex-col w-full h-full">
+        <div className="flex-1">
+          <Table.Default<Model.Order>
+            data={orders.data}
+            page={page}
+            setPage={setPage}
+            keySelector={(record) => `${record.id}`}
+            selected={selected}
+            onSelectedChange={setSelected}
+            columns={[
+              {
+                title: "매출 유형",
+                render: (_value, record) => (
+                  <div>{Util.orderTypeToString(record.orderType, "SALES")}</div>
+                ),
+              },
+              {
+                title: "매출 번호",
+                dataIndex: "orderNo",
+                render: (value) => (
+                  <div className="flex">
+                    <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
+                      {value}
+                    </div>
+                  </div>
+                ),
+              },
+              ...partnerColumn,
+              {
+                title: "매출일",
+                dataIndex: "orderDate",
+                render: (value) => Util.formatIso8601ToLocalDate(value),
+              },
+              {
+                title: "납품 요청일",
+                render: (_, record) =>
+                  Util.formatIso8601ToLocalDate(
+                    record.orderStock?.wantedDate ??
+                      record.orderProcess?.srcWantedDate ??
+                      null
+                  ),
+              },
+              {
+                title: "납품 도착지",
+                render: (_, record) =>
+                  record.orderStock?.dstLocation.name ??
+                  record.orderProcess?.srcLocation.name,
+              },
+              {
+                title: "매출 상태",
+                dataIndex: "status",
+                render: (value: Model.Enum.OrderStatus) => (
+                  <div
+                    className={classNames("flex gap-x-2", {
+                      "text-amber-600": Util.inc(
+                        value,
+                        "OFFER_PREPARING",
+                        "ORDER_PREPARING"
+                      ),
+                      "text-green-600": Util.inc(
+                        value,
+                        "OFFER_REQUESTED",
+                        "ORDER_REQUESTED"
+                      ),
+                      "text-red-600": Util.inc(
+                        value,
+                        "OFFER_REJECTED",
+                        "ORDER_REJECTED"
+                      ),
+                      "text-black": Util.inc(value, "ACCEPTED"),
+                    })}
+                  >
+                    <div className="flex-initial flex flex-col justify-center">
+                      <Icon.OrderStatus value={value} />
+                    </div>
+                    <div className="flex-initial flex flex-col justify-center">
+                      {Util.orderStatusToString(value)}
+                    </div>
+                  </div>
+                ),
+              },
+              ...Table.Preset.columnStockGroup<Model.Order>((record) =>
+                Util.assignStockFromOrder(record)
+              ),
+              ...Table.Preset.columnQuantity<Model.Order>(
+                (record) => Util.assignStockFromOrder(record),
+                (record) => Util.assignQuantityFromOrder(record),
+                { prefix: "매출", negative: false }
+              ),
+            ]}
+          />
+        </div>
+        <div className="flex-initial basis-px bg-gray-200" />
+        <div className="flex-initial p-2 flex justify-center">
+          <Button.Default
+            label="품목 등록"
+            type="primary"
+            onClick={cmdSubmit}
+            disabled={selected.length === 0}
+          />
+        </div>
+      </div>
     </Popup.Template.Property>
   );
+}
+
+function SelectTaxInvoiceManagerEmail(props: {
+  companyRegistrationNumber: string;
+  value?: string;
+  onChange?: (value: string | undefined) => void;
+  disabled?: boolean;
+}) {
+  const taxInvoiceManagers =
+    ApiHook.Inhouse.BusinessRelationship.useGetTaxManagerList({
+      companyRegistrationNumber: props.companyRegistrationNumber,
+    });
+
+  const options = useMemo(() => {
+    return taxInvoiceManagers.data?.items.map((x) => ({
+      label: (
+        <div className="flex font-fixed gap-x-4">
+          <div className="flex-1 text-gray-600">{x.email}</div>
+          <div className="flex-initial">{x.name}</div>
+          <div className="flex-initial whitespace-pre">
+            {x.isDefault ? "대표" : "    "}
+          </div>
+        </div>
+      ),
+      text: `${x.name} ${x.email}`,
+      value: x.email,
+    }));
+  }, [taxInvoiceManagers.data]);
+
+  return (
+    <Select
+      className="w-full"
+      placeholder="전자세금계산서 담당자 이메일 선택"
+      options={options}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled}
+      allowClear
+    />
+  );
+}
+
+function getQuantity(
+  packaging: {
+    type: Model.Enum.PackagingType;
+    packA: number;
+    packB: number;
+  },
+  quantity: number
+): string {
+  switch (packaging.type) {
+    case "ROLL":
+      return `${(quantity / (1000 * 1000)).toFixed(3)}T`;
+    case "REAM":
+    case "SKID":
+      return `${(quantity / 500).toFixed(3)}R`;
+    case "BOX":
+      return `${quantity}BOX`;
+    default:
+      return ``;
+  }
+}
+
+function getOrderItem(order: Model.Order): string {
+  let orderType = "";
+  let item = "";
+
+  switch (order.orderType) {
+    case "NORMAL":
+      orderType = order.dstDepositEvent ? "보관출고" : "정상매출";
+      break;
+    case "DEPOSIT":
+      orderType = "매출보관";
+      break;
+    case "OUTSOURCE_PROCESS":
+      orderType = "외주공정매출";
+      break;
+    case "ETC":
+      orderType = "기타매출";
+      break;
+  }
+
+  if (order.orderType === "NORMAL" && order.orderStock) {
+    item =
+      order.orderStock.packaging.type +
+      " " +
+      order.orderStock.product.paperType.name +
+      " " +
+      order.orderStock.grammage.toString() +
+      "g/m²" +
+      " " +
+      `${order.orderStock.sizeX}X${order.orderStock.sizeY}` +
+      " " +
+      getQuantity(order.orderStock.packaging, order.orderStock.quantity);
+  } else if (order.orderType === "OUTSOURCE_PROCESS" && order.orderProcess) {
+    item =
+      order.orderProcess.packaging.type +
+      " " +
+      order.orderProcess.product.paperType.name +
+      " " +
+      order.orderProcess.grammage.toString() +
+      "g/m²" +
+      " " +
+      `${order.orderProcess.sizeX}X${order.orderProcess.sizeY}` +
+      " " +
+      getQuantity(order.orderProcess.packaging, order.orderProcess.quantity);
+  } else if (order.orderType === "DEPOSIT" && order.orderDeposit) {
+    item =
+      order.orderDeposit.packaging.type +
+      " " +
+      order.orderDeposit.product.paperType.name +
+      " " +
+      order.orderDeposit.grammage.toString() +
+      "g/m²" +
+      " " +
+      `${order.orderDeposit.sizeX}X${order.orderDeposit.sizeY}` +
+      " " +
+      getQuantity(order.orderDeposit.packaging, order.orderDeposit.quantity);
+  } else if (order.orderType === "ETC" && order.orderEtc) {
+    item = order.orderEtc.item;
+  }
+
+  return `${orderType} ${order.orderNo} ${item}`;
 }

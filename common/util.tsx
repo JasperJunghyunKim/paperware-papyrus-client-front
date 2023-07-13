@@ -454,6 +454,27 @@ export function orderStatusToString(value: Model.Enum.OrderStatus) {
   }
 }
 
+export function taxInvoiceStatusToString(value: Model.Enum.TaxInvoiceStatus) {
+  return match(value)
+    .with("PREPARING", () => "작성중")
+    .with("ON_ISSUE", () => "발행중")
+    .with("ISSUED", () => "발행완료")
+    .with("ISSUE_FAILED", () => "발행실패")
+    .with("ON_SEND", () => "전송중")
+    .with("SENDED", () => "전송완료")
+    .with("SEND_FAILED", () => "전송실패")
+    .otherwise(() => "");
+}
+
+export function taxInvoicePurposeTypeToString(
+  value: Model.Enum.TaxInvoicePurposeType
+) {
+  return match(value)
+    .with("CHARGE", () => "청구")
+    .with("RECEIPT", () => "영수")
+    .otherwise(() => "");
+}
+
 export function formatPhoneNo(phoneNo: string | null | undefined) {
   if (phoneNo === null || phoneNo === undefined) {
     return "";
@@ -775,4 +796,8 @@ export function formatPlanType(value: Model.Enum.PlanType) {
     .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
     .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
     .otherwise(() => "");
+}
+
+export function emptyStringToUndefined(value: string | null | undefined) {
+  return !value || value === "" ? undefined : value;
 }

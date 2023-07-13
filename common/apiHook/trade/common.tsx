@@ -4,24 +4,32 @@ import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
-export function useGetList(params: { query: Partial<Api.OrderListQuery> }) {
+export function useGetList(params: {
+  query: Partial<Api.OrderListQuery> | null;
+}) {
   return useQuery(
     [
       "order",
       "list",
-      params.query.skip,
-      params.query.take,
-      params.query.dstCompanyId,
-      params.query.srcCompanyId,
+      params.query?.skip,
+      params.query?.take,
+      params.query?.dstCompanyId,
+      params.query?.srcCompanyId,
+      params.query?.bookClosed,
+      params.query?.month,
+      params.query?.srcCompanyRegistrationNumber,
     ],
     async () => {
-      if (!params.query.dstCompanyId && !params.query.srcCompanyId) {
-        return null;
-      }
       const resp = await axios.get<Api.OrderListResponse>(`${API_HOST}/order`, {
         params: params.query,
       });
       return resp.data;
+    },
+    {
+      enabled:
+        !!params.query?.dstCompanyId ||
+        !!params.query?.srcCompanyId ||
+        !!params.query?.srcCompanyRegistrationNumber,
     }
   );
 }

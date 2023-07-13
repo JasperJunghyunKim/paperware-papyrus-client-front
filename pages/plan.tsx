@@ -92,9 +92,8 @@ export default function Component() {
           },
           {
             title: "작업 유형",
-            render: (_value: any, record: Model.Plan) => (
-              Util.formatPlanType(record.type)
-            ),
+            render: (_value: any, record: Model.Plan) =>
+              Util.formatPlanType(record.type),
           },
           {
             title: "납품처",
