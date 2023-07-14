@@ -70,12 +70,9 @@ export default function Component() {
         columns={[
           {
             title: "작업 번호",
-            dataIndex: ["planNo"],
-            render: (value, record) => (
-              <div className="flex">
-                <div className="font-fixed bg-amber-100 px-1 text-amber-800 rounded-md">
-                  {value}
-                </div>
+            render: (record: Model.Plan) => (
+              <div className="font-fixed">
+                {Util.formatSerial(record.planNo)}
               </div>
             ),
           },

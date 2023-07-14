@@ -132,12 +132,14 @@ export default function Component() {
             dataIndex: ["flag"],
             render: (value) => (
               <div className="whitespace-pre">
-                {[
-                  value & (1 << 0) ? "매출" : null,
-                  value & (1 << 1) ? "매입" : null,
-                ]
-                  .filter((p) => !!p)
-                  .join(" & ")}
+                {value === 0
+                  ? "거래 중지"
+                  : [
+                      value & (1 << 0) ? "매출" : null,
+                      value & (1 << 1) ? "매입" : null,
+                    ]
+                      .filter((p) => !!p)
+                      .join(" & ")}
               </div>
             ),
           },

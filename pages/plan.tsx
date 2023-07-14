@@ -60,13 +60,10 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "주문 번호",
-            dataIndex: ["orderStock", "order", "orderNo"],
-            render: (value, record) => (
-              <div className="flex">
-                <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                  {value}
-                </div>
+            title: "작업 번호",
+            render: (record: Model.Plan) => (
+              <div className="font-fixed">
+                {Util.formatSerial(record.planNo)}
               </div>
             ),
           },

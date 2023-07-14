@@ -153,7 +153,7 @@ export default function Component(props: Props) {
                       : order.data.orderType === "DEPOSIT"
                       ? "매출 보관"
                       : order.data.orderType === "OUTSOURCE_PROCESS"
-                      ? "외주 재단 매출"
+                      ? "외주 공정 매출"
                       : "기타 매출"
                   } 등록`,
                 },
@@ -176,7 +176,7 @@ export default function Component(props: Props) {
                       : order.data.orderType === "DEPOSIT"
                       ? "매출 보관 확정"
                       : order.data.orderType === "OUTSOURCE_PROCESS"
-                      ? "외주 재단 매출 확정"
+                      ? "외주 공정 매출 확정"
                       : "기타 매출 확정",
                 },
               ]}
@@ -246,7 +246,7 @@ export default function Component(props: Props) {
                       : order.data.orderType === "DEPOSIT"
                       ? "매입 보관"
                       : order.data.orderType === "OUTSOURCE_PROCESS"
-                      ? "외주 재단 매입"
+                      ? "외주 공정 매입"
                       : "기타 매입"
                   } 등록`,
                 },
@@ -632,7 +632,7 @@ function DataForm(props: DataFormProps) {
               value: "DEPOSIT",
             },
             {
-              label: props.isSales ? "외주 재단 매출" : "외주 재단 매입",
+              label: props.isSales ? "외주 공정 매출" : "외주 공정 매입",
               value: "OUTSOURCE_PROCESS",
             },
             { label: props.isSales ? "기타 매출" : "기타 매입", value: "ETC" },
@@ -2137,7 +2137,7 @@ function PricePanel(props: PricePanelProps) {
             disabled
           />
         </Form.Item>
-        {props.order.orderType === "NORMAL" && !altBundle && (
+        {props.order.orderType === "NORMAL" && !isSales && !altBundle && (
           <>
             <Form.Item
               label="재고 금액 덮어쓰기"

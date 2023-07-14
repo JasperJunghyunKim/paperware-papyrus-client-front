@@ -268,9 +268,9 @@ export function orderTypeToString(
     .with({ value: "DEPOSIT", type: "SALES" }, () => "매출 보관")
     .with(
       { value: "OUTSOURCE_PROCESS", type: "PURCHASE" },
-      () => "외주 재단 매입"
+      () => "외주 공정 매입"
     )
-    .with({ value: "OUTSOURCE_PROCESS", type: "SALES" }, () => "외주 재단 매출")
+    .with({ value: "OUTSOURCE_PROCESS", type: "SALES" }, () => "외주 공정 매출")
     .with({ value: "ETC", type: "PURCHASE" }, () => "기타 매입")
     .with({ value: "ETC", type: "SALES" }, () => "기타 매출")
     .otherwise(() => "");
@@ -706,6 +706,10 @@ export function padRightCJK(value: string, length: number) {
 }
 
 export function formatSerial(serial: string): string {
+  console.log(serial);
+  if (serial?.length !== 15) {
+    return serial;
+  }
   const header = serial[0];
   return header === "P"
     ? `P-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
@@ -791,8 +795,8 @@ export function formatPlanType(value: Model.Enum.PlanType) {
     .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
     .with("TRADE_NORMAL_BUYER", () => "정상 매입")
     .with("TRADE_NORMAL_SELLER", () => "정상 매출")
-    .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 재단 매입")
-    .with("TRADE_OUTSOURCE_PROCESS_SELLER", () => "외주 재단 매출")
+    .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 공정 매입")
+    .with("TRADE_OUTSOURCE_PROCESS_SELLER", () => "외주 공정 매출")
     .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
     .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
     .otherwise(() => "");

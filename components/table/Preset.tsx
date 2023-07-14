@@ -541,7 +541,8 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
                           spec: record,
                         }) /
                           price.officialPrice) *
-                        100
+                        100,
+                  3
                 )} %`}
               </div>
             </div>

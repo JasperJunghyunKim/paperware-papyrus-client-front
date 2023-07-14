@@ -89,12 +89,9 @@ export default function Component() {
           },
           {
             title: "매출 번호",
-            dataIndex: "orderNo",
-            render: (value) => (
-              <div className="flex">
-                <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                  {value}
-                </div>
+            render: (record: RecordType) => (
+              <div className="font-fixed">
+                {Util.formatSerial(record.orderNo)}
               </div>
             ),
           },

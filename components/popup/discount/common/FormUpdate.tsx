@@ -75,7 +75,7 @@ export default function Component(props: Props) {
       </div>
       <div className="h-px bg-gray-200" />
       <Form.Item name="packagingType" label="포장">
-        <FormControl.SelectPackagingType showNone />
+        <FormControl.SelectPackagingType showNone disabled />
       </Form.Item>
       <Form.Item name="paperDomainId" label="제품 유형">
         <FormControl.SelectPaperDomain disabled />

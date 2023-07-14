@@ -78,7 +78,7 @@ export default function Component(props: Props) {
 
     data.refetch();
     setEdit(false);
-  }, [props.open]);
+  }, [data, props.open]);
 
   return (
     <Popup.Template.Property title="할인율 상세" {...props} open={!!props.open}>

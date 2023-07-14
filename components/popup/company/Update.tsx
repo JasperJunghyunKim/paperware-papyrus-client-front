@@ -92,7 +92,7 @@ export default function Component(props: Props) {
         },
       });
     },
-    [apiUpdateCompany]
+    [apiUpdateCompany, item.data]
   );
 
   const taxManagers = ApiHook.Inhouse.BusinessRelationship.useGetTaxManagerList(
@@ -548,7 +548,7 @@ function PopupUpdateTaxManager(props: PopupUpdateTaxManagerProps) {
 
     form.resetFields();
     props.onClose(false);
-  }, [apiUpdateTaxManager, item.data, form]);
+  }, [item.data, form, apiUpdateTaxManager, props]);
 
   return (
     <Popup.Template.Property
@@ -596,7 +596,7 @@ function PopupUpdateTaxManager(props: PopupUpdateTaxManagerProps) {
         >
           <Input />
         </Form.Item>
-        <Form.Item name="isDefault" label="대표 담당자">
+        <Form.Item name="isDefault" label="대표 담당자" valuePropName="checked">
           <Checkbox rootClassName="select-none">대표 담당자 적용</Checkbox>
         </Form.Item>
         <div className="flex justify-end">

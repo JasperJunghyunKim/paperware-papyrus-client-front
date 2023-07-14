@@ -190,13 +190,6 @@ export default function Component(props: Props) {
                   disabled
                 />
               </Form.Item>
-              <Form.Item label="가용 수량">
-                <FormControl.Quantity
-                  spec={spec}
-                  value={stock.data?.cachedQuantityAvailable}
-                  disabled
-                />
-              </Form.Item>
               <FormControl.Util.Split label="재고 수량 수정" />
               <Form.Item
                 label="증감 구분"

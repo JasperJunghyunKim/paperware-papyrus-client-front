@@ -48,7 +48,7 @@ export default function Component(props: Props) {
     await apiStart.mutateAsync({
       id: data.data.id,
     });
-  }, [props.open, data.data]);
+  }, [data.data, apiStart]);
 
   const apiComplete = ApiHook.Working.Plan.useComplete();
   const cmdComplete = useCallback(async () => {
@@ -57,7 +57,7 @@ export default function Component(props: Props) {
     await apiComplete.mutateAsync({
       id: data.data.id,
     });
-  }, [props.open, data.data]);
+  }, [data.data, apiComplete]);
 
   const apiDeleteInputStock = ApiHook.Working.Plan.useDeleteInputStock();
   const cmdDeleteInputStock = useCallback(
@@ -72,7 +72,7 @@ export default function Component(props: Props) {
         },
       });
     },
-    [props.open, data.data]
+    [data.data, props.open, apiDeleteInputStock]
   );
 
   const isAllCompleted = useCallback(() => {
@@ -126,6 +126,13 @@ export default function Component(props: Props) {
   const deltaTons = useMemo(() => {
     return totalTons - assignTons;
   }, [assignTons, totalTons]);
+
+  const inputShow =
+    data.data &&
+    (!data.data.orderProcess ||
+      data.data.type === "TRADE_OUTSOURCE_PROCESS_BUYER");
+
+  const inputWritable = data.data && data.data.status === "PROGRESSING";
 
   return (
     <Popup.Template.Full
@@ -275,7 +282,7 @@ export default function Component(props: Props) {
                 />
               )}
             </div>
-            {data.data.status === "PROGRESSING" && !data.data.orderProcess && (
+            {inputShow && (
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
                 <div className="flex-initial basis-64 flex h-0">
@@ -313,33 +320,34 @@ export default function Component(props: Props) {
                           { prefix: "실투입", negative: true }
                         ),
                         {
-                          render: (record: Model.StockEvent) => (
-                            <div className="flex gap-x-1 h-8">
-                              <button
-                                className="flex-initial bg-blue-500 text-white rounded-sm px-2"
-                                onClick={() =>
-                                  setOpenUpdate(
-                                    data.data
-                                      ? {
-                                          planId: data.data.id,
-                                          stockId: record.stock.id,
-                                        }
-                                      : false
-                                  )
-                                }
-                              >
-                                수량 수정
-                              </button>
-                              <button
-                                className="flex-initial bg-red-500 text-white rounded-sm px-2"
-                                onClick={() =>
-                                  cmdDeleteInputStock(record.stock.id)
-                                }
-                              >
-                                실투입 해제
-                              </button>
-                            </div>
-                          ),
+                          render: (record: Model.StockEvent) =>
+                            inputWritable && (
+                              <div className="flex gap-x-1 h-8">
+                                <button
+                                  className="flex-initial bg-blue-500 text-white rounded-sm px-2"
+                                  onClick={() =>
+                                    setOpenUpdate(
+                                      data.data
+                                        ? {
+                                            planId: data.data.id,
+                                            stockId: record.stock.id,
+                                          }
+                                        : false
+                                    )
+                                  }
+                                >
+                                  수량 수정
+                                </button>
+                                <button
+                                  className="flex-initial bg-red-500 text-white rounded-sm px-2"
+                                  onClick={() =>
+                                    cmdDeleteInputStock(record.stock.id)
+                                  }
+                                >
+                                  실투입 해제
+                                </button>
+                              </div>
+                            ),
                           width: "0px",
                           fixed: "right",
                         },
@@ -358,63 +366,67 @@ export default function Component(props: Props) {
                       </div>
                     </div>
                   </div>
-                  <div className="basis-px bg-gray-300" />
-                  <div className="flex-[0_0_400px] flex flex-col gap-y-2 p-2 bg-yellow-50">
-                    <Input
-                      prefix={`P-${data.data.company.invoiceCode}-`}
-                      addonBefore={`재고 번호`}
-                      placeholder="00000-00000"
-                      value={Util.formatSerialNo(serial)}
-                      onChange={(e) =>
-                        setSerial(e.target.value.replace(/-/g, ""))
-                      }
-                      maxLength={11}
-                      styles={{
-                        prefix: {
-                          fontFamily: "D2CodingFont",
-                          fontWeight: "bold",
-                          color: "darkgray",
-                          fontSize: "16px",
-                          padding: "0",
-                          margin: "0",
-                        },
-                        input: {
-                          fontFamily: "D2CodingFont",
-                          fontWeight: "bold",
-                          color: "blue",
-                          fontSize: "16px",
-                        },
-                      }}
-                    />
-                    <div className="flex-1 grid grid-cols-4 grid-rows-4 gap-2">
-                      {Array.from<number | "bs" | "c">([
-                        7,
-                        8,
-                        9,
-                        "bs",
-                        4,
-                        5,
-                        6,
-                        "c",
-                        1,
-                        2,
-                        3,
-                      ]).map((item) => (
-                        <NumberPad
-                          key={item}
-                          value={item}
-                          onClick={setSerial}
+                  {inputWritable && (
+                    <>
+                      <div className="basis-px bg-gray-300" />
+                      <div className="flex-[0_0_400px] flex flex-col gap-y-2 p-2 bg-yellow-50">
+                        <Input
+                          prefix={`P-${data.data.company.invoiceCode}-`}
+                          addonBefore={`재고 번호`}
+                          placeholder="00000-00000"
+                          value={Util.formatSerialNo(serial)}
+                          onChange={(e) =>
+                            setSerial(e.target.value.replace(/-/g, ""))
+                          }
+                          maxLength={11}
+                          styles={{
+                            prefix: {
+                              fontFamily: "D2CodingFont",
+                              fontWeight: "bold",
+                              color: "darkgray",
+                              fontSize: "16px",
+                              padding: "0",
+                              margin: "0",
+                            },
+                            input: {
+                              fontFamily: "D2CodingFont",
+                              fontWeight: "bold",
+                              color: "blue",
+                              fontSize: "16px",
+                            },
+                          }}
                         />
-                      ))}
-                      <Button.Default
-                        type="primary"
-                        label="재고 검색"
-                        onClick={() => showRegister(serial)}
-                        disabled={serial.length !== 10}
-                      />
-                      <NumberPad value={0} onClick={setSerial} />
-                    </div>
-                  </div>
+                        <div className="flex-1 grid grid-cols-4 grid-rows-4 gap-2">
+                          {Array.from<number | "bs" | "c">([
+                            7,
+                            8,
+                            9,
+                            "bs",
+                            4,
+                            5,
+                            6,
+                            "c",
+                            1,
+                            2,
+                            3,
+                          ]).map((item) => (
+                            <NumberPad
+                              key={item}
+                              value={item}
+                              onClick={setSerial}
+                            />
+                          ))}
+                          <Button.Default
+                            type="primary"
+                            label="재고 검색"
+                            onClick={() => showRegister(serial)}
+                            disabled={serial.length !== 10}
+                          />
+                          <NumberPad value={0} onClick={setSerial} />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             )}

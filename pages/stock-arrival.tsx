@@ -83,10 +83,10 @@ export default function Component() {
                   .with("INHOUSE_STOCK_QUANTITY_CHANGE", () => "재고 증감")
                   .with("TRADE_NORMAL_BUYER", () => "정상 매입")
                   .with("TRADE_NORMAL_SELLER", () => "정상 매출")
-                  .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 재단 매입")
+                  .with("TRADE_OUTSOURCE_PROCESS_BUYER", () => "외주 공정 매입")
                   .with(
                     "TRADE_OUTSOURCE_PROCESS_SELLER",
-                    () => "외주 재단 매출"
+                    () => "외주 공정 매출"
                   )
                   .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
                   .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
@@ -98,14 +98,12 @@ export default function Component() {
             title: "작업 번호",
             render: (value, record) =>
               record.plan && (
-                <div className="flex">
-                  <div className="font-fixed bg-sky-100 px-1 text-sky-800 rounded-md">
-                    {Util.formatSerial(
-                      record.plan.orderStock?.order.orderNo ??
-                        record.plan.orderProcess?.order.orderNo ??
-                        record.plan?.planNo
-                    )}
-                  </div>
+                <div className="font-fixed">
+                  {Util.formatSerial(
+                    record.plan.orderStock?.order.orderNo ??
+                      record.plan.orderProcess?.order.orderNo ??
+                      record.plan?.planNo
+                  )}
                 </div>
               ),
           },

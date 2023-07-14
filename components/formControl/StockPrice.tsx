@@ -92,9 +92,7 @@ export default function Component(props: Props) {
           (option) => option.value === "WON_PER_TON"
         );
       case "BOX":
-        return PRICE_UNIT_OPTIONS.filter(
-          (option) => option.value === "WON_PER_BOX"
-        );
+        return PRICE_UNIT_OPTIONS;
       default:
         return PRICE_UNIT_OPTIONS.filter(
           (option) => option.value !== "WON_PER_BOX"
@@ -366,6 +364,13 @@ export default function Component(props: Props) {
 
   const findOfficialPrice = useCallback(
     (type: Model.Enum.OfficialPriceType) => {
+      if (type === "NONE") {
+        return {
+          price: 0,
+          unit: "WON_PER_TON" as Model.Enum.PriceUnit,
+        };
+      }
+
       const mapping = apiOfficialMapping.data?.find(
         (item) =>
           item.officialPriceMapType === type &&
