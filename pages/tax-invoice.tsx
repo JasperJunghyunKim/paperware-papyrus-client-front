@@ -1,4 +1,5 @@
 import { Api, Model } from "@/@shared";
+import PartnerTaxManager from "@/@shared/models/partner-tax-manager";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { emptyStringToUndefined } from "@/common/util";
@@ -8,7 +9,6 @@ import { Alert, Form, Input, Radio, Select } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
-import { Mode } from "fs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   TbArrowBack,
@@ -305,13 +305,22 @@ function PopupUpdate(props: PopupUpdateProps) {
   const [openPopupOrders, setOpenPopupOrders] = useState<
     PopupOrdersOpenType | false
   >(false);
+  const [openPopupSelectTaxManager, setOpenPopupSelectTaxManager] = useState<
+    | {
+        companyRegistrationNumber: string;
+        flag: string;
+      }
+    | false
+  >(false);
 
   const [writeDate, setWriteDate] = useState<string | undefined>(
     dayjs().toISOString()
   );
   const [dstEmail, setDstEmail] = useState<string>();
   const [srcEmail, setSrcEmail] = useState<string>();
+  const [srcEmailName, setSrcEmailName] = useState<string>();
   const [srcEmail2, setSrcEmail2] = useState<string>();
+  const [srcEmail2Name, setSrcEmail2Name] = useState<string>();
   const [memo, setMemo] = useState<string>("");
   const [cash, setCash] = useState<number>();
   const [check, setCheck] = useState<number>();
@@ -341,7 +350,9 @@ function PopupUpdate(props: PopupUpdateProps) {
         writeDate,
         dstEmail: emptyStringToUndefined(dstEmail),
         srcEmail: emptyStringToUndefined(srcEmail),
+        srcEmailName: emptyStringToUndefined(srcEmailName),
         srcEmail2: emptyStringToUndefined(srcEmail2),
+        srcEmailName2: emptyStringToUndefined(srcEmail2Name),
         memo,
         cash,
         check,
@@ -397,7 +408,9 @@ function PopupUpdate(props: PopupUpdateProps) {
     setWriteDate(taxInvoice.data.writeDate);
     setDstEmail(taxInvoice.data.dstEmail);
     setSrcEmail(taxInvoice.data.srcEmail);
+    setSrcEmailName(taxInvoice.data.srcEmailName);
     setSrcEmail2(taxInvoice.data.srcEmail2);
+    setSrcEmail2Name(taxInvoice.data.srcEmailName2);
     setMemo(taxInvoice.data.memo);
     setPurposeType(taxInvoice.data.purposeType);
 
@@ -500,33 +513,99 @@ function PopupUpdate(props: PopupUpdateProps) {
               <td>{taxInvoice.data?.srcCompanyBizItem}</td>
             </tr>
             <tr>
-              <td className="bg-blue-50 text-blue-800">이메일 1</td>
+              <td className="bg-blue-50 text-blue-800 w-24">이메일 1</td>
               <td colSpan={3}>
-                {taxInvoice.data && (
-                  <SelectTaxInvoiceManagerEmail
-                    companyRegistrationNumber={
-                      taxInvoice.data?.srcCompanyRegistrationNumber
-                    }
-                    value={srcEmail}
-                    onChange={setSrcEmail}
-                    disabled={!edit}
-                  />
-                )}
+                <div className="flex gap-x-2">
+                  {taxInvoice.data && (
+                    <>
+                      <Input
+                        value={srcEmailName}
+                        disabled
+                        rootClassName="flex-1"
+                        placeholder="이름"
+                      />
+                      <Input
+                        value={srcEmail}
+                        disabled
+                        rootClassName="flex-1"
+                        placeholder="이메일"
+                      />
+                      {edit && (
+                        <>
+                          <button
+                            className="flex-initial bg-blue-600 text-white px-2 rounded"
+                            onClick={() =>
+                              setOpenPopupSelectTaxManager({
+                                companyRegistrationNumber:
+                                  taxInvoice.data.srcCompanyRegistrationNumber,
+                                flag: "1",
+                              })
+                            }
+                          >
+                            불러오기
+                          </button>
+                          <button
+                            className="flex-initial bg-red-600 text-white px-2 rounded"
+                            onClick={() => {
+                              setSrcEmail(undefined);
+                              setSrcEmailName(undefined);
+                            }}
+                          >
+                            삭제
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
             <tr>
-              <td className="bg-blue-50 text-blue-800">이메일 2</td>
+              <td className="bg-blue-50 text-blue-800 w-24">이메일 2</td>
               <td colSpan={3}>
-                {taxInvoice.data && (
-                  <SelectTaxInvoiceManagerEmail
-                    companyRegistrationNumber={
-                      taxInvoice.data?.srcCompanyRegistrationNumber
-                    }
-                    value={srcEmail2}
-                    onChange={setSrcEmail2}
-                    disabled={!edit}
-                  />
-                )}
+                <div className="flex gap-x-2">
+                  {taxInvoice.data && (
+                    <>
+                      <Input
+                        value={srcEmail2Name}
+                        disabled
+                        rootClassName="flex-1"
+                        placeholder="이름"
+                      />
+                      <Input
+                        value={srcEmail2}
+                        disabled
+                        rootClassName="flex-1"
+                        placeholder="이메일"
+                      />
+                      {edit && (
+                        <>
+                          <button
+                            className="flex-initial bg-blue-600 text-white px-2 rounded"
+                            onClick={() =>
+                              setOpenPopupSelectTaxManager({
+                                companyRegistrationNumber:
+                                  taxInvoice.data.srcCompanyRegistrationNumber,
+                                flag: "2",
+                              })
+                            }
+                          >
+                            불러오기
+                          </button>
+                          <button
+                            className="flex-initial bg-red-600 text-white px-2 rounded"
+                            onClick={() => {
+                              setSrcEmail2(undefined);
+                              setSrcEmail2Name(undefined);
+                            }}
+                          >
+                            삭제
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
           </table>
@@ -776,6 +855,19 @@ function PopupUpdate(props: PopupUpdateProps) {
           ) : null}
         </div>
       </div>
+      <PopupSelectTaxManager
+        open={openPopupSelectTaxManager}
+        onClose={() => setOpenPopupSelectTaxManager(false)}
+        onSelect={(name: string, email: string, flag: string) => {
+          if (flag === "1") {
+            setSrcEmailName(name);
+            setSrcEmail(email);
+          } else if (flag === "2") {
+            setSrcEmail2Name(name);
+            setSrcEmail2(email);
+          }
+        }}
+      />
       <PopupOrders
         open={openPopupOrders}
         onClose={() => setOpenPopupOrders(false)}
@@ -987,8 +1079,14 @@ function PopupOrders(props: {
 
 function SelectTaxInvoiceManagerEmail(props: {
   companyRegistrationNumber: string;
-  value?: string;
-  onChange?: (value: string | undefined) => void;
+  onChange?: (
+    value:
+      | {
+          name: string;
+          email: string;
+        }
+      | undefined
+  ) => void;
   disabled?: boolean;
 }) {
   const taxInvoiceManagers =
@@ -1008,7 +1106,7 @@ function SelectTaxInvoiceManagerEmail(props: {
         </div>
       ),
       text: `${x.name} ${x.email}`,
-      value: x.email,
+      value: `${x.name}/${x.email}`,
     }));
   }, [taxInvoiceManagers.data]);
 
@@ -1017,8 +1115,16 @@ function SelectTaxInvoiceManagerEmail(props: {
       className="w-full"
       placeholder="전자세금계산서 담당자 이메일 선택"
       options={options}
-      value={props.value}
-      onChange={props.onChange}
+      onChange={(p) =>
+        props.onChange?.(
+          p
+            ? {
+                name: p.split("/")[0],
+                email: p.split("/")[1],
+              }
+            : undefined
+        )
+      }
       disabled={props.disabled}
       allowClear
     />
@@ -1106,4 +1212,68 @@ function getOrderItem(order: Model.Order): string {
   }
 
   return `${orderType} ${order.orderNo} ${item}`;
+}
+
+function PopupSelectTaxManager(props: {
+  open: { companyRegistrationNumber: string; flag: string } | false;
+  onClose: (unit: false) => void;
+  onSelect: (name: string, email: string, flag: string) => void;
+}) {
+  const taxManagers = ApiHook.Inhouse.BusinessRelationship.useGetTaxManagerList(
+    {
+      companyRegistrationNumber: props.open
+        ? props.open.companyRegistrationNumber
+        : null,
+    }
+  );
+
+  const [selected, setSelected] = useState<PartnerTaxManager[]>([]);
+  const only = Util.only(selected);
+
+  useEffect(() => {
+    setSelected([]);
+  }, [props.open]);
+
+  return (
+    <Popup.Template.Property
+      title="담당자 선택"
+      open={!!props.open}
+      onClose={() => props.onClose(false)}
+    >
+      <div className="flex flex-col w-full h-full">
+        <div className="flex-1">
+          <Table.Default<PartnerTaxManager>
+            data={taxManagers.data}
+            keySelector={(record) => `${record.id}`}
+            selected={selected}
+            onSelectedChange={setSelected}
+            selection="single"
+            columns={[
+              {
+                title: "이름",
+                dataIndex: "name",
+              },
+              {
+                title: "이메일",
+                dataIndex: "email",
+              },
+            ]}
+          />
+        </div>
+        <div className="flex-initial basis-px bg-gray-200" />
+        <div className="flex-initial p-2 flex justify-center">
+          <Button.Default
+            label="선택"
+            type="primary"
+            onClick={() => {
+              if (only && props.open)
+                props.onSelect(only.name, only.email, props.open.flag);
+              props.onClose(false);
+            }}
+            disabled={!only}
+          />
+        </div>
+      </div>
+    </Popup.Template.Property>
+  );
 }

@@ -71,9 +71,7 @@ export default function Component(props: Props) {
               {
                 title: "작업 구분",
                 render: (_, record) => (
-                  <div>
-                    {Util.formatPlanType(record.stock.initialPlan.type)}
-                  </div>
+                  <div>{Util.formatPlanType(record.plan.type)}</div>
                 ),
               },
               {
@@ -88,16 +86,21 @@ export default function Component(props: Props) {
                 title: "작업번호",
                 render: (_, record) => (
                   <div className="font-fixed">
-                    {Util.formatSerial(record.stock.initialPlan.planNo)}
+                    {Util.formatSerial(record.plan.planNo)}
                   </div>
                 ),
               },
-              ...Table.Preset.useColumnPartner2<StockEventType>({
-                getValue: (record) =>
-                  record.stock.initialPlan.orderStock?.order.srcCompany
-                    .companyRegistrationNumber ??
-                  record.stock.initialPlan.orderProcess?.order.srcCompany
-                    .companyRegistrationNumber,
+              ...Table.Preset.useColumnPartner2({
+                title: "거래처",
+                getValue: (record: StockEventType) =>
+                  record.plan.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                    ? record.plan.orderProcess?.order.srcCompany
+                        .companyRegistrationNumber
+                    : record.plan.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                    ? record.plan.orderProcess?.order.dstCompany
+                        .companyRegistrationNumber
+                    : record.plan.orderStock?.order.dstCompany
+                        .companyRegistrationNumber,
               }),
               ...Table.Preset.columnQuantity<StockEventType>(
                 (_) => item.data?.stockInfo,

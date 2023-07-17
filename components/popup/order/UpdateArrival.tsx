@@ -1,23 +1,57 @@
-import { Api } from "@/@shared";
+import { Model } from "@/@shared";
+import { DiscountType, OfficialPriceType } from "@/@shared/models/enum";
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
 import { Form } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
-import _ from "lodash";
 import { useCallback, useEffect } from "react";
 
-type OrderId = number;
-type OpenType = OrderId | false;
+type OpenType =
+  | {
+      planId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+    }
+  | false;
 export interface Props {
   open: OpenType;
   onClose: (unit: false) => void;
 }
 
+interface FormType {
+  productId: number;
+  packagingId: number;
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+  paperColorGroupId: number | null;
+  paperColorId: number | null;
+  paperPatternId: number | null;
+  paperCertId: number | null;
+  quantity: number;
+  stockPrice: number;
+
+  officialPriceType: OfficialPriceType;
+  officialPrice: number;
+  officialPriceUnit: Model.Enum.PriceUnit;
+  discountType: DiscountType;
+  discountPrice: number;
+  unitPrice: number;
+  unitPriceUnit: Model.Enum.PriceUnit;
+}
+
 export default function Component(props: Props) {
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
-  const [form] = useForm<Api.OrderStockArrivalCreateRequest>();
+  const [form] = useForm<FormType>();
   const packagingId = useWatch(["packagingId"], form);
   const grammage = useWatch(["grammage"], form);
   const sizeX = useWatch(["sizeX"], form);
@@ -25,22 +59,41 @@ export default function Component(props: Props) {
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 
-  const api = ApiHook.Trade.Common.useCreateArrival();
-  const cmd = useCallback(
-    async (values: Api.OrderStockArrivalCreateRequest) => {
-      if (!props.open) return;
+  const apiUpdateSpec = ApiHook.Trade.Common.useUpdateArrivalSpec();
+  const cmdUpdateSpec = useCallback(async () => {
+    if (!props.open) return;
 
-      await api.mutateAsync({
-        orderId: props.open,
-        data: {
-          ...values,
+    const values = await form.validateFields();
+
+    await apiUpdateSpec.mutateAsync({
+      data: {
+        planId: props.open.planId,
+        productId: props.open.productId,
+        packagingId: props.open.packagingId,
+        grammage: props.open.grammage,
+        sizeX: props.open.sizeX,
+        sizeY: props.open.sizeY,
+        paperColorGroupId: Util.falsyToUndefined(props.open.paperColorGroupId),
+        paperColorId: Util.falsyToUndefined(props.open.paperColorId),
+        paperPatternId: Util.falsyToUndefined(props.open.paperPatternId),
+        paperCertId: Util.falsyToUndefined(props.open.paperCertId),
+        spec: {
+          productId: values.productId,
+          packagingId: values.packagingId,
+          grammage: values.grammage,
+          sizeX: values.sizeX,
+          sizeY: values.sizeY,
+          paperColorGroupId: Util.falsyToUndefined(values.paperColorGroupId),
+          paperColorId: Util.falsyToUndefined(values.paperColorId),
+          paperPatternId: Util.falsyToUndefined(values.paperPatternId),
+          paperCertId: Util.falsyToUndefined(values.paperCertId),
+          quantity: values.quantity,
         },
-      });
+      },
+    });
 
-      props.onClose(false);
-    },
-    [api, props]
-  );
+    props.onClose(false);
+  }, [apiUpdateSpec, props, form]);
 
   useEffect(() => {
     if (!packaging) {
@@ -54,14 +107,26 @@ export default function Component(props: Props) {
   }, [packagingId, grammage, sizeX, sizeY]);
 
   useEffect(() => {
-    if (!props.open) {
+    if (props.open) {
+      form.setFieldsValue({
+        productId: props.open.productId,
+        packagingId: props.open.packagingId,
+        grammage: props.open.grammage,
+        sizeX: props.open.sizeX,
+        sizeY: props.open.sizeY,
+        paperColorGroupId: Util.falsyToUndefined(props.open.paperColorGroupId),
+        paperColorId: Util.falsyToUndefined(props.open.paperColorId),
+        paperPatternId: Util.falsyToUndefined(props.open.paperPatternId),
+        paperCertId: Util.falsyToUndefined(props.open.paperCertId),
+      } as any);
+    } else {
       form.resetFields();
     }
   }, [props.open]);
 
   return (
     <Popup.Template.Property
-      title="예정 재고 추가"
+      title="예정 재고 수정"
       {...props}
       open={!!props.open}
     >
@@ -146,9 +211,9 @@ export default function Component(props: Props) {
           )}
           <Form.Item className="flex justify-end">
             <Button.Default
-              label="예정 재고 추가"
+              label="예정 재고 수정"
               type="primary"
-              onClick={async () => await cmd(form.getFieldsValue())}
+              onClick={async () => await cmdUpdateSpec()}
             />
           </Form.Item>
         </Form>

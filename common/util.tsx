@@ -706,7 +706,6 @@ export function padRightCJK(value: string, length: number) {
 }
 
 export function formatSerial(serial: string): string {
-  console.log(serial);
   if (serial?.length !== 15) {
     return serial;
   }

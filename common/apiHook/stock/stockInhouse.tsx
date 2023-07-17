@@ -14,6 +14,18 @@ export function useGetGroupList(params: {
       params.query.skip,
       params.query.take,
       params.query.planId,
+      params.query.isDirectShippingIncluded,
+      params.query.isZeroQuantityIncluded,
+      params.query.initialPlanId,
+      params.query.orderProcessIncluded,
+      params.query.warehouseIds,
+      params.query.paperTypeIds,
+      params.query.packagingIds,
+      params.query.manufacturerIds,
+      params.query.minGrammage,
+      params.query.maxGrammage,
+      params.query.sizeX,
+      params.query.sizeY,
     ],
     async () => {
       const resp = await axios.get<Api.StockGroupListResponse>(

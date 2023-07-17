@@ -60,10 +60,14 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "작업 번호",
+            title: "주문 번호",
             render: (record: Model.Plan) => (
               <div className="font-fixed">
-                {Util.formatSerial(record.planNo)}
+                {Util.formatSerial(
+                  record.orderStock?.order.orderNo ??
+                    record.orderProcess?.order.orderNo ??
+                    record.planNo
+                )}
               </div>
             ),
           },
@@ -92,38 +96,45 @@ export default function Component() {
             render: (_value: any, record: Model.Plan) =>
               Util.formatPlanType(record.type),
           },
-          {
+          ...Table.Preset.useColumnPartner2({
             title: "납품처",
-            dataIndex: ["orderStock", "order", "srcCompany", "businessName"],
-          },
-          {
-            title: "납품 요청일시",
-            dataIndex: ["orderStock", "order", "wantedDate"],
-            render: (value) => Util.formatIso8601ToLocalDate(value),
-          },
+            getValue: (record: Model.Plan) =>
+              record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                ? record.orderProcess?.order.srcCompany
+                    .companyRegistrationNumber
+                : record.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                ? record.orderProcess?.order.dstCompany
+                    .companyRegistrationNumber
+                : record.orderStock?.order.dstCompany.companyRegistrationNumber,
+          }),
           {
             title: "납품 도착지",
-            dataIndex: [
-              "orderStock",
-              "order",
-              "orderStock",
-              "dstLocation",
-              "name",
-            ],
+            render: (_, record) =>
+              record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                ? record.orderProcess?.srcLocation.name
+                : record.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                ? record.orderProcess?.dstLocation.name
+                : record.orderStock?.dstLocation.name ?? "",
           },
           {
-            title: "납품 도착지 주소",
-            dataIndex: [
-              "orderStock",
-              "order",
-              "orderStock",
-              "dstLocation",
-              "address",
-            ],
-            render: (value) => Util.formatAddress(value),
+            title: "납품 요청일",
+            render: (_, record) => (
+              <div className="font-fixed">
+                {Util.formatIso8601ToLocalDate(
+                  record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                    ? record.orderProcess?.srcWantedDate ?? null
+                    : record.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                    ? record.orderProcess?.dstWantedDate ?? null
+                    : record.orderStock?.wantedDate ?? null
+                )}
+              </div>
+            ),
           },
           {
-            title: "수급처",
+            title: "수급 도착지",
+          },
+          {
+            title: "수급 예정일",
           },
           {
             title: "창고",

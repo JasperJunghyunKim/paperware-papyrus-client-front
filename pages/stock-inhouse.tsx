@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
@@ -14,9 +14,13 @@ export default function Component() {
   const [openDetail, setOpenDetail] = useState<DetailOpenType | false>(false);
   const [openPrint, setOpenPrint] = useState<number | false>(false);
 
+  const [search, setSearch] = useState<any>({});
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.StockInhouse.useGetGroupList({
-    query: groupPage,
+    query: {
+      ...groupPage,
+      ...search,
+    },
   });
   const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
 
@@ -42,6 +46,8 @@ export default function Component() {
   useEffect(() => {
     setSelected([]);
   }, [selectedGroup]);
+
+  console.log(search);
 
   return (
     <Page title="자사 재고 관리">
@@ -82,6 +88,47 @@ export default function Component() {
           disabled={!only}
         />
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-warehouse",
+            field: "warehouseIds",
+            label: "창고",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "지종",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+          },
+          {
+            type: "number",
+            field: "sizeX",
+            label: "지폭",
+          },
+          {
+            type: "number",
+            field: "sizeY",
+            label: "지장",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<Model.StockGroup>
         data={groupList.data}
         keySelector={(record) => Util.keyOfStockGroup(record)}

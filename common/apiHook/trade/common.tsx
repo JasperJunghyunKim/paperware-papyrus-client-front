@@ -213,6 +213,82 @@ export function useCreateArrival() {
   );
 }
 
+export function useUpdateArrivalSpec() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "arrival", "update-spec"],
+    async (params: { data: Api.ArrivalStockSpecUpdateRequest }) => {
+      const resp = await axios.put(`${API_HOST}/stock/arrival`, params.data);
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order"]);
+        await queryClient.invalidateQueries(["stockInhouse"]);
+        message.info("입고 예정 재고를 수정했습니다.");
+      },
+    }
+  );
+}
+
+export function useGetArrivalPrice(params: {
+  query: Partial<Api.ArrivalStockPriceQuery> | null;
+}) {
+  return useQuery(
+    [
+      "order",
+      "arrival",
+      "price",
+      params.query?.productId,
+      params.query?.packagingId,
+      params.query?.grammage,
+      params.query?.sizeX,
+      params.query?.sizeY,
+      params.query?.paperColorGroupId,
+      params.query?.paperColorId,
+      params.query?.paperPatternId,
+      params.query?.paperCertId,
+      params.query?.planId,
+    ],
+    async () => {
+      if (!params.query) {
+        return null;
+      }
+
+      const resp = await axios.get<Api.ArrivalStockPriceResponse>(
+        `${API_HOST}/stock/arrival/price`,
+        {
+          params: params.query,
+        }
+      );
+      return resp.data;
+    }
+  );
+}
+
+export function useUpdateArrivalPrice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ["order", "arrival", "update-price"],
+    async (params: { data: Api.ArrivalStockPriceUpdateRequest }) => {
+      const resp = await axios.put(
+        `${API_HOST}/stock/arrival/price`,
+        params.data
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order"]);
+        await queryClient.invalidateQueries(["stockInhouse"]);
+        message.info("입고 예정 재고 금액을 수정했습니다.");
+      },
+    }
+  );
+}
+
 export function useDeleteArrival() {
   const queryClient = useQueryClient();
 

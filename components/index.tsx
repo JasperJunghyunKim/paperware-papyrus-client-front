@@ -9,3 +9,6 @@ export * as Table from "./table";
 export * as FormControl from "./formControl";
 export * as Icon from "./icon";
 export * as Condition from "./condition/accounted";
+import Search from "./search";
+
+export { Search };

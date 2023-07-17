@@ -138,7 +138,7 @@ function Item(props: ItemProps) {
             <div className="flex-1">
               {Util.taskTypeToString(props.data.value.type)}
             </div>
-            {props.plan.status === "PREPARING" && !props.readonly && (
+            {props.plan.status === "PREPARING" && (
               <div
                 className="flex-initial flex flex-col justify-center text-2xl cursor-pointer hover:text-red-600"
                 onClick={() => cmdDelete()}

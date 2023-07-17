@@ -110,7 +110,14 @@ export default function Component(props: Props) {
   );
 
   const assignTons = useMemo(() => {
-    return Util.gramsToTon(data.data?.assignStockEvent?.change ?? 0);
+    return data.data?.assignStockEvent
+      ? Util.gramsToTon(
+          PaperUtil.convertQuantity(
+            data.data.assignStockEvent.stock,
+            data.data?.assignStockEvent.change
+          ).grams
+        )
+      : 0;
   }, [data.data]);
 
   const totalTons = useMemo(() => {
@@ -124,7 +131,7 @@ export default function Component(props: Props) {
   }, [inputStocks.data]);
 
   const deltaTons = useMemo(() => {
-    return totalTons - assignTons;
+    return totalTons + assignTons;
   }, [assignTons, totalTons]);
 
   const inputShow =
@@ -360,7 +367,7 @@ export default function Component(props: Props) {
                         {`실투입 중량 합계: ${Util.comma(
                           totalTons,
                           3
-                        )} T (${Util.comma(deltaTons, 3)} T ${
+                        )} T (${Util.comma(Math.abs(deltaTons), 3)} T ${
                           deltaTons > 0 ? "초과" : "미달"
                         })`}
                       </div>

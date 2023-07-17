@@ -24,7 +24,7 @@ import {
   TbSquare,
   TbX,
 } from "react-icons/tb";
-import { CreateArrival } from ".";
+import { CreateArrival, UpdateArrival, UpdateArrivalPrice } from ".";
 import { TaskMap } from "../plan/common";
 
 export type OrderId = number;
@@ -527,8 +527,6 @@ function DataForm(props: DataFormProps) {
     const created = await api.mutateAsync({
       data: payload,
     });
-
-    console.log("created: ", created);
 
     props.onCreated(created);
 
@@ -1081,6 +1079,36 @@ interface RightSideOrderProps {
 }
 function RightSideOrder(props: RightSideOrderProps) {
   const [open, setOpen] = useState<number | false>(false);
+  const [openUpdate, setOpenUpdate] = useState<
+    | {
+        planId: number;
+        productId: number;
+        packagingId: number;
+        grammage: number;
+        sizeX: number;
+        sizeY: number;
+        paperColorGroupId: number | null;
+        paperColorId: number | null;
+        paperPatternId: number | null;
+        paperCertId: number | null;
+      }
+    | false
+  >(false);
+  const [openUpdatePrice, setOpenUpdatePrice] = useState<
+    | {
+        planId: number;
+        productId: number;
+        packagingId: number;
+        grammage: number;
+        sizeX: number;
+        sizeY: number;
+        paperColorGroupId: number | null;
+        paperColorId: number | null;
+        paperPatternId: number | null;
+        paperCertId: number | null;
+      }
+    | false
+  >(false);
   const me = ApiHook.Auth.useGetMe();
 
   const accepted =
@@ -1115,6 +1143,10 @@ function RightSideOrder(props: RightSideOrderProps) {
       paperCertId: onlyGroup?.paperCert?.id ?? undefined,
     },
   });
+
+  useEffect(() => {
+    setSelectedGroup([]);
+  }, [groupList.data]);
 
   const plan = ApiHook.Working.Plan.useGetItem({
     id:
@@ -1245,13 +1277,53 @@ function RightSideOrder(props: RightSideOrderProps) {
                 }
                 onClick={() => props.order && setOpen(props.order.id)}
               />
-              <div className="flex-1 flex flex-col justify-center select-none mx-8">
-                <Steps items={steps} current={status} />
-              </div>
+              <div className="flex-1" />
               {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
                 <Toolbar.ButtonPreset.Delete
                   label="예정 재고 삭제"
                   onClick={cmdDelete}
+                />
+              )}
+              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
+                <Toolbar.ButtonPreset.Update
+                  label="예정 재고 수정"
+                  onClick={() =>
+                    onlyGroup &&
+                    onlyGroup.plan &&
+                    setOpenUpdate({
+                      planId: onlyGroup.plan.id,
+                      productId: onlyGroup.product.id,
+                      packagingId: onlyGroup.packaging.id,
+                      grammage: onlyGroup.grammage,
+                      sizeX: onlyGroup.sizeX,
+                      sizeY: onlyGroup.sizeY,
+                      paperColorGroupId: onlyGroup.paperColorGroup?.id ?? null,
+                      paperColorId: onlyGroup.paperColor?.id ?? null,
+                      paperPatternId: onlyGroup.paperPattern?.id ?? null,
+                      paperCertId: onlyGroup.paperCert?.id ?? null,
+                    })
+                  }
+                />
+              )}
+              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
+                <Toolbar.ButtonPreset.Update
+                  label="금액 수정"
+                  onClick={() =>
+                    onlyGroup &&
+                    onlyGroup.plan &&
+                    setOpenUpdatePrice({
+                      planId: onlyGroup.plan.id,
+                      productId: onlyGroup.product.id,
+                      packagingId: onlyGroup.packaging.id,
+                      grammage: onlyGroup.grammage,
+                      sizeX: onlyGroup.sizeX,
+                      sizeY: onlyGroup.sizeY,
+                      paperColorGroupId: onlyGroup.paperColorGroup?.id ?? null,
+                      paperColorId: onlyGroup.paperColor?.id ?? null,
+                      paperPatternId: onlyGroup.paperPattern?.id ?? null,
+                      paperCertId: onlyGroup.paperCert?.id ?? null,
+                    })
+                  }
                 />
               )}
               {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
@@ -1350,6 +1422,8 @@ function RightSideOrder(props: RightSideOrderProps) {
         </>
       )}
       <CreateArrival open={open} onClose={setOpen} />
+      <UpdateArrival open={openUpdate} onClose={setOpenUpdate} />
+      <UpdateArrivalPrice open={openUpdatePrice} onClose={setOpenUpdatePrice} />
     </div>
   );
 }
