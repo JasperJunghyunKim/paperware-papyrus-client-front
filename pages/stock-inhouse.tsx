@@ -125,6 +125,11 @@ export default function Component() {
             field: "sizeY",
             label: "지장",
           },
+          {
+            type: "check",
+            field: "isZeroQuantityIncluded",
+            label: "소진된 재고 포함",
+          },
         ]}
         value={search}
         onSearch={setSearch}
