@@ -9,6 +9,7 @@ import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 type RecordType = Model.Deposit;
 
 export default function Component() {
+  const me = ApiHook.Auth.useGetMe();
   const [openCreate, setOpenCreate] = useState<"PURCHASE" | false>(false);
 
   const [search, setSearch] = useState<any>({});
@@ -17,7 +18,7 @@ export default function Component() {
     query: {
       ...page,
       ...search,
-      type: "PURCHASE",
+      srcCompanyRegistrationNumber: me.data?.company.companyRegistrationNumber,
     },
   });
   const [selected, setSelected] = useState<RecordType[]>([]);
@@ -50,7 +51,7 @@ export default function Component() {
         items={[
           {
             type: "select-company-registration-number",
-            field: "companyRegistrationNumber",
+            field: "dstCompanyRegistrationNumber",
             label: "거래처",
           },
           {
@@ -95,10 +96,9 @@ export default function Component() {
         selected={selected}
         onSelectedChange={setSelected}
         columns={[
-          {
-            title: "회사명",
-            dataIndex: "partnerNickName",
-          },
+          ...Table.Preset.useColumnPartner2<RecordType>({
+            getValue: (record) => record.dstCompanyRegistrationNumber,
+          }),
           ...Table.Preset.columnStockGroup<RecordType>((record) => record),
           {
             title: "손실율",

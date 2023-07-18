@@ -1,7 +1,7 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook } from "@/common";
 import { usePage } from "@/common/hook";
-import { Button, Icon, Popup, Table } from "@/components";
+import { Button, Popup, Table } from "@/components";
 import { useEffect, useState } from "react";
 
 export interface Props {
@@ -16,13 +16,18 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
+  const me = ApiHook.Auth.useGetMe();
   const [page, setPage] = usePage();
   const groupList = ApiHook.Trade.Deposit.useGetList({
     query: {
-      type: props.open ? props.open.type : undefined,
-      companyRegistrationNumber: props.open
-        ? props.open.companyRegistrationNumber
-        : undefined,
+      srcCompanyRegistrationNumber:
+        props.open && props.open.type === "SALES"
+          ? props.open.companyRegistrationNumber
+          : me.data?.company.companyRegistrationNumber,
+      dstCompanyRegistrationNumber:
+        props.open && props.open.type === "PURCHASE"
+          ? props.open.companyRegistrationNumber
+          : me.data?.company.companyRegistrationNumber,
       ...page,
     },
   });
@@ -59,10 +64,12 @@ export default function Component(props: Props) {
             onSelectedChange={setSelected}
             selection="single"
             columns={[
-              {
-                title: "거래처",
-                dataIndex: ["partnerNickName"],
-              },
+              ...Table.Preset.useColumnPartner2<Model.Deposit>({
+                getValue: (record) =>
+                  props.open && props.open.type === "PURCHASE"
+                    ? record.srcCompanyRegistrationNumber
+                    : record.dstCompanyRegistrationNumber,
+              }),
               ...Table.Preset.columnStockGroup<Model.Deposit>(
                 (record) => record
               ),

@@ -15,6 +15,7 @@ export interface Props {
 }
 
 export default function Component(props: Props) {
+  const me = ApiHook.Auth.useGetMe();
   const metadata = ApiHook.Static.PaperMetadata.useGetAll();
 
   const [form] = useForm<Api.DepositCreateRequest>();
@@ -43,7 +44,14 @@ export default function Component(props: Props) {
       await api.mutateAsync({
         data: {
           ...values,
-          type: props.open,
+          srcCompanyRegistrationNumber:
+            props.open === "PURCHASE"
+              ? me.data?.company.companyRegistrationNumber
+              : values.dstCompanyRegistrationNumber,
+          dstCompanyRegistrationNumber:
+            props.open === "SALES"
+              ? me.data?.company.companyRegistrationNumber
+              : values.srcCompanyRegistrationNumber,
         },
       });
       form.resetFields();
@@ -71,9 +79,16 @@ export default function Component(props: Props) {
     >
       <div className="flex-1 p-4">
         <Form form={form} onFinish={cmd} layout="vertical">
-          <Form.Item name="partnerCompanyRegistrationNumber" label="거래처">
-            <FormControl.SelectCompanyRegistrationNumber />
-          </Form.Item>
+          {props.open === "PURCHASE" && (
+            <Form.Item name="srcCompanyRegistrationNumber" label="거래처">
+              <FormControl.SelectCompanyRegistrationNumber />
+            </Form.Item>
+          )}
+          {props.open === "SALES" && (
+            <Form.Item name="dstCompanyRegistrationNumber" label="거래처">
+              <FormControl.SelectCompanyRegistrationNumber />
+            </Form.Item>
+          )}
           <Form.Item
             name="packagingId"
             label="포장"
@@ -155,7 +170,11 @@ export default function Component(props: Props) {
               />
             </Form.Item>
           )}
-          <Form.Item name="memo" label="비고">
+          <Form.Item
+            name="memo"
+            label="증감 사유"
+            rules={[{ required: true, message: "증감 사유을 입력해주세요." }]}
+          >
             <Input.TextArea />
           </Form.Item>
           <Form.Item className="flex justify-end">

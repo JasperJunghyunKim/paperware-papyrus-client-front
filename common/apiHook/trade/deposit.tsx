@@ -12,8 +12,8 @@ export function useGetList(params: {
       "list",
       params.query.skip,
       params.query.take,
-      params.query.type,
-      params.query.companyRegistrationNumber,
+      params.query.srcCompanyRegistrationNumber,
+      params.query.dstCompanyRegistrationNumber,
       params.query.packagingIds,
       params.query.paperTypeIds,
       params.query.manufacturerIds,
@@ -23,7 +23,11 @@ export function useGetList(params: {
       params.query.sizeY,
     ],
     async () => {
-      if (!params.query.type) return null;
+      if (
+        !params.query.srcCompanyRegistrationNumber &&
+        !params.query.dstCompanyRegistrationNumber
+      )
+        return null;
 
       const resp = await axios.get<Api.DepositListResponse>(
         `${API_HOST}/deposit`,

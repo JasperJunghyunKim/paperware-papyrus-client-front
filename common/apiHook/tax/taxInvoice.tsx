@@ -173,9 +173,32 @@ export function useSendInvoice() {
       return resp.data;
     },
     {
-      onSuccess: async () => {
+      onSuccess: async (value) => {
         await queryClient.invalidateQueries(["taxInvoice"]);
-        message.success("세금계산서를 전송했습니다.");
+        if (!value.certUrl) {
+          message.success("세금계산서를 전송했습니다.");
+        }
+      },
+    }
+  );
+}
+
+export function useCancelIssueInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { id: number }) => {
+      const resp = await axios.post<TaxInvoiceIssueResponse>(
+        `${API_HOST}/tax-invoice/${params.id}/issue/cancel`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (value) => {
+        await queryClient.invalidateQueries(["taxInvoice"]);
+        if (!value.certUrl) {
+          message.success("세금계산서 발행을 취소했습니다.");
+        }
       },
     }
   );

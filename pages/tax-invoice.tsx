@@ -19,6 +19,7 @@ import {
   TbPencil,
   TbPlus,
   TbSend,
+  TbX,
 } from "react-icons/tb";
 
 export default function Component() {
@@ -122,16 +123,27 @@ export default function Component() {
           },
           {
             title: "합계금액",
-            render: (record: Model.TaxInvoice) => Util.comma(record.totalPrice),
+            render: (record: Model.TaxInvoice) => (
+              <div className="text-right font-fixed">
+                {`${Util.comma(record.totalPrice)} 원`}
+              </div>
+            ),
           },
           {
             title: "공급가액",
-            render: (record: Model.TaxInvoice) =>
-              Util.comma(record.suppliedPrice),
+            render: (record: Model.TaxInvoice) => (
+              <div className="text-right font-fixed">
+                {`${Util.comma(record.suppliedPrice)} 원`}
+              </div>
+            ),
           },
           {
             title: "세액",
-            render: (record: Model.TaxInvoice) => Util.comma(record.vatPrice),
+            render: (record: Model.TaxInvoice) => (
+              <div className="text-right font-fixed">
+                {`${Util.comma(record.vatPrice)} 원`}
+              </div>
+            ),
           },
           {
             title: "영수/청구",
@@ -314,6 +326,9 @@ function PopupUpdate(props: PopupUpdateProps) {
     | false
   >(false);
   const [openIssue, setOpenIssue] = useState<PopupIssueOpenType>(false);
+  const [openSend, setOpenSend] = useState<PopupSendOpenType>(false);
+  const [openCancelIssue, setOpenCancelIssue] =
+    useState<PopupCancelIssueOpenType>(false);
 
   const [writeDate, setWriteDate] = useState<string | undefined>(
     dayjs().toISOString()
@@ -456,9 +471,36 @@ function PopupUpdate(props: PopupUpdateProps) {
       }
     } catch (e) {
       await Util.warn("전자세금계산서 발행 실패했습니다.");
-      props.onClose(false);
     }
   }, [apiIssue, taxInvoice.data]);
+
+  const apiCancelIssue = ApiHook.Tax.TaxInvoice.useCancelIssueInvoice();
+  const cmdCancelIssue = useCallback(async () => {
+    if (!taxInvoice.data) return;
+    if (!(await Util.confirm("전자세금계산서 발행을 취소하시겠습니까?")))
+      return;
+
+    try {
+      const resp = await apiCancelIssue.mutateAsync({
+        id: taxInvoice.data.id,
+      });
+
+      if (resp.certUrl) {
+        window.open(
+          resp.certUrl,
+          "공인인증서 등록",
+          "width=1100,height=800,location=no,toolbar=no,status=no"
+        );
+        setOpenCancelIssue({
+          certUrl: resp.certUrl,
+          taxInvoiceId: taxInvoice.data.id,
+        });
+      } else {
+      }
+    } catch (e) {
+      await Util.warn("전자세금계산서 발행 취소 실패했습니다.");
+    }
+  }, [apiCancelIssue, taxInvoice.data]);
 
   const myTradePrice = useCallback(
     (record: Model.Order) =>
@@ -796,7 +838,9 @@ function PopupUpdate(props: PopupUpdateProps) {
             ]}
             data={orders.data}
             keySelector={(p) => p.id}
-            selection="multiple"
+            selection={
+              taxInvoice.data?.status === "PREPARING" ? "multiple" : "none"
+            }
             selected={selectedOrders}
             onSelectedChange={setSelectedOrders}
             className="h-full"
@@ -921,8 +965,15 @@ function PopupUpdate(props: PopupUpdateProps) {
                 onClick={cmdIssue}
               />
             </>
-          ) : taxInvoice.data && taxInvoice.data.status === "ISSUED" ? (
+          ) : taxInvoice.data &&
+            (taxInvoice.data.status === "ISSUED" ||
+              taxInvoice.data.status === "SEND_FAILED") ? (
             <>
+              <Button.Default
+                icon={<TbArrowBack />}
+                label="발행 취소"
+                onClick={cmdCancelIssue}
+              />
               <Button.Default
                 icon={<TbSend />}
                 label="계산서 전송"
@@ -954,6 +1005,11 @@ function PopupUpdate(props: PopupUpdateProps) {
         open={openIssue}
         onClose={() => setOpenIssue(false)}
         trySend={() => cmdSend(true)}
+      />
+      <PopupSend open={openSend} onClose={() => setOpenSend(false)} />
+      <PopupCancelIssue
+        open={openCancelIssue}
+        onClose={() => setOpenCancelIssue(false)}
       />
       <style jsx>{`
         .red table,
@@ -1476,6 +1532,73 @@ function PopupSend(props: {
         </div>
         <div className="flex-initial flex justify-center gap-x-2">
           <Button.Default label="다시 전송" type="primary" onClick={cmdSend} />
+          <Button.Default label="취소" onClick={() => props.onClose(false)} />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+type PopupCancelIssueOpenType =
+  | { certUrl: string; taxInvoiceId: number }
+  | false;
+function PopupCancelIssue(props: {
+  open: PopupCancelIssueOpenType;
+  onClose: (unit: false) => void;
+}) {
+  const apiCancelIssue = ApiHook.Tax.TaxInvoice.useCancelIssueInvoice();
+  const cmdCancelIssue = useCallback(async () => {
+    if (!props.open) return;
+    if (
+      !(await Util.confirm("전자세금계산서 발행 취소를 다시 요청하시겠습니까?"))
+    )
+      return;
+
+    const resp = await apiCancelIssue.mutateAsync({
+      id: props.open.taxInvoiceId,
+    });
+
+    if (resp.certUrl) {
+      if (
+        !(await Util.confirm(
+          "공인인증서가 정상적으로 등록되지 않았습니다. 다시 등록하시겠습니까?"
+        ))
+      )
+        return;
+      window.open(
+        resp.certUrl,
+        "공인인증서 등록",
+        "width=1100,height=800,location=no,toolbar=no,status=no"
+      );
+    } else {
+      props.onClose(false);
+    }
+  }, [apiCancelIssue, props.open]);
+
+  return (
+    <Modal
+      open={!!props.open}
+      maskClosable={false}
+      closable={false}
+      footer={null}
+      centered
+      className="custom-modal"
+    >
+      <div className="flex flex-col justify-center p-4 gap-y-4">
+        <div className="flex-initial text-center text-lg font-bold">
+          공인인증서 등록이 필요합니다.
+        </div>
+        <div className="flex-initial text-center">
+          공인인증서 등록 팝업에서 인증서를 등록하신 다음,
+          <br />
+          아래 '발행 취소 다시 요청' 버튼을 눌러주세요.
+        </div>
+        <div className="flex-initial flex justify-center gap-x-2">
+          <Button.Default
+            label="발행 취소 다시 요청"
+            type="primary"
+            onClick={cmdCancelIssue}
+          />
           <Button.Default label="취소" onClick={() => props.onClose(false)} />
         </div>
       </div>
