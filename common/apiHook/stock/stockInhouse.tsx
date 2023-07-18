@@ -26,6 +26,10 @@ export function useGetGroupList(params: {
       params.query.maxGrammage,
       params.query.sizeX,
       params.query.sizeY,
+      params.query.partnerCompanyRegistrationNumbers,
+      params.query.locationIds,
+      params.query.minWantedDate,
+      params.query.maxWantedDate,
     ],
     async () => {
       const resp = await axios.get<Api.StockGroupListResponse>(

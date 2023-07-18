@@ -14,6 +14,13 @@ export function useGetList(params: {
       params.query.take,
       params.query.type,
       params.query.companyRegistrationNumber,
+      params.query.packagingIds,
+      params.query.paperTypeIds,
+      params.query.manufacturerIds,
+      params.query.minGrammage,
+      params.query.maxGrammage,
+      params.query.sizeX,
+      params.query.sizeY,
     ],
     async () => {
       if (!params.query.type) return null;

@@ -1091,6 +1091,7 @@ function RightSideOrder(props: RightSideOrderProps) {
         paperColorId: number | null;
         paperPatternId: number | null;
         paperCertId: number | null;
+        quantity: number;
       }
     | false
   >(false);
@@ -1301,6 +1302,7 @@ function RightSideOrder(props: RightSideOrderProps) {
                       paperColorId: onlyGroup.paperColor?.id ?? null,
                       paperPatternId: onlyGroup.paperPattern?.id ?? null,
                       paperCertId: onlyGroup.paperCert?.id ?? null,
+                      quantity: onlyGroup.quantity,
                     })
                   }
                 />
@@ -1392,7 +1394,6 @@ function RightSideOrder(props: RightSideOrderProps) {
                         plan.data.assignStockEvent.stock.packaging.type
                       }
                       readonly
-                      disabled
                     />
                   )}
               </div>

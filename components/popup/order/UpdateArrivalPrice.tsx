@@ -203,10 +203,16 @@ export default function Component(props: Props) {
           <Form.Item name="paperCertId" label="인증">
             <FormControl.SelectCert disabled />
           </Form.Item>
-          {packaging && (
+          {packaging && props.open && (
             <>
               <Form.Item name={"price"} label="재고 금액">
                 <FormControl.StockPrice
+                  officialSpec={{
+                    productId: props.open.productId,
+                    paperColorGroupId: props.open.paperColorGroupId,
+                    paperColorId: props.open.paperColorId,
+                    paperCertId: props.open.paperCertId,
+                  }}
                   spec={{
                     packaging,
                     grammage,

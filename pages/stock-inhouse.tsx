@@ -47,8 +47,6 @@ export default function Component() {
     setSelected([]);
   }, [selectedGroup]);
 
-  console.log(search);
-
   return (
     <Page title="자사 재고 관리">
       <StatBar.Container>
@@ -140,7 +138,9 @@ export default function Component() {
         selected={selectedGroup}
         onSelectedChange={setSelectedGroup}
         selection="single"
-        columns={Table.Preset.stockGroup()}
+        columns={Table.Preset.stockGroup({
+          lossRate: (record) => record.lossRate,
+        })}
         page={groupPage}
         setPage={setGroupPage}
       />

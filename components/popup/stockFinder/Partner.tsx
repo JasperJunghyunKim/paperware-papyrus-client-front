@@ -50,19 +50,17 @@ export default function Component(props: Props) {
                 title: "창고",
                 dataIndex: ["warehouse", "name"],
               },
-              ...Table.Preset.columnStockGroup<Model.StockGroup>(
-                (p) => p // TODO
-              ),
+              ...Table.Preset.columnStockGroup<Model.StockGroup>((p) => p),
               ...Table.Preset.columnQuantity<Model.StockGroup>(
-                (p) => p, // TODO
-                (record) => QuantityUtil.compact(record, record).totalQuantity,
-                { prefix: "실물" }
-              ),
-              ...Table.Preset.columnQuantity<Model.StockGroup>(
-                (p) => p, // TODO
+                (p) => p,
                 (record) =>
                   QuantityUtil.compact(record, record).availableQuantity,
                 { prefix: "가용" }
+              ),
+              ...Table.Preset.columnQuantity<Model.StockGroup>(
+                (p) => p,
+                (record) => QuantityUtil.compact(record, record).totalQuantity,
+                { prefix: "실물" }
               ),
             ]}
           />

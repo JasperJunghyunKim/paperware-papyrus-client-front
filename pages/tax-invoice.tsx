@@ -5,7 +5,7 @@ import { usePage } from "@/common/hook";
 import { emptyStringToUndefined } from "@/common/util";
 import { Button, FormControl, Icon, Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { Alert, Form, Input, Radio, Select } from "antd";
+import { Alert, Form, Input, Modal, Radio, Select } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
@@ -15,6 +15,7 @@ import {
   TbCash,
   TbCheck,
   TbEraser,
+  TbNote,
   TbPencil,
   TbPlus,
   TbSend,
@@ -312,6 +313,7 @@ function PopupUpdate(props: PopupUpdateProps) {
       }
     | false
   >(false);
+  const [openIssue, setOpenIssue] = useState<PopupIssueOpenType>(false);
 
   const [writeDate, setWriteDate] = useState<string | undefined>(
     dayjs().toISOString()
@@ -395,6 +397,68 @@ function PopupUpdate(props: PopupUpdateProps) {
     });
     setSelectedOrders([]);
   }, [apiDeleteInvoiceOrder, selectedOrders, taxInvoice.data]);
+
+  const apiSend = ApiHook.Tax.TaxInvoice.useSendInvoice();
+  const cmdSend = useCallback(
+    async (skip: boolean) => {
+      if (!taxInvoice.data) return;
+      if (!skip && !(await Util.confirm("전자세금계산서를 전송하시겠습니까?")))
+        return;
+
+      try {
+        const resp = await apiSend.mutateAsync({
+          id: taxInvoice.data.id,
+        });
+
+        if (resp.certUrl) {
+          window.open(
+            resp.certUrl,
+            "공인인증서 등록",
+            "width=1100,height=800,location=no,toolbar=no,status=no"
+          );
+          setOpenIssue({
+            certUrl: resp.certUrl,
+            taxInvoiceId: taxInvoice.data.id,
+          });
+        } else {
+        }
+      } catch (e) {
+        await Util.warn("전자세금계산서 전송 실패했습니다.");
+        props.onClose(false);
+      }
+    },
+    [apiSend, taxInvoice.data]
+  );
+
+  const apiIssue = ApiHook.Tax.TaxInvoice.useIssueInvoice();
+  const cmdIssue = useCallback(async () => {
+    if (!taxInvoice.data) return;
+    if (!(await Util.confirm("전자세금계산서를 발행하시겠습니까?"))) return;
+
+    try {
+      const resp = await apiIssue.mutateAsync({
+        id: taxInvoice.data.id,
+      });
+
+      if (resp.certUrl) {
+        window.open(
+          resp.certUrl,
+          "공인인증서 등록",
+          "width=1100,height=800,location=no,toolbar=no,status=no"
+        );
+        setOpenIssue({
+          certUrl: resp.certUrl,
+          taxInvoiceId: taxInvoice.data.id,
+        });
+      } else {
+        if (!(await Util.confirm("국세청에 즉시 전송하시겠습니까?"))) return;
+        cmdSend(true);
+      }
+    } catch (e) {
+      await Util.warn("전자세금계산서 발행 실패했습니다.");
+      props.onClose(false);
+    }
+  }, [apiIssue, taxInvoice.data]);
 
   const myTradePrice = useCallback(
     (record: Model.Order) =>
@@ -717,8 +781,10 @@ function PopupUpdate(props: PopupUpdateProps) {
                 title: "합계",
                 render: (record: Model.Order) => (
                   <div className="font-fixed text-right">
-                    {(myTradePrice(record)?.suppliedPrice ?? 0) +
-                      (myTradePrice(record)?.vatPrice ?? 0)}{" "}
+                    {Util.comma(
+                      (myTradePrice(record)?.suppliedPrice ?? 0) +
+                        (myTradePrice(record)?.vatPrice ?? 0)
+                    )}{" "}
                     원
                   </div>
                 ),
@@ -819,7 +885,9 @@ function PopupUpdate(props: PopupUpdateProps) {
                 onClick={cmdUpdate}
               />
             </>
-          ) : taxInvoice.data && taxInvoice.data?.status === "PREPARING" ? (
+          ) : taxInvoice.data &&
+            (taxInvoice.data?.status === "PREPARING" ||
+              taxInvoice.data.status === "ISSUE_FAILED") ? (
             <>
               <Button.Default
                 icon={<TbPlus />}
@@ -850,6 +918,16 @@ function PopupUpdate(props: PopupUpdateProps) {
                 icon={<TbSend />}
                 label="계산서 발행"
                 type="primary"
+                onClick={cmdIssue}
+              />
+            </>
+          ) : taxInvoice.data && taxInvoice.data.status === "ISSUED" ? (
+            <>
+              <Button.Default
+                icon={<TbSend />}
+                label="계산서 전송"
+                type="primary"
+                onClick={async () => await cmdSend(false)}
               />
             </>
           ) : null}
@@ -871,6 +949,11 @@ function PopupUpdate(props: PopupUpdateProps) {
       <PopupOrders
         open={openPopupOrders}
         onClose={() => setOpenPopupOrders(false)}
+      />
+      <PopupIssue
+        open={openIssue}
+        onClose={() => setOpenIssue(false)}
+        trySend={() => cmdSend(true)}
       />
       <style jsx>{`
         .red table,
@@ -1158,7 +1241,7 @@ function getOrderItem(order: Model.Order): string {
 
   switch (order.orderType) {
     case "NORMAL":
-      orderType = order.dstDepositEvent ? "보관출고" : "정상매출";
+      orderType = order.depositEvent ? "보관출고" : "정상매출";
       break;
     case "DEPOSIT":
       orderType = "매출보관";
@@ -1275,5 +1358,127 @@ function PopupSelectTaxManager(props: {
         </div>
       </div>
     </Popup.Template.Property>
+  );
+}
+
+type PopupIssueOpenType = { certUrl: string; taxInvoiceId: number } | false;
+function PopupIssue(props: {
+  open: PopupIssueOpenType;
+  onClose: (unit: false) => void;
+  trySend: () => void;
+}) {
+  const apiIssue = ApiHook.Tax.TaxInvoice.useIssueInvoice();
+  const cmdIssue = useCallback(async () => {
+    if (!props.open) return;
+    if (!(await Util.confirm("전자세금계산서를 다시 발행하시겠습니까?")))
+      return;
+
+    const resp = await apiIssue.mutateAsync({
+      id: props.open.taxInvoiceId,
+    });
+
+    if (resp.certUrl) {
+      if (
+        !(await Util.confirm(
+          "공인인증서가 정상적으로 등록되지 않았습니다. 다시 등록하시겠습니까?"
+        ))
+      )
+        return;
+      window.open(
+        resp.certUrl,
+        "공인인증서 등록",
+        "width=1100,height=800,location=no,toolbar=no,status=no"
+      );
+    } else {
+      if (await Util.confirm("국세청에 즉시 전송하시겠습니까?")) {
+        props.trySend();
+      }
+      props.onClose(false);
+    }
+  }, [apiIssue, props.open]);
+
+  return (
+    <Modal
+      open={!!props.open}
+      maskClosable={false}
+      closable={false}
+      footer={null}
+      centered
+      className="custom-modal"
+    >
+      <div className="flex flex-col justify-center p-4 gap-y-4">
+        <div className="flex-initial text-center text-lg font-bold">
+          공인인증서 등록이 필요합니다.
+        </div>
+        <div className="flex-initial text-center">
+          공인인증서 등록 팝업에서 인증서를 등록하신 다음,
+          <br />
+          아래 '다시 발행' 버튼을 눌러주세요.
+        </div>
+        <div className="flex-initial flex justify-center gap-x-2">
+          <Button.Default label="다시 발행" type="primary" onClick={cmdIssue} />
+          <Button.Default label="취소" onClick={() => props.onClose(false)} />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+type PopupSendOpenType = { certUrl: string; taxInvoiceId: number } | false;
+function PopupSend(props: {
+  open: PopupSendOpenType;
+  onClose: (unit: false) => void;
+}) {
+  const apiSend = ApiHook.Tax.TaxInvoice.useSendInvoice();
+  const cmdSend = useCallback(async () => {
+    if (!props.open) return;
+    if (!(await Util.confirm("전자세금계산서를 다시 전송하시겠습니까?")))
+      return;
+
+    const resp = await apiSend.mutateAsync({
+      id: props.open.taxInvoiceId,
+    });
+
+    if (resp.certUrl) {
+      if (
+        !(await Util.confirm(
+          "공인인증서가 정상적으로 등록되지 않았습니다. 다시 등록하시겠습니까?"
+        ))
+      )
+        return;
+      window.open(
+        resp.certUrl,
+        "공인인증서 등록",
+        "width=1100,height=800,location=no,toolbar=no,status=no"
+      );
+    } else {
+      props.onClose(false);
+    }
+  }, [apiSend, props.open]);
+
+  return (
+    <Modal
+      open={!!props.open}
+      maskClosable={false}
+      closable={false}
+      footer={null}
+      centered
+      className="custom-modal"
+    >
+      <div className="flex flex-col justify-center p-4 gap-y-4">
+        <div className="flex-initial text-center text-lg font-bold">
+          공인인증서 등록이 필요합니다.
+        </div>
+        <div className="flex-initial text-center">
+          공인인증서 등록 팝업에서 인증서를 등록하신 다음,
+          <br />
+          아래 '다시 전송' 버튼을 눌러주세요.
+        </div>
+        <div className="flex-initial flex justify-center gap-x-2">
+          <Button.Default label="다시 전송" type="primary" onClick={cmdSend} />
+          <Button.Default label="취소" onClick={() => props.onClose(false)} />
+        </div>
+      </div>
+    </Modal>
   );
 }

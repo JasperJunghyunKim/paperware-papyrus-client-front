@@ -1,7 +1,7 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
@@ -10,12 +10,14 @@ import { match } from "ts-pattern";
 type RecordType = Model.StockGroup;
 
 export default function Component() {
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
   const list = ApiHook.Stock.StockInhouse.useGetGroupList({
     query: {
       planId: "any",
       orderProcessIncluded: "true",
       ...page,
+      ...search,
     },
   });
   const [selected, setSelected] = useState<RecordType[]>([]);
@@ -62,6 +64,57 @@ export default function Component() {
           }
         />
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-company-registration-number",
+            field: "partnerCompanyRegistrationNumbers",
+            label: "거래처",
+          },
+          {
+            type: "select-location",
+            field: "locationIds",
+            label: "도착지",
+          },
+          {
+            type: "date-range",
+            field: "wantedDate",
+            label: "도착 예정일",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "지종",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+          },
+          {
+            type: "number",
+            field: "sizeX",
+            label: "지폭",
+          },
+          {
+            type: "number",
+            field: "sizeY",
+            label: "지장",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<RecordType>
         data={list.data}
         page={page}

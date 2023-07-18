@@ -3,6 +3,7 @@ import {
   AddOrderToTaxInvoiceRequest,
   DeleteOrderFromTaxInvoiceRequest,
   GetTaxInvoiceListQuery,
+  TaxInvoiceIssueResponse,
   TaxInvoiceOrderListResponse,
 } from "@/@shared/api";
 import { API_HOST } from "@/common/const";
@@ -135,6 +136,46 @@ export function useDeleteInvoiceOrder() {
       onSuccess: async () => {
         await queryClient.invalidateQueries(["taxInvoice"]);
         message.success("품목을 삭제했습니다.");
+      },
+    }
+  );
+}
+
+export function useIssueInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { id: number }) => {
+      const resp = await axios.post<TaxInvoiceIssueResponse>(
+        `${API_HOST}/tax-invoice/${params.id}/issue`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (value) => {
+        await queryClient.invalidateQueries(["taxInvoice"]);
+        if (!value.certUrl) {
+          message.success("세금계산서를 발행했습니다.");
+        }
+      },
+    }
+  );
+}
+
+export function useSendInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { id: number }) => {
+      const resp = await axios.post<TaxInvoiceIssueResponse>(
+        `${API_HOST}/tax-invoice/${params.id}/send`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(["taxInvoice"]);
+        message.success("세금계산서를 전송했습니다.");
       },
     }
   );

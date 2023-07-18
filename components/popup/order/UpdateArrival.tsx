@@ -19,6 +19,7 @@ type OpenType =
       paperColorId: number | null;
       paperPatternId: number | null;
       paperCertId: number | null;
+      quantity: number;
     }
   | false;
 export interface Props {
@@ -118,6 +119,7 @@ export default function Component(props: Props) {
         paperColorId: Util.falsyToUndefined(props.open.paperColorId),
         paperPatternId: Util.falsyToUndefined(props.open.paperPatternId),
         paperCertId: Util.falsyToUndefined(props.open.paperCertId),
+        quantity: props.open.quantity,
       } as any);
     } else {
       form.resetFields();

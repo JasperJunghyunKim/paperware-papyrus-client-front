@@ -602,7 +602,9 @@ export function columnStock<T extends Model.Stock>(): ColumnType<T>[] {
   ];
 }
 
-export function stockGroup<T extends Model.StockGroup>(): ColumnType<T>[] {
+export function stockGroup<T extends Model.StockGroup>(options?: {
+  lossRate?: (record: T) => number | undefined | null;
+}): ColumnType<T>[] {
   const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
 
   return [
@@ -647,6 +649,19 @@ export function stockGroup<T extends Model.StockGroup>(): ColumnType<T>[] {
       dataIndex: ["warehouse", "name"],
     },
     ...columnStockGroup<T>((record) => record),
+    ...(options
+      ? [
+          {
+            title: "손실율",
+            render: (record: T) =>
+              options.lossRate?.(record) ? (
+                <div className="font-fixed">
+                  {Util.comma(options.lossRate?.(record) ?? 0, 2)} %
+                </div>
+              ) : null,
+          },
+        ]
+      : []),
     ...columnQuantity<T>(
       (record) => record,
       (record) =>

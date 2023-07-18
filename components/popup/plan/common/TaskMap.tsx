@@ -51,8 +51,8 @@ export default function Component(props: Props) {
     props.plan.status === "PREPARING" &&
     (props.plan.type === "INHOUSE_PROCESS" ||
       props.plan.type === "TRADE_NORMAL_SELLER" ||
+      props.plan.type === "TRADE_OUTSOURCE_PROCESS_BUYER" ||
       props.plan.type === "TRADE_OUTSOURCE_PROCESS_SELLER");
-
   return (
     <div className="w-auto h-full flex">
       <div className="flex-1 flex flex-col p-4 overflow-scroll">
@@ -71,20 +71,22 @@ export default function Component(props: Props) {
         </div>
         {modifidable && (
           <>
-            {props.packagingType === "ROLL" && (
-              <AddNode
-                type="CONVERTING"
-                plan={props.plan}
-                parentTaskId={null}
-              />
-            )}
-            {props.packagingType !== "ROLL" && (
-              <AddNode
-                type="GUILLOTINE"
-                plan={props.plan}
-                parentTaskId={null}
-              />
-            )}
+            {props.packagingType === "ROLL" &&
+              props.plan.type !== "TRADE_OUTSOURCE_PROCESS_BUYER" && (
+                <AddNode
+                  type="CONVERTING"
+                  plan={props.plan}
+                  parentTaskId={null}
+                />
+              )}
+            {props.packagingType !== "ROLL" &&
+              props.plan.type !== "TRADE_OUTSOURCE_PROCESS_BUYER" && (
+                <AddNode
+                  type="GUILLOTINE"
+                  plan={props.plan}
+                  parentTaskId={null}
+                />
+              )}
             <AddNode type="RELEASE" plan={props.plan} parentTaskId={null} />
           </>
         )}

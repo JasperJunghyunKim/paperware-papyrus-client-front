@@ -1,28 +1,74 @@
 import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, StatBar, Table } from "@/components";
+import { Popup, Search, StatBar, Table } from "@/components";
 import { Page } from "@/components/layout";
 import { useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
 
+type RecordType = Model.StockGroup & {
+  partnerCompanyRegistrationNumber: string;
+};
+
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
 
+  const [search, setSearch] = useState<any>({});
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.PartnerStock.useGetList({
-    query: groupPage,
+    query: { ...groupPage, ...search },
   });
-  const [selectedGroup, setSelectedGroup] = useState<Model.StockGroup[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<RecordType[]>([]);
 
   return (
     <Page title="매입처 재고 조회">
       <StatBar.Container>
         <StatBar.Item icon={<TbMapPinFilled />} label="매입처" value={"-"} />
       </StatBar.Container>
-      <Table.Default<Model.StockGroup>
+      <Search
+        items={[
+          {
+            type: "select-company-purchase",
+            field: "companyId",
+            label: "거래처",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "지종",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+          },
+          {
+            type: "number",
+            field: "sizeX",
+            label: "지폭",
+          },
+          {
+            type: "number",
+            field: "sizeY",
+            label: "지장",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
+      <Table.Default<RecordType>
         data={groupList.data}
-        keySelector={(record) =>
+        keySelector={(record: RecordType) =>
           `${record.product.id} ${record.sizeX} ${record.sizeY} ${
             record.grammage
           } ${record.paperColorGroup?.id ?? "_"} ${
@@ -37,34 +83,34 @@ export default function Component() {
         page={groupPage}
         setPage={setGroupPage}
         columns={[
-          {
+          ...Table.Preset.useColumnPartner2<RecordType>({
             title: "매입처",
-            dataIndex: ["warehouse", "company", "businessName"],
-          },
+            getValue: (record: RecordType) =>
+              record.partnerCompanyRegistrationNumber,
+          }),
           {
             title: "창고",
             dataIndex: ["warehouse", "name"],
           },
+          ...Table.Preset.columnStockGroup<RecordType>((record) => record),
           {
-            title: "창고 주소",
-            dataIndex: ["warehouse", "address"],
-            render: (value) => (
-              <div className="flex flex-col">{Util.formatAddress(value)}</div>
-            ),
+            title: "손실율",
+            render: (record: RecordType) =>
+              record.lossRate ? (
+                <div className="font-fixed">
+                  {Util.comma(record.lossRate ?? 0, 2)} %
+                </div>
+              ) : null,
           },
-
-          ...Table.Preset.columnStockGroup<Model.StockGroup>(
-            (record) => record
-          ),
-          ...Table.Preset.columnQuantity<Model.StockGroup>(
-            (record) => record,
-            (record) => record.totalQuantity,
-            { prefix: "실물" }
-          ),
-          ...Table.Preset.columnQuantity<Model.StockGroup>(
+          ...Table.Preset.columnQuantity<RecordType>(
             (record) => record,
             (record) => record.availableQuantity,
             { prefix: "가용" }
+          ),
+          ...Table.Preset.columnQuantity<RecordType>(
+            (record) => record,
+            (record) => record.totalQuantity,
+            { prefix: "실물" }
           ),
         ]}
       />

@@ -1,9 +1,11 @@
 import { ApiHook, Util } from "@/common";
-import { Input, InputNumber, Select } from "antd";
+import { Input, InputNumber, Select, Switch } from "antd";
 import _ from "lodash";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { match } from "ts-pattern";
 import { Icon } from "..";
+import { DatePicker } from "../formControl";
+import classNames from "classnames";
 
 interface Props {
   items: SearchItem[];
@@ -21,7 +23,10 @@ interface SearchItem {
     | "select-packaging"
     | "select-papertype"
     | "select-manufacturer"
-    | "date"
+    | "select-company-purchase"
+    | "select-company-registration-number"
+    | "select-location"
+    | "date-range"
     | "check";
   options?: { label: string; value: string }[];
   min?: number;
@@ -86,8 +91,20 @@ export default function Component(props: Props) {
               .with("range", () => (
                 <Range
                   {...getFieldValue(item.field)}
-                  minValue={data[item.field]?.split("|")[0] ?? null}
-                  maxValue={data[item.field]?.split("|")[1] ?? null}
+                  minValue={
+                    data[
+                      `min${
+                        item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                      }`
+                    ] ?? null
+                  }
+                  maxValue={
+                    data[
+                      `max${
+                        item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                      }`
+                    ] ?? null
+                  }
                   onMinChange={setFieldValue(
                     `min${
                       item.field.charAt(0).toUpperCase() + item.field.slice(1)
@@ -102,10 +119,33 @@ export default function Component(props: Props) {
                   max={item.max ?? 999999999}
                 />
               ))
-              .with("date", () => (
-                <Date
+              .with("date-range", () => (
+                <DateRange
                   {...getFieldValue(item.field)}
-                  onChange={setFieldValue(item.field)}
+                  minValue={
+                    data[
+                      `min${
+                        item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                      }`
+                    ] ?? null
+                  }
+                  maxValue={
+                    data[
+                      `max${
+                        item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                      }`
+                    ] ?? null
+                  }
+                  onMinChange={setFieldValue(
+                    `min${
+                      item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                    }`
+                  )}
+                  onMaxChange={setFieldValue(
+                    `max${
+                      item.field.charAt(0).toUpperCase() + item.field.slice(1)
+                    }`
+                  )}
                 />
               ))
               .with("select-warehouse", () => (
@@ -132,7 +172,31 @@ export default function Component(props: Props) {
                   onChange={setFieldValue(item.field)}
                 />
               ))
-              .with("check", () => <div></div>)
+              .with("select-company-purchase", () => (
+                <SelectCompanyPurchase
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                  virtual={false}
+                />
+              ))
+              .with("select-company-registration-number", () => (
+                <SelectCompanyRegistrationNumber
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-location", () => (
+                <SelectLocation
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("check", () => (
+                <Check
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
               .exhaustive()}
           </div>
         ))}
@@ -228,8 +292,40 @@ function Range(props: {
   );
 }
 
-function Date(props: ItemProps) {
-  return <div></div>;
+function DateRange(props: {
+  field: string;
+  label: string;
+  minValue: string | null;
+  maxValue: string | null;
+  onMinChange: (value: string | null) => void;
+  onMaxChange: (value: string | null) => void;
+}) {
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <DatePicker
+        value={props.minValue ?? undefined}
+        onChange={(value) => props.onMinChange(value ?? null)}
+      />
+      ~
+      <DatePicker
+        value={props.maxValue ?? undefined}
+        onChange={(value) => props.onMaxChange(value ?? null)}
+      />
+    </div>
+  );
+}
+
+function Check(props: ItemProps) {
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Switch
+        checked={props.value === "true"}
+        onChange={(x) => props.onChange(x ? "true" : null)}
+      />
+    </div>
+  );
 }
 
 function SelectWarehouse(props: ItemProps) {
@@ -346,6 +442,178 @@ function SelectManufacturer(props: ItemProps) {
       <Select
         options={options}
         placeholder="제지사 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
+  const me = ApiHook.Auth.useGetMe();
+
+  const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
+    query: {
+      dstCompanyId: me.data?.companyId,
+    },
+  });
+  const options = useMemo(() => {
+    return list.data?.items
+      .filter(
+        (x) =>
+          props.virtual === undefined ||
+          (x.srcCompany.managedById !== undefined) === props.virtual
+      )
+      .map((x) => ({
+        label: (
+          <div className="flex font-fixed gap-x-4">
+            <div className="flex-initial whitespace-pre">
+              {x.srcCompany.businessName}
+            </div>
+            <div className="flex-1 text-gray-400 text-right font-fixed">
+              {x.srcCompany.phoneNo}
+            </div>
+            <div
+              className={classNames("flex-basis whitespace-pre font-fixed", {
+                "text-gray-400": x.srcCompany.managedById === null,
+                "text-purple-600": x.srcCompany.managedById !== null,
+              })}
+            >
+              {x.srcCompany.managedById !== null ? "비연결" : "연결"}
+            </div>
+          </div>
+        ),
+        text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
+        value: x.srcCompany.id,
+      }));
+  }, [list.data?.items, props.virtual]);
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder="거래처 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectCompanyRegistrationNumber(props: ItemProps) {
+  const list = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
+    query: {},
+  });
+  const options = list.data?.items.map((item) => ({
+    label: (
+      <div className="flex font-fixed gap-x-4">
+        <div className="flex-1 whitespace-pre">
+          {item.partner?.partnerNickName ?? item.businessName}
+        </div>
+        <div className="flex-basis whitespace-pre font-fixed">
+          {Util.formatCompanyRegistrationNo(item.companyRegistrationNumber)}
+        </div>
+      </div>
+    ),
+    text: `${item.businessName} ${item.phoneNo}`,
+    value: item.companyRegistrationNumber,
+  }));
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder="거래처 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectLocation(props: ItemProps<{ isPublic?: boolean }>) {
+  const list = ApiHook.Inhouse.Location.useGetList({
+    query: {},
+  });
+  const options = useMemo(() => {
+    const a = list.data?.items
+      .filter((x) => x.isPublic)
+      .map((x) => ({
+        label: (
+          <div className="flex font-fixed gap-x-4">
+            <div className="flex-initial whitespace-pre">
+              {x.name.padEnd(8)}
+            </div>
+          </div>
+        ),
+        text: `${x.name} ${Util.formatAddress(x.address)}`,
+        value: x.id,
+      }));
+
+    const b = list.data?.items
+      .filter((x) => !x.isPublic)
+      .map((x) => ({
+        label: (
+          <div className="flex font-fixed gap-x-4">
+            <div className="flex-initial whitespace-pre">
+              {x.name.padEnd(8)}
+            </div>
+          </div>
+        ),
+        text: `${x.name} ${Util.formatAddress(x.address)}`,
+        value: x.id,
+      }));
+
+    return props.isPublic
+      ? a
+      : [
+          {
+            label: "자사 도착지",
+            options: b ?? [],
+          },
+          {
+            label: "기타 도착지",
+            options: a ?? [],
+          },
+        ];
+  }, [list, props.isPublic]);
+
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options as any}
+        placeholder="도착지 선택"
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
