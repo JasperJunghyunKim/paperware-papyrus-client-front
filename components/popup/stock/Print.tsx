@@ -89,7 +89,7 @@ const Document = React.forwardRef(
                 <Barcode
                   value={props.stock.serial}
                   format="CODE128"
-                  font="D2CodingFont"
+                  font="D2Coding"
                   margin={0}
                 />
               </div>
@@ -174,7 +174,7 @@ const Document = React.forwardRef(
                 <Barcode
                   value={props.stock.serial}
                   format="CODE128"
-                  font="D2CodingFont"
+                  font="D2Coding"
                   width={1.2}
                   height={50}
                   displayValue={false}

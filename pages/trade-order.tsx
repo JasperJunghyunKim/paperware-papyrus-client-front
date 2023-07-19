@@ -84,7 +84,13 @@ export default function Component() {
           {
             title: "매입 유형",
             render: (_value, record) => (
-              <div>{Util.orderTypeToString(record.orderType, "PURCHASE")}</div>
+              <div>
+                {Util.orderTypeToString(
+                  record.orderType,
+                  !!record.depositEvent,
+                  "PURCHASE"
+                )}
+              </div>
             ),
           },
           {

@@ -41,6 +41,7 @@ export interface User {
   company: {
     companyRegistrationNumber: string;
     invoiceCode: string;
+    businessName: string;
   };
 }
 

@@ -1,3 +1,4 @@
 import Create from "./Create";
+import Detail from "./Detail";
 
-export { Create };
+export { Create, Detail };

@@ -388,7 +388,7 @@ export default function Component(props: Props) {
                           maxLength={11}
                           styles={{
                             prefix: {
-                              fontFamily: "D2CodingFont",
+                              fontFamily: "D2Coding",
                               fontWeight: "bold",
                               color: "darkgray",
                               fontSize: "16px",
@@ -396,7 +396,7 @@ export default function Component(props: Props) {
                               margin: "0",
                             },
                             input: {
-                              fontFamily: "D2CodingFont",
+                              fontFamily: "D2Coding",
                               fontWeight: "bold",
                               color: "blue",
                               fontSize: "16px",

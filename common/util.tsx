@@ -259,11 +259,26 @@ export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
 
 export function orderTypeToString(
   value: Enum.OrderType,
+  depositEvent: boolean,
   type: "PURCHASE" | "SALES"
 ) {
-  return match({ value, type })
-    .with({ value: "NORMAL", type: "PURCHASE" }, () => "정상 매입")
-    .with({ value: "NORMAL", type: "SALES" }, () => "정상 매출")
+  return match({ value, depositEvent, type })
+    .with(
+      { value: "NORMAL", depositEvent: false, type: "PURCHASE" },
+      () => "정상 매입"
+    )
+    .with(
+      { value: "NORMAL", depositEvent: true, type: "PURCHASE" },
+      () => "보관 입고"
+    )
+    .with(
+      { value: "NORMAL", depositEvent: false, type: "SALES" },
+      () => "정상 매출"
+    )
+    .with(
+      { value: "NORMAL", depositEvent: true, type: "SALES" },
+      () => "보관 출고"
+    )
     .with({ value: "DEPOSIT", type: "PURCHASE" }, () => "매입 보관")
     .with({ value: "DEPOSIT", type: "SALES" }, () => "매출 보관")
     .with(

@@ -40,6 +40,19 @@ export function useGetList(params: {
   );
 }
 
+export function useGetItem(params: { id: number | null }) {
+  return useQuery(
+    ["deposit", "item", params.id],
+    async () => {
+      const resp = await axios.get<Api.DepositHistoryResponse>(
+        `${API_HOST}/deposit/${params.id}`
+      );
+      return resp.data;
+    },
+    { enabled: !!params.id }
+  );
+}
+
 export function useCreate() {
   const queryClient = useQueryClient();
 

@@ -613,38 +613,64 @@ function DataForm(props: DataFormProps) {
       <FormControl.Util.Split
         label={props.isSales ? "매출 정보" : "매입 정보"}
       />
-      <Form.Item
-        name="orderType"
-        label={props.isSales ? "매출 유형" : "매입 유형"}
-        initialValue={props.initialOrder?.orderType ?? "NORMAL"}
-        required
-      >
-        <Select
-          options={Array.from<{ label: string; value: Enum.OrderType }>([
-            {
-              label: props.isSales ? "정상 매출" : "정상 매입",
-              value: "NORMAL",
-            },
-            {
-              label: props.isSales ? "매출 보관" : "매입 보관",
-              value: "DEPOSIT",
-            },
-            {
-              label: props.isSales ? "외주 공정 매출" : "외주 공정 매입",
-              value: "OUTSOURCE_PROCESS",
-            },
-            { label: props.isSales ? "기타 매출" : "기타 매입", value: "ETC" },
-          ])}
-          placeholder={props.isSales ? "매출 유형" : "매입 유형"}
-          disabled={!!props.initialOrder}
-          onChange={(_) =>
-            form.setFieldsValue({
-              srcCompanyId: undefined,
-              dstCompanyId: undefined,
-            })
-          }
-        />
-      </Form.Item>
+      {props.initialOrder ? (
+        <>
+          <Form.Item name="orderType" hidden />
+          <Form.Item label={props.isSales ? "매출 유형" : "매입 유형"} required>
+            <Input
+              disabled
+              value={
+                props.initialOrder.orderType === "NORMAL" &&
+                props.initialOrder.depositEvent
+                  ? `보관 ${props.isSales ? "출고" : "입고"}`
+                  : props.initialOrder.orderType === "NORMAL"
+                  ? `정상 ${props.isSales ? "매출" : "매입"}`
+                  : props.initialOrder.orderType === "OUTSOURCE_PROCESS"
+                  ? `외주 공정 ${props.isSales ? "매출" : "매입"}`
+                  : props.initialOrder.orderType === "DEPOSIT"
+                  ? `${props.isSales ? "매출" : "매입"} 보관`
+                  : `기타 ${props.isSales ? "매출" : "매입"}`
+              }
+            />
+          </Form.Item>
+        </>
+      ) : (
+        <Form.Item
+          name="orderType"
+          label={props.isSales ? "매출 유형" : "매입 유형"}
+          initialValue={"NORMAL"}
+          required
+        >
+          <Select
+            options={Array.from<{ label: string; value: Enum.OrderType }>([
+              {
+                label: props.isSales ? "정상 매출" : "정상 매입",
+                value: "NORMAL",
+              },
+              {
+                label: props.isSales ? "매출 보관" : "매입 보관",
+                value: "DEPOSIT",
+              },
+              {
+                label: props.isSales ? "외주 공정 매출" : "외주 공정 매입",
+                value: "OUTSOURCE_PROCESS",
+              },
+              {
+                label: props.isSales ? "기타 매출" : "기타 매입",
+                value: "ETC",
+              },
+            ])}
+            placeholder={props.isSales ? "매출 유형" : "매입 유형"}
+            disabled={!!props.initialOrder}
+            onChange={(_) =>
+              form.setFieldsValue({
+                srcCompanyId: undefined,
+                dstCompanyId: undefined,
+              })
+            }
+          />
+        </Form.Item>
+      )}
       {!props.isSales && (
         <Form.Item name="dstCompanyId" label="매입처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanyPurchase disabled={!!props.initialOrder} />
@@ -1833,6 +1859,8 @@ function PricePanel(props: PricePanelProps) {
   const apiDeleteDeposit = ApiHook.Trade.Common.useDeleteDeposit();
   const cmdDeleteDeposit = useCallback(async () => {
     if (!props.order || !me.data) return;
+    if (!(await Util.confirm("보관품을 삭제하시겠습니까?"))) return;
+
     await apiDeleteDeposit.mutateAsync({
       orderId: props.order.id,
     });

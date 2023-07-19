@@ -368,7 +368,9 @@ export function useColumnPartner<T>(
 export function useColumnPartner2<T>(options: {
   title?: string;
   getValue: (record: T) => string | null | undefined;
+  fallback?: (record: T) => string;
 }): ColumnType<T>[] {
+  const me = ApiHook.Auth.useGetMe();
   const partners = ApiHook.Partner.Partner.useGetList();
 
   return [
@@ -377,11 +379,16 @@ export function useColumnPartner2<T>(options: {
       render: (_: string, record: T) => {
         return (
           <div>
-            {partners.data?.find(
-              (p) => p.companyRegistrationNumber == options?.getValue(record)
-            )?.partnerNickName ??
-              options?.getValue?.(record) ??
-              ""}
+            {options.getValue(record) ===
+            me.data?.company.companyRegistrationNumber
+              ? me.data?.company.businessName
+              : partners.data?.find(
+                  (p) =>
+                    p.companyRegistrationNumber == options?.getValue(record)
+                )?.partnerNickName ??
+                options.fallback?.(record) ??
+                options?.getValue?.(record) ??
+                ""}
           </div>
         );
       },

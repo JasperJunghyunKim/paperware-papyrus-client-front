@@ -9,7 +9,7 @@
 }
 
 body {
-  font-family: "Noto Sans KR";
+  font-family: "Noto Sans KR", sans-serif;
 }
 
 a {
@@ -23,7 +23,7 @@ button {
 }
 
 .font-fixed {
-  font-family: "D2Coding";
+  font-family: "D2Coding", monospace;
 }
 
 .font-logo {

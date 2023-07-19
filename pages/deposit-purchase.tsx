@@ -11,6 +11,7 @@ type RecordType = Model.Deposit;
 export default function Component() {
   const me = ApiHook.Auth.useGetMe();
   const [openCreate, setOpenCreate] = useState<"PURCHASE" | false>(false);
+  const [openDetail, setOpenDetail] = useState<RecordType | false>(false);
 
   const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
@@ -46,6 +47,12 @@ export default function Component() {
           onClick={() => setOpenCreate("PURCHASE")}
         />
         <div className="flex-1" />
+        {only && (
+          <Toolbar.ButtonPreset.Update
+            label="상세 정보"
+            onClick={() => only && setOpenDetail(only)}
+          />
+        )}
       </Toolbar.Container>
       <Search
         items={[
@@ -116,6 +123,11 @@ export default function Component() {
         ]}
       />
       <Popup.Deposit.Create open={openCreate} onClose={setOpenCreate} />
+      <Popup.Deposit.Detail
+        type="PURCHASE"
+        open={openDetail}
+        onClose={setOpenDetail}
+      />
     </Page>
   );
 }
