@@ -29,7 +29,6 @@ export default function Component(props: Props) {
   const [labelName] = useState<string>(
     `${props.accountedType === "PAID" ? "지급" : "수금"}`
   );
-  console.log(1111, props);
 
   const amountCardRef = useRef(null);
   const amount = useWatch("amount", props.form);
