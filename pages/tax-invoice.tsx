@@ -1475,7 +1475,7 @@ function PopupIssue(props: {
         <div className="flex-initial text-center">
           공인인증서 등록 팝업에서 인증서를 등록하신 다음,
           <br />
-          아래 '다시 발행' 버튼을 눌러주세요.
+          아래 &apos;다시 발행&apos; 버튼을 눌러주세요.
         </div>
         <div className="flex-initial flex justify-center gap-x-2">
           <Button.Default label="다시 발행" type="primary" onClick={cmdIssue} />
@@ -1534,7 +1534,7 @@ function PopupSend(props: {
         <div className="flex-initial text-center">
           공인인증서 등록 팝업에서 인증서를 등록하신 다음,
           <br />
-          아래 '다시 전송' 버튼을 눌러주세요.
+          아래 &apos;다시 전송&apos; 버튼을 눌러주세요.
         </div>
         <div className="flex-initial flex justify-center gap-x-2">
           <Button.Default label="다시 전송" type="primary" onClick={cmdSend} />
@@ -1597,7 +1597,7 @@ function PopupCancelIssue(props: {
         <div className="flex-initial text-center">
           공인인증서 등록 팝업에서 인증서를 등록하신 다음,
           <br />
-          아래 '발행 취소 다시 요청' 버튼을 눌러주세요.
+          아래 &apos;발행 취소 다시 요청&apos; 버튼을 눌러주세요.
         </div>
         <div className="flex-initial flex justify-center gap-x-2">
           <Button.Default
