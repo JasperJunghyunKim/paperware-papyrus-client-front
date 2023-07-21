@@ -8,3 +8,4 @@ export * as Trade from "./trade";
 export * as Shipping from "./shipping";
 export * as Partner from "./partner";
 export * as Tax from "./tax";
+export * as OrderRequest from "./order-request";

@@ -16,3 +16,4 @@ export * as Card from "./card";
 export * as BankAccount from "./bank-account";
 export * as Security from "./security";
 export * as DepositFinder from "./depositFinder";
+export * as QuickOrder from "./quick-order";

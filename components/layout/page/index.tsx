@@ -11,17 +11,25 @@ import {
   useMemo,
 } from "react";
 import {
+  TbBookDownload,
+  TbBookUpload,
+  TbBuildingBank,
   TbBuildingWarehouse,
+  TbCards,
+  TbCash,
   TbChartDots,
   TbClipboardList,
   TbColorSwatch,
   TbDiscount,
   TbDiscount2,
-  TbHome2,
+  TbFileExport,
+  TbFilePower,
+  TbFunction,
   TbHomeMove,
   TbInputSearch,
   TbMapPin,
   TbPower,
+  TbReportMoney,
   TbSearch,
   TbServer2,
   TbServerBolt,
@@ -30,13 +38,6 @@ import {
   TbTruck,
   TbVector,
   TbVectorTriangle,
-  TbCards,
-  TbBuildingBank,
-  TbReportMoney,
-  TbBookDownload,
-  TbBookUpload,
-  TbFunction,
-  TbCash,
 } from "react-icons/tb";
 import { useStickyBox } from "react-sticky-box";
 import Menu, { Menu as MenuDef } from "./Menu";
@@ -91,6 +92,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "창고 관리",
         icon: <TbBuildingWarehouse />,
         path: "/warehouse",
+      },
+      { path: null },
+      {
+        label: "퀵 주문 수신함",
+        icon: <TbFilePower />,
+        path: "/quick-order-received",
+      },
+      {
+        label: "퀵 주문 발신함",
+        icon: <TbFileExport />,
+        path: "/quick-order-sended",
       },
       { path: null },
       {

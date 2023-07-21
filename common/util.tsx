@@ -733,6 +733,8 @@ export function formatSerial(serial: string): string {
     ? `I-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
     : header === "W"
     ? `W-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : header === "Q"
+    ? `Q-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
     : `${serial}`;
 }
 

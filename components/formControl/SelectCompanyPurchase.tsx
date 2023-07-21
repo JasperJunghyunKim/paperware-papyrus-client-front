@@ -27,7 +27,7 @@ export default function Component(props: Props) {
       .filter(
         (x) =>
           props.virtual === undefined ||
-          (x.srcCompany.managedById !== undefined) === props.virtual
+          !!x.srcCompany.managedById === props.virtual
       )
       .map((x) => ({
         label: <Item item={x} />,
