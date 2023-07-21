@@ -69,7 +69,7 @@ export default function Component() {
       return;
     }
 
-    await apiDone.mutateAsync({ id: only.id });
+    await apiDone.mutateAsync({ id: only.id, data: { dstMemo: "" } });
     setSelected([]);
   }, [apiDone, only]);
 
