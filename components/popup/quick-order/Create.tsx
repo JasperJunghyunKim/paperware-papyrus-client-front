@@ -91,6 +91,7 @@ export default function Component(props: Props) {
                           <Input
                             placeholder="상품명"
                             rootClassName="w-[300px]"
+                            addonBefore="상품명"
                           />
                         </Form.Item>
                         <Form.Item
@@ -104,14 +105,18 @@ export default function Component(props: Props) {
                           ]}
                           noStyle
                         >
-                          <Input placeholder="수량" rootClassName="w-[300px]" />
+                          <Input
+                            placeholder="수량"
+                            rootClassName="w-[300px]"
+                            addonBefore="수량"
+                          />
                         </Form.Item>
                         <Form.Item
                           {...restFields}
                           name={[name, "memo"]}
                           noStyle
                         >
-                          <Input placeholder="비고" />
+                          <Input placeholder="비고" addonBefore="비고" />
                         </Form.Item>
                         <div
                           onClick={() => remove(name)}

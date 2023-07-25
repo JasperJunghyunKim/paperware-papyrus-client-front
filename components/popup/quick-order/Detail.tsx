@@ -120,6 +120,7 @@ export default function Component(props: Props) {
                               placeholder="상품명"
                               rootClassName="w-[300px]"
                               disabled
+                              addonBefore="상품명"
                             />
                           </Form.Item>
                           <Form.Item
@@ -137,6 +138,7 @@ export default function Component(props: Props) {
                               placeholder="수량"
                               rootClassName="w-[300px]"
                               disabled
+                              addonBefore="수량"
                             />
                           </Form.Item>
                           <Form.Item
@@ -144,32 +146,14 @@ export default function Component(props: Props) {
                             name={[name, "memo"]}
                             noStyle
                           >
-                            <Input placeholder="비고" disabled />
-                          </Form.Item>
-                          <Form.Item
-                            {...restFields}
-                            name={[name, "statusText"]}
-                            noStyle
-                          >
                             <Input
-                              placeholder="상태"
-                              rootClassName="w-[300px]"
+                              placeholder="비고"
                               disabled
+                              addonBefore="비고"
                             />
                           </Form.Item>
                         </div>
                         <div className="flex-initial flex gap-x-2">
-                          <Form.Item
-                            {...restFields}
-                            name={[name, "serial"]}
-                            noStyle
-                          >
-                            <Input
-                              placeholder="퀵 주문 번호"
-                              disabled
-                              className="w-[300px]"
-                            />
-                          </Form.Item>
                           <Form.Item
                             {...restFields}
                             name={[name, "dstMemo"]}
@@ -181,6 +165,7 @@ export default function Component(props: Props) {
                                 form.getFieldValue(["orderRequestItems"])[index]
                                   .status !== "REQUESTED"
                               }
+                              addonBefore="완료 메모"
                             />
                           </Form.Item>
                           <Form.Item

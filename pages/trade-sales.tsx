@@ -163,6 +163,12 @@ export default function Component() {
             (record) => Util.assignQuantityFromOrder(record),
             { prefix: "매출", negative: false }
           ),
+          {
+            title: "마감",
+            render: (record: Model.Order) => (
+              <div>{record.taxInvoice ? "전자세금계산서" : ""}</div>
+            ),
+          },
         ]}
       />
       <Popup.Order.StockUpsert

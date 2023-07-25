@@ -608,6 +608,25 @@ function DataForm(props: DataFormProps) {
     ? QuantityUtil.compact(stockGroupQuantity.data, stockGroupQuantity.data)
     : null;
 
+  useEffect(() => {
+    if (compactQuantity) {
+      form.setFieldsValue({
+        locationId: undefined,
+        wantedDate: undefined,
+        productId: undefined,
+        packagingId: undefined,
+        grammage: undefined,
+        sizeX: undefined,
+        sizeY: undefined,
+        paperColorGroupId: undefined,
+        paperColorId: undefined,
+        paperPatternId: undefined,
+        paperCertId: undefined,
+        quantity: undefined,
+      });
+    }
+  }, [dstCompanyId, srcCompanyId, orderType]);
+
   return (
     <Form form={form} layout="vertical" rootClassName="w-full mb-32">
       <FormControl.Util.Split

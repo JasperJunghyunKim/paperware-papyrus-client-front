@@ -44,6 +44,7 @@ type RecordType = OrderRequestItem & {
     } | null;
     wantedDate: string | null;
     memo: string;
+    createdAt: string;
   };
 };
 export default function Component() {
@@ -154,6 +155,8 @@ export default function Component() {
           },
           {
             title: "발신일시",
+            render: (record: RecordType) =>
+              Util.formatIso8601ToLocalDateTime(record.orderRequest.createdAt),
           },
         ]}
       />
