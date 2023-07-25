@@ -1,6 +1,6 @@
 import { Model } from "@/@shared";
 import { ApiHook, PaperUtil, Util } from "@/common";
-import { Icon } from "@/components";
+import { Icon, Popup } from "@/components";
 import { ConfigProvider, Input, InputNumber } from "antd";
 import classNames from "classnames";
 import { useCallback, useState } from "react";
@@ -703,6 +703,9 @@ function QuantityNode(props: QuantityProps) {
   const [initialM, setInitialM] = useState(props.data.memo);
   const [q, setQ] = useState(props.data.quantity);
   const [m, setM] = useState(props.data.memo);
+  const [openInvoicePrint, setOpenInvoicePrint] = useState<number | false>(
+    false
+  );
 
   const apiUpdate = ApiHook.Working.Task.useUpdateQuantity();
   const cmdUpdate = useCallback(async () => {
@@ -850,7 +853,7 @@ function QuantityNode(props: QuantityProps) {
                 precision={3}
               />
               <MiniFormNumber
-                label="출고 수량"
+                label=""
                 value={q}
                 onChange={(p) => setQ(p ?? 0)}
                 unit="매"
@@ -886,6 +889,20 @@ function QuantityNode(props: QuantityProps) {
             <TaskCommandButton label="출고" onClick={cmdFinish} type="danger" />
           </div>
         )}
+      {props.data.invoiceId && (
+        <div className="flex-initial flex gap-x-2 p-2">
+          <TaskCommandButton
+            label="운송장 출력"
+            onClick={async () => {
+              props.data.invoiceId && setOpenInvoicePrint(props.data.invoiceId);
+            }}
+          />
+        </div>
+      )}
+      <Popup.Invoice.Print
+        open={openInvoicePrint}
+        onClose={setOpenInvoicePrint}
+      />
     </div>
   );
 }

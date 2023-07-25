@@ -1,4 +1,4 @@
-import { Api } from "@/@shared";
+import { Api, Model } from "@/@shared";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
@@ -25,6 +25,19 @@ export function useGetList(params: { query: Partial<Api.InvoiceListQuery> }) {
   );
 }
 
+export function useGetItem(params: { id: number | null }) {
+  return useQuery(
+    ["invoice", "item", params.id],
+    async () => {
+      const resp = await axios.get<Model.Invoice>(
+        `${API_HOST}/invoice/${params.id}`
+      );
+      return resp.data;
+    },
+    { enabled: !!params.id }
+  );
+}
+
 export function useDisconnect() {
   const queryClient = useQueryClient();
 
@@ -41,7 +54,7 @@ export function useDisconnect() {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["shipping", "list"]);
         await queryClient.invalidateQueries(["shipping", "item"]);
-        await queryClient.invalidateQueries(["invoice", "list"]);
+        await queryClient.invalidateQueries(["invoice"]);
         message.success("송장이 연결 해제되었습니다.");
       },
     }
@@ -61,7 +74,7 @@ export function useForward() {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["shipping", "list"]);
         await queryClient.invalidateQueries(["shipping", "item"]);
-        await queryClient.invalidateQueries(["invoice", "list"]);
+        await queryClient.invalidateQueries(["invoice"]);
         message.success("선택한 송장의 상태가 업데이트 되었습니다.");
       },
     }
@@ -84,7 +97,7 @@ export function useBackward() {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["shipping", "list"]);
         await queryClient.invalidateQueries(["shipping", "item"]);
-        await queryClient.invalidateQueries(["invoice", "list"]);
+        await queryClient.invalidateQueries(["invoice"]);
         message.success("선택한 송장의 상태가 업데이트 되었습니다.");
       },
     }
