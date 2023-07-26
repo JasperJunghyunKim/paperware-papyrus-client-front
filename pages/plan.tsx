@@ -127,26 +127,6 @@ export default function Component() {
             ),
           },
           {
-            title: "상태",
-            dataIndex: "status",
-            render: (value: Model.Enum.PlanStatus) => (
-              <div
-                className={classNames("flex gap-x-2", {
-                  "text-amber-600": value === "PREPARING",
-                  "text-green-600": value === "PROGRESSING",
-                  "text-black": value === "PROGRESSED",
-                })}
-              >
-                <div className="flex-initial flex flex-col justify-center">
-                  <Icon.PlanStatus value={value} />
-                </div>
-                <div className="flex-initial flex flex-col justify-center">
-                  {Util.planStatusToString(value)}
-                </div>
-              </div>
-            ),
-          },
-          {
             title: "컨버팅 상태",
             render: (record: RecordType) =>
               progressColumn("CONVERTING", record),
