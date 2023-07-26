@@ -58,17 +58,19 @@ export default function Component() {
           >
             {`대기 ${preparing.length}`}
           </div>
-          <div
-            className={classNames(
-              "flex-initial border border-solid px-2 rounded-full",
-              {
-                "text-green-600 border-green-600": progressing.length > 0,
-                "text-gray-300 border-gray-300": progressing.length === 0,
-              }
-            )}
-          >
-            {`진행 ${progressing.length}`}
-          </div>
+          {type !== "RELEASE" && (
+            <div
+              className={classNames(
+                "flex-initial border border-solid px-2 rounded-full",
+                {
+                  "text-green-600 border-green-600": progressing.length > 0,
+                  "text-gray-300 border-gray-300": progressing.length === 0,
+                }
+              )}
+            >
+              {`진행 ${progressing.length}`}
+            </div>
+          )}
           <div
             className={classNames(
               "flex-initial border border-solid px-2 rounded-full",
