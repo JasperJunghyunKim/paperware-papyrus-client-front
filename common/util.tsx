@@ -26,10 +26,6 @@ export async function call(p?: PromiseOrFn) {
   }
 }
 
-export async function sleep(seconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
-}
-
 export function only<T>(array: T[]): T | undefined {
   return array.length === 1 ? array[0] : undefined;
 }

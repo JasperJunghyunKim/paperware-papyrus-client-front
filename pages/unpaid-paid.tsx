@@ -41,6 +41,8 @@ export default function Component() {
             type: "range",
             field: "amount",
             label: "전체 잔액",
+            min: -9999999999,
+            max: 9999999999,
           },
         ]}
         value={search}

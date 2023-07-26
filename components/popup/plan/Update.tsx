@@ -139,7 +139,9 @@ export default function Component(props: Props) {
     (!data.data.orderProcess ||
       data.data.type === "TRADE_OUTSOURCE_PROCESS_BUYER");
 
-  const inputWritable = data.data && data.data.status === "PROGRESSING";
+  const inputWritable =
+    (data.data && data.data.status === "PROGRESSING") ||
+    data.data?.status === "PROGRESSED";
 
   return (
     <Popup.Template.Full
