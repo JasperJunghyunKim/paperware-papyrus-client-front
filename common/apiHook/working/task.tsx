@@ -30,6 +30,7 @@ export function useStart() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         if (variables.planId) {
           await queryClient.invalidateQueries([
             "plan",
@@ -57,6 +58,7 @@ export function useReset() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         if (variables.planId) {
           await queryClient.invalidateQueries([
             "plan",
@@ -84,6 +86,7 @@ export function useFinish() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         if (variables.planId) {
           await queryClient.invalidateQueries([
             "plan",
@@ -112,6 +115,7 @@ export function useCreateConverting() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries([
           "plan",
           "item",
@@ -137,6 +141,7 @@ export function useCreateGuillotine() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries([
           "plan",
           "item",
@@ -162,6 +167,7 @@ export function useCreateQuantity() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries([
           "plan",
           "item",
@@ -190,6 +196,7 @@ export function useUpdateConverting() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries(["plan", "item", variables.taskId]);
       },
     }
@@ -214,6 +221,7 @@ export function useUpdateGuillotine() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries(["plan", "item", variables.taskId]);
       },
     }
@@ -235,6 +243,7 @@ export function useUpdateQuantity() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         await queryClient.invalidateQueries(["plan", "item", variables.taskId]);
       },
     }
@@ -253,6 +262,7 @@ export function useDelete() {
     {
       onSuccess: async (_data, variables) => {
         await queryClient.invalidateQueries(["task"]);
+        await queryClient.invalidateQueries(["plan", "list"]);
         if (variables.planId) {
           await queryClient.invalidateQueries([
             "plan",
