@@ -84,6 +84,11 @@ export default function Component() {
             dataIndex: "address",
             render: (value) => <div>{Util.formatAddress(value)}</div>,
           },
+          {
+            title: "전화번호",
+            dataIndex: "phoneNo",
+            render: (value) => <div>{Util.formatPhoneNo(value)}</div>,
+          },
         ]}
       />
       <Popup.Location.Create open={openCreate} onClose={setOpenCreate} />

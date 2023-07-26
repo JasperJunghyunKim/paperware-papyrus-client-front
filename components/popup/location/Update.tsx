@@ -37,6 +37,7 @@ export default function Component(props: Props) {
       name: data.data.name,
       isPublic: data.data.isPublic,
       address: data.data.address,
+      phoneNo: data.data.phoneNo ?? null,
     });
   }, [form, data.data, edit]);
 

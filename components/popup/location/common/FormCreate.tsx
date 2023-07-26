@@ -51,6 +51,9 @@ export default function Component(props: Props) {
       <Form.Item name="address" label="주소" rules={[{ required: true }]}>
         <FormControl.Address />
       </Form.Item>
+      <Form.Item name="phoneNo" label="전화번호">
+        <Input maxLength={20} />
+      </Form.Item>
       <Form.Item className="flex justify-end">
         <Button.Preset.Submit label="도착지 추가" />
       </Form.Item>

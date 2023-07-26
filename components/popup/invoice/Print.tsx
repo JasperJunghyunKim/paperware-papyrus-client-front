@@ -99,6 +99,15 @@ function DocumentPart(props: DocumentPartProps) {
     return order?.orderNo ?? "";
   }, [order]);
 
+  const location = useMemo(() => {
+    return (
+      props.data.plan.orderStock?.dstLocation ??
+      (props.data.plan.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
+        ? props.data.plan.orderProcess?.dstLocation ?? null
+        : props.data.plan.orderProcess?.srcLocation ?? null)
+    );
+  }, [props.data]);
+
   const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
   const partner = partners.data?.items.find(
     (p) =>
@@ -131,24 +140,22 @@ function DocumentPart(props: DocumentPartProps) {
       <div className="flex-initial flex text-base gap-x-[10mm] mb-[5mm]">
         <div className="flex-1 w-0 flex flex-col">
           <div className="flex-initial font-bold mb-1">발주처</div>
-          <div className="flex-initial">{order?.dstCompany.businessName}</div>
-          <div className="flex-initial">
-            {Util.formatPhoneNo(order?.dstCompany.phoneNo)}
-          </div>
-          <div className="flex-initial flex-wrap">
-            {Util.formatAddress(order?.dstCompany.address)}
-          </div>
-        </div>
-        <div className="flex-1 w-0 flex flex-col">
-          <div className="flex-initial font-bold mb-1">입고처</div>
-          <div className="flex-initial">
-            {partner?.partnerNickName ?? order?.srcCompany.businessName}
-          </div>
+          <div className="flex-initial">{order?.srcCompany.businessName}</div>
           <div className="flex-initial">
             {Util.formatPhoneNo(order?.srcCompany.phoneNo)}
           </div>
           <div className="flex-initial flex-wrap">
             {Util.formatAddress(order?.srcCompany.address)}
+          </div>
+        </div>
+        <div className="flex-1 w-0 flex flex-col">
+          <div className="flex-initial font-bold mb-1">입고처</div>
+          <div className="flex-initial">{location?.name}</div>
+          <div className="flex-initial">
+            {Util.formatPhoneNo(location?.phoneNo)}
+          </div>
+          <div className="flex-initial flex-wrap">
+            {Util.formatAddress(location?.address)}
           </div>
         </div>
       </div>

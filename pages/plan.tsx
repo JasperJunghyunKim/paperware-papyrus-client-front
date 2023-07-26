@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { PlanListItem } from "@/@shared/api";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
@@ -7,13 +8,15 @@ import classNames from "classnames";
 import { useCallback, useState } from "react";
 import { TbHome, TbHomeShield } from "react-icons/tb";
 
+type RecordType = PlanListItem;
+
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
   const [page, setPage] = usePage();
   const list = ApiHook.Working.Plan.useGetList({ query: page });
-  const [selected, setSelected] = useState<Model.Plan[]>([]);
+  const [selected, setSelected] = useState<RecordType[]>([]);
 
   const only = Util.only(selected);
 
@@ -30,6 +33,58 @@ export default function Component() {
 
     await apiDelete.mutateAsync(only.id);
   }, [apiDelete, only]);
+
+  const progressColumn = useCallback(
+    (type: Model.Enum.TaskType, record: RecordType) => {
+      const preparing = record.task.filter(
+        (p) => p.type === type && p.status === "PREPARING"
+      );
+      const progressing = record.task.filter(
+        (p) => p.type === type && p.status === "PROGRESSING"
+      );
+      const progressed = record.task.filter(
+        (p) => p.type === type && p.status === "PROGRESSED"
+      );
+      return (
+        <div className="flex gap-x-2 text-gray-400 select-none">
+          <div
+            className={classNames(
+              "flex-initial border border-solid px-2 rounded-full",
+              {
+                "text-amber-600 border-amber-600": preparing.length > 0,
+                "text-gray-300 border-gray-300": preparing.length === 0,
+              }
+            )}
+          >
+            {`대기 ${preparing.length}`}
+          </div>
+          <div
+            className={classNames(
+              "flex-initial border border-solid px-2 rounded-full",
+              {
+                "text-green-600 border-green-600": progressing.length > 0,
+                "text-gray-300 border-gray-300": progressing.length === 0,
+              }
+            )}
+          >
+            {`진행 ${progressing.length}`}
+          </div>
+          <div
+            className={classNames(
+              "flex-initial border border-solid px-2 rounded-full",
+              {
+                "text-blue-600 border-blue-600": progressed.length > 0,
+                "text-gray-300 border-gray-300": progressed.length === 0,
+              }
+            )}
+          >
+            {`완료 ${progressed.length}`}
+          </div>
+        </div>
+      );
+    },
+    []
+  );
 
   return (
     <Page title="작업 계획 목록">
@@ -51,7 +106,7 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
-      <Table.Default<Model.Plan>
+      <Table.Default<RecordType>
         data={list.data}
         page={page}
         setPage={setPage}
@@ -61,7 +116,7 @@ export default function Component() {
         columns={[
           {
             title: "주문 번호",
-            render: (record: Model.Plan) => (
+            render: (record: RecordType) => (
               <div className="font-fixed">
                 {Util.formatSerial(
                   record.orderStock?.order.orderNo ??
@@ -92,13 +147,27 @@ export default function Component() {
             ),
           },
           {
+            title: "컨버팅 상태",
+            render: (record: RecordType) =>
+              progressColumn("CONVERTING", record),
+          },
+          {
+            title: "길로틴 상태",
+            render: (record: RecordType) =>
+              progressColumn("GUILLOTINE", record),
+          },
+          {
+            title: "출고 상태",
+            render: (record: RecordType) => progressColumn("RELEASE", record),
+          },
+          {
             title: "작업 유형",
-            render: (_value: any, record: Model.Plan) =>
+            render: (_value: any, record: RecordType) =>
               Util.formatPlanType(record.type),
           },
           ...Table.Preset.useColumnPartner2({
             title: "납품처",
-            getValue: (record: Model.Plan) =>
+            getValue: (record: RecordType) =>
               record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
                 ? record.orderProcess?.order.srcCompany
                     .companyRegistrationNumber
@@ -109,7 +178,7 @@ export default function Component() {
           }),
           {
             title: "납품 도착지",
-            render: (_, record) =>
+            render: (_, record: RecordType) =>
               record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
                 ? record.orderProcess?.srcLocation.name
                 : record.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
@@ -118,7 +187,7 @@ export default function Component() {
           },
           {
             title: "납품 요청일",
-            render: (_, record) => (
+            render: (_, record: RecordType) => (
               <div className="font-fixed">
                 {Util.formatIso8601ToLocalDate(
                   record.type === "TRADE_OUTSOURCE_PROCESS_SELLER"
@@ -141,10 +210,10 @@ export default function Component() {
             render: (_, record) =>
               record.assignStockEvent?.stock.warehouse?.name,
           },
-          ...Table.Preset.columnStockGroup<Model.Plan>(
+          ...Table.Preset.columnStockGroup<RecordType>(
             (record) => record.assignStockEvent?.stock
           ),
-          ...Table.Preset.columnQuantity<Model.Plan>(
+          ...Table.Preset.columnQuantity<RecordType>(
             (record) => record.assignStockEvent?.stock,
             (record) => record.assignStockEvent?.change,
             { prefix: "사용 예정", negative: true }
