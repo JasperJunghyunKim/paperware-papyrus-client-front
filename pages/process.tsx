@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { PlanListItem } from "@/@shared/api";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
@@ -6,6 +7,8 @@ import { Page } from "@/components/layout";
 import classNames from "classnames";
 import { useCallback, useState } from "react";
 import { TbHome, TbHomeShield } from "react-icons/tb";
+
+type RecordType = PlanListItem;
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -18,7 +21,7 @@ export default function Component() {
       type: "INHOUSE",
     },
   });
-  const [selected, setSelected] = useState<Model.Plan[]>([]);
+  const [selected, setSelected] = useState<RecordType[]>([]);
 
   const only = Util.only(selected);
 
@@ -60,7 +63,7 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
-      <Table.Default<Model.Plan>
+      <Table.Default<RecordType>
         data={list.data}
         page={page}
         setPage={setPage}
@@ -98,7 +101,7 @@ export default function Component() {
           },
           {
             title: "작업 유형",
-            render: (_value: any, record: Model.Plan) => (
+            render: (_value: any, record: RecordType) => (
               <div className="flex gap-x-2">
                 {record.orderStock ? "정상 매출" : "내부 공정"}
               </div>
@@ -109,10 +112,10 @@ export default function Component() {
             render: (_, record) =>
               record.assignStockEvent?.stock.warehouse?.name,
           },
-          ...Table.Preset.columnStockGroup<Model.Plan>(
+          ...Table.Preset.columnStockGroup<RecordType>(
             (record) => record.assignStockEvent?.stock
           ),
-          ...Table.Preset.columnQuantity<Model.Plan>(
+          ...Table.Preset.columnQuantity<RecordType>(
             (record) => record.assignStockEvent?.stock,
             (record) => record.assignStockEvent?.change,
             { prefix: "사용 예정", negative: true }

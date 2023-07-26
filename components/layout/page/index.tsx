@@ -17,6 +17,7 @@ import {
   TbBuildingWarehouse,
   TbCards,
   TbCash,
+  TbCashBanknote,
   TbChartDots,
   TbClipboardList,
   TbColorSwatch,
@@ -48,7 +49,6 @@ export interface Props {
 
 export default function Component(props: PropsWithChildren<Props>) {
   const router = useRouter();
-  const stickyRef = useStickyBox({ offsetTop: 0, offsetBottom: 0 });
 
   const businessRelationshipRequestCount =
     ApiHook.Inhouse.BusinessRelationshipRequest.useGetPendingCount();
@@ -186,6 +186,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbVectorTriangle />,
         path: "/paid-history",
       },
+      { path: null },
+      {
+        label: "미수금 잔액",
+        icon: <TbCashBanknote />,
+        path: "/unpaid-collected",
+      },
+      {
+        label: "미지급 잔액",
+        icon: <TbCashBanknote />,
+        path: "/unpaid-paid",
+      },
     ],
     [businessRelationshipRequestCount.data?.value]
   );
@@ -207,15 +218,17 @@ export default function Component(props: PropsWithChildren<Props>) {
 
   return (
     <>
-      <div className="flex ">
-        <div className="basis-60 flex-shrink-0 flex-grow-0 bg-white text-black border-solid border-0 border-r border-gray-200">
-          <aside ref={stickyRef}>
-            <Logo.Paperware />
+      <div className="flex">
+        <div className="flex-shrink-0 flex-grow-0 bg-white text-black border-solid border-0 border-r border-gray-200 overflow-y-scroll h-screen top-0 fixed w-60">
+          <Logo.Paperware />
+          <aside>
             <div className="flex-initial">
               <Menu menus={menus} />
             </div>
           </aside>
+          <div className="h-40" />
         </div>
+        <div className="basis-60" />
         <div className="flex-1 w-0 bg-slate-100 flex flex-col">
           <header className="flex flex-initial px-4 h-16 bg-white border-solid border-0 border-b border-gray-200 select-none fixed top-0 right-0 left-60 z-10">
             <div className="flex-1 flex flex-row items-center h-full">

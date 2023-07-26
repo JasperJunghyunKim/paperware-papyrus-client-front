@@ -17,6 +17,7 @@ interface Props<T> {
   expandable?: ExpandableConfig<T>;
   borderless?: boolean;
   className?: string;
+  footer?: any;
 }
 
 export default function Component<T extends object>(props: Props<T>) {
@@ -84,6 +85,7 @@ export default function Component<T extends object>(props: Props<T>) {
         scroll={{ x: true }}
         size="small"
         columns={props.columns}
+        summary={props.footer}
         rowSelection={
           props.selection === "none"
             ? undefined

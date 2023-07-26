@@ -128,13 +128,14 @@ function DocumentPart(props: DocumentPartProps) {
         <div className="flex-1 w-0 text-3xl font-bold text-center">
           {props.type === "top" ? "인수증" : "납품증"}
         </div>
-        <div className="flex-1 w-0 flex flex-col font-fixed text-right">
+        <div className="flex-1 w-0 flex flex-col font-fixed pl-[20mm]">
           <div className="flex-initial">{`송장번호: ${Util.formatSerial(
             props.data.invoiceNo
           )}`}</div>
           <div className="flex-initial">{`거래번호: ${Util.formatSerial(
             orderNo
           )}`}</div>
+          <div className="flex-initial">{`납품회사: ${order?.dstCompany.businessName}`}</div>
         </div>
       </div>
       <div className="flex-initial flex text-base gap-x-[10mm] mb-[5mm]">
