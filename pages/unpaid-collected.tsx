@@ -26,7 +26,9 @@ export default function Component() {
   const list = ApiHook.Accounted.Unpaid.useGetList({
     query: { ...page, ...search, accountedType: "COLLECTED" },
   });
-  const currentMonth = dayjs().month() + 1;
+  const getMonthAfter = (month: number) => {
+    return ((dayjs().month() + 12 + month) % 12) + 1;
+  };
 
   return (
     <Page title="미수금 잔액">
@@ -75,7 +77,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth + 1}월 이후 누적 잔액`,
+            title: `${getMonthAfter(1)}월 이후 누적 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price1)} 원
@@ -83,7 +85,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth}월 잔액`,
+            title: `${getMonthAfter(0)}월 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price2)} 원
@@ -91,7 +93,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth - 1}월 잔액`,
+            title: `${getMonthAfter(-1)}월 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price3)} 원
@@ -99,7 +101,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth - 2}월 잔액`,
+            title: `${getMonthAfter(-2)}월 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price4)} 원
@@ -107,7 +109,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth - 3}월 잔액`,
+            title: `${getMonthAfter(-3)}월 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price5)} 원
@@ -115,7 +117,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth - 4}월 잔액`,
+            title: `${getMonthAfter(-4)}월 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price6)} 원
@@ -123,7 +125,7 @@ export default function Component() {
             ),
           },
           {
-            title: `${currentMonth - 5}월 이전 누적 잔액`,
+            title: `${getMonthAfter(-5)}월 이전 누적 잔액`,
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {Util.comma(record.price7)} 원

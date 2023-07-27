@@ -2,7 +2,6 @@ import { Model } from "@/@shared";
 import { ApiHook, PaperUtil, Util } from "@/common";
 import { Popup, Toolbar } from "@/components";
 import dayjs from "dayjs";
-import { QRCodeSVG } from "qrcode.react";
 import React, { ForwardedRef, useMemo, useRef } from "react";
 import Barcode from "react-barcode";
 import { TbPrinter } from "react-icons/tb";

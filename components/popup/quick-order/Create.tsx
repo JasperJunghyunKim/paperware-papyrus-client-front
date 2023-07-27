@@ -97,12 +97,6 @@ export default function Component(props: Props) {
                         <Form.Item
                           {...restFields}
                           name={[name, "quantity"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "수량을 입력해주세요.",
-                            },
-                          ]}
                           noStyle
                         >
                           <Input

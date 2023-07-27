@@ -7,7 +7,6 @@ import {
   OrderRequestItemListResponse,
   OrderRequestResponse,
 } from "@/@shared/api/trade/order-request.response";
-import { OrderRequestItem } from "@/@shared/models";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
@@ -120,7 +119,7 @@ export function useCheck() {
   return useMutation(
     async (params: { id: number }) => {
       const resp = await axios.patch(
-        `${API_HOST}/order-request/item/${params.id}/check`
+        `${API_HOST}/order-request/${params.id}/check`
       );
 
       return resp.data;

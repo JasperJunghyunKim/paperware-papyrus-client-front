@@ -32,6 +32,17 @@ export default function Component(props: Props) {
     [api, form, props]
   );
 
+  const apiCheck = ApiHook.OrderRequest.OrderRequest.useCheck();
+  const cmdCheck = useCallback(async () => {
+    if (!props.open) return;
+
+    try {
+      await apiCheck.mutateAsync({ id: props.open });
+    } catch (e) {
+      console.warn(e);
+    }
+  }, [apiCheck, props]);
+
   useEffect(() => {
     if (!item.data) {
       form.resetFields();
@@ -59,6 +70,14 @@ export default function Component(props: Props) {
       })),
     });
   }, [form, item.data]);
+
+  useEffect(() => {
+    if (!props.open) {
+      return;
+    }
+
+    cmdCheck();
+  }, [props.open]);
 
   return (
     <Popup.Template.Full

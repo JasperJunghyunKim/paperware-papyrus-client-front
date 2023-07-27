@@ -163,8 +163,14 @@ export default function Component() {
           ...Table.Preset.useColumnPartner2<RecordType>({
             title: "거래처",
             getValue: (record: RecordType) =>
-              record.plan?.orderStock?.order.partnerCompany
-                .companyRegistrationNumber,
+              record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_SELLER"
+                ? record.plan?.orderProcess?.order.srcCompany
+                    .companyRegistrationNumber
+                : record.plan?.planType === "TRADE_OUTSOURCE_PROCESS_BUYER"
+                ? record.plan?.orderProcess?.order.dstCompany
+                    .companyRegistrationNumber
+                : record.plan?.orderStock?.order.dstCompany
+                    .companyRegistrationNumber ?? null,
           }),
           {
             title: "도착지",
