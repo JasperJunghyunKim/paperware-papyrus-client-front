@@ -250,6 +250,8 @@ export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
       return "배송중";
     case "DONE_SHIPPING":
       return "배송 완료";
+    case "CANCELLED":
+      return "취소";
   }
 }
 

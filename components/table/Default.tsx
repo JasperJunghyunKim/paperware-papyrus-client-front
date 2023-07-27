@@ -29,6 +29,7 @@ export default function Component<T extends object>(props: Props<T>) {
             <th
               {...cellProps}
               style={{
+                ...cellProps.style,
                 padding: "8px 8px",
                 wordBreak: "keep-all",
                 whiteSpace: "nowrap",
@@ -43,6 +44,7 @@ export default function Component<T extends object>(props: Props<T>) {
             <td
               {...cellProps}
               style={{
+                ...cellProps.style,
                 padding: "4px 8px",
                 wordBreak: "keep-all",
                 whiteSpace: "nowrap",
@@ -107,7 +109,6 @@ export default function Component<T extends object>(props: Props<T>) {
         expandable={props.expandable}
         dataSource={props.data?.items}
         components={components}
-        tableLayout="auto"
         className={props.className}
       />
     </ConfigProvider>

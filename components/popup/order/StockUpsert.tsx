@@ -1194,67 +1194,14 @@ function RightSideOrder(props: RightSideOrderProps) {
     setSelectedGroup([]);
   }, [groupList.data]);
 
+  const planId =
+    (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
+      mine(me.data)
+    )?.id ?? null;
+
   const plan = ApiHook.Working.Plan.useGetItem({
-    id:
-      (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
-        mine(me.data)
-      )?.id ?? null,
+    id: planId,
   });
-
-  const apiRequest = ApiHook.Trade.Common.useRequest();
-  const cmdRequest = useCallback(async () => {
-    if (!props.order) return;
-    if (!(await Util.confirm("주문을 요청하시겠습니까?"))) return;
-    await apiRequest.mutateAsync({
-      orderId: props.order.id,
-    });
-  }, [apiRequest, props.order]);
-
-  const apiAccept = ApiHook.Trade.Common.useAccept();
-  const cmdAccept = useCallback(
-    (virtual: boolean) => async () => {
-      if (!props.order) return;
-      if (
-        !(await Util.confirm(
-          virtual
-            ? "비연결 매입처 대상 주문은 즉시 승인됩니다. 계속하시겠습니까?"
-            : "재고를 승인하시겠습니까?"
-        ))
-      )
-        return;
-      await apiAccept.mutateAsync({
-        orderId: props.order.id,
-      });
-    },
-    [apiAccept, props.order]
-  );
-
-  const apiReject = ApiHook.Trade.Common.useReject();
-  const cmdReject = useCallback(async () => {
-    if (!props.order) return;
-    if (!(await Util.confirm("재고를 거절하시겠습니까?"))) return;
-    await apiReject.mutateAsync({
-      orderId: props.order.id,
-    });
-  }, [apiReject, props.order]);
-
-  const apiCancel = ApiHook.Trade.Common.useCancel();
-  const cmdCancel = useCallback(async () => {
-    if (!props.order) return;
-    if (!(await Util.confirm("주문을 삭제하시겠습니까?"))) return;
-    await apiCancel.mutateAsync({
-      orderId: props.order.id,
-    });
-  }, [apiCancel, props.order]);
-
-  const apiReset = ApiHook.Trade.Common.useReset();
-  const cmdReset = useCallback(async () => {
-    if (!props.order) return;
-    if (!(await Util.confirm("주문 내용을 재입력하시겠습니까?"))) return;
-    await apiReset.mutateAsync({
-      orderId: props.order.id,
-    });
-  }, [apiReset, props.order]);
 
   const apiPlanStart = ApiHook.Working.Plan.useStart();
   const cmdPlanStart = useCallback(async () => {
@@ -1265,46 +1212,70 @@ function RightSideOrder(props: RightSideOrderProps) {
     });
   }, [apiPlanStart, props.order, plan.data]);
 
-  const apiDelete = ApiHook.Trade.Common.useDeleteArrival();
-  const cmdDelete = useCallback(async () => {
-    if (!onlyGroup || !plan.data) return;
-    if (!(await Util.confirm("예정 재고를 삭제하시겠습니까?"))) return;
-    await apiDelete.mutateAsync({
-      query: {
-        planId: plan.data.id,
-        productId: onlyGroup.product.id,
-        packagingId: onlyGroup.packaging.id,
-        grammage: onlyGroup.grammage,
-        sizeX: onlyGroup.sizeX,
-        sizeY: onlyGroup.sizeY,
-        paperColorGroupId: onlyGroup.paperColorGroup?.id,
-        paperColorId: onlyGroup.paperColor?.id,
-        paperPatternId: onlyGroup.paperPattern?.id,
-        paperCertId: onlyGroup.paperCert?.id,
-      },
+  const apiPlanBackward = ApiHook.Working.Plan.useBackward();
+  const cmdPlanBackward = useCallback(async () => {
+    if (!plan.data) return;
+    if (
+      !(await Util.confirm(
+        "현장 작업자에게 사전 공지한 후 취소할 것을 권장합니다. 작업 지시 취소 하시겠습니까?"
+      ))
+    )
+      return;
+    await apiPlanBackward.mutateAsync({
+      id: plan.data.id,
     });
+  }, [apiPlanBackward, props.order, plan.data]);
 
-    setSelectedGroup([]);
-  }, [apiDelete, onlyGroup]);
+  const apiDelete = ApiHook.Trade.Common.useDeleteArrival();
+  const cmdDelete = useCallback(
+    async (value: Model.PlanStockGroup) => {
+      if (!onlyGroup || !plan.data) return;
+      if (!(await Util.confirm("예정 재고를 삭제하시겠습니까?"))) return;
+      await apiDelete.mutateAsync({
+        query: {
+          planId: plan.data.id,
+          productId: onlyGroup.product.id,
+          packagingId: onlyGroup.packaging.id,
+          grammage: onlyGroup.grammage,
+          sizeX: onlyGroup.sizeX,
+          sizeY: onlyGroup.sizeY,
+          paperColorGroupId: onlyGroup.paperColorGroup?.id,
+          paperColorId: onlyGroup.paperColor?.id,
+          paperPatternId: onlyGroup.paperPattern?.id,
+          paperCertId: onlyGroup.paperCert?.id,
+        },
+      });
+
+      setSelectedGroup([]);
+    },
+    [apiDelete, onlyGroup]
+  );
 
   const isVirtual = !!props.order?.dstCompany.managedById;
-  const status = !props.order
-    ? 0
-    : Util.inc(props.order.status, "ORDER_PREPARING", "OFFER_PREPARING")
-    ? 0
-    : Util.inc(props.order.status, "ORDER_REQUESTED", "OFFER_REQUESTED")
-    ? 1
-    : Util.inc(props.order.status, "ACCEPTED")
-    ? 2
-    : 0;
 
-  const steps = isVirtual
-    ? [{ title: "주문 작성중" }, { title: "매입정보 입력" }]
-    : [
-        { title: "주문 작성" },
-        { title: "주문 승인 대기" },
-        { title: "매입정보 입력" },
-      ];
+  const [tab, setTab] = useState<"plan" | "invoice">("plan");
+
+  const invoices = ApiHook.Shipping.Invoice.useGetList({
+    query: {
+      planId: planId,
+    },
+  });
+  const apiCancelInvoice = ApiHook.Shipping.Invoice.useCancel();
+  const cmdCancelInvoice = useCallback(
+    async (invoice: Model.Invoice) => {
+      if (!(await Util.confirm("선택한 송장을 취소하시겠습니까?"))) return;
+      await apiCancelInvoice.mutateAsync({
+        data: {
+          invoiceIds: [invoice.id],
+        },
+      });
+    },
+    [apiCancelInvoice]
+  );
+
+  useEffect(() => {
+    setTab("plan");
+  }, [planId]);
 
   return (
     <div className="flex-1 w-0 flex">
@@ -1312,76 +1283,213 @@ function RightSideOrder(props: RightSideOrderProps) {
         {props.order?.orderType === "NORMAL" ||
         props.order?.orderType === "OUTSOURCE_PROCESS" ? (
           <>
-            <Toolbar.Container rootClassName="p-4">
-              <Toolbar.ButtonPreset.Create
-                label="예정 재고 추가"
-                disabled={!accepted}
-                tooltip={
-                  !accepted
-                    ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
-                    : undefined
-                }
-                onClick={() => props.order && setOpen(props.order.id)}
-              />
-              <div className="flex-1" />
-              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
-                <Toolbar.ButtonPreset.Delete
-                  label="예정 재고 삭제"
-                  onClick={cmdDelete}
-                />
+            <Toolbar.Container rootClassName="px-4">
+              {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" && (
+                <div className="flex-1 flex mt-4 gap-x-2 select-none">
+                  <div
+                    className={classNames(
+                      "flex-initial flex items-center rounded-t-lg px-3 text-base cursor-pointer",
+                      {
+                        "bg-cyan-600 text-white": tab === "plan",
+                        "bg-gray-200 text-gray-500": tab !== "plan",
+                      }
+                    )}
+                    onClick={() => setTab("plan")}
+                  >
+                    작업 계획
+                  </div>
+                  <div
+                    className={classNames(
+                      "flex-initial flex items-center rounded-t-lg px-3 text-base cursor-pointer",
+                      {
+                        "bg-cyan-600 text-white": tab === "invoice",
+                        "bg-gray-200 text-gray-500": tab !== "invoice",
+                      }
+                    )}
+                    onClick={() => setTab("invoice")}
+                  >
+                    송장 목록
+                  </div>
+                </div>
               )}
-              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
-                <Toolbar.ButtonPreset.Update
-                  label="예정 재고 수정"
-                  onClick={() =>
-                    onlyGroup &&
-                    onlyGroup.plan &&
-                    setOpenUpdate({
-                      planId: onlyGroup.plan.id,
-                      productId: onlyGroup.product.id,
-                      packagingId: onlyGroup.packaging.id,
-                      grammage: onlyGroup.grammage,
-                      sizeX: onlyGroup.sizeX,
-                      sizeY: onlyGroup.sizeY,
-                      paperColorGroupId: onlyGroup.paperColorGroup?.id ?? null,
-                      paperColorId: onlyGroup.paperColor?.id ?? null,
-                      paperPatternId: onlyGroup.paperPattern?.id ?? null,
-                      paperCertId: onlyGroup.paperCert?.id ?? null,
-                      quantity: onlyGroup.quantity,
-                    })
+              <div className="flex-initial flex gap-x-2 py-2">
+                <Toolbar.ButtonPreset.Create
+                  label="예정 재고 추가"
+                  disabled={!accepted}
+                  tooltip={
+                    !accepted
+                      ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
+                      : undefined
                   }
+                  onClick={() => props.order && setOpen(props.order.id)}
                 />
-              )}
-              {onlyGroup && !onlyGroup.warehouse && !onlyGroup.isAssigned && (
-                <Toolbar.ButtonPreset.Update
-                  label="금액 수정"
-                  onClick={() =>
-                    onlyGroup &&
-                    onlyGroup.plan &&
-                    setOpenUpdatePrice({
-                      planId: onlyGroup.plan.id,
-                      productId: onlyGroup.product.id,
-                      packagingId: onlyGroup.packaging.id,
-                      grammage: onlyGroup.grammage,
-                      sizeX: onlyGroup.sizeX,
-                      sizeY: onlyGroup.sizeY,
-                      paperColorGroupId: onlyGroup.paperColorGroup?.id ?? null,
-                      paperColorId: onlyGroup.paperColor?.id ?? null,
-                      paperPatternId: onlyGroup.paperPattern?.id ?? null,
-                      paperCertId: onlyGroup.paperCert?.id ?? null,
-                    })
-                  }
-                />
-              )}
-              {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
-                plan.data.status === "PREPARING" && (
-                  <Toolbar.ButtonPreset.Continue
-                    label="작업 지시"
-                    onClick={cmdPlanStart}
-                  />
-                )}
+                {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
+                  plan.data.status === "PREPARING" && (
+                    <Toolbar.ButtonPreset.Continue
+                      label="작업 지시"
+                      onClick={cmdPlanStart}
+                    />
+                  )}
+                {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
+                  plan.data.status === "PROGRESSING" && (
+                    <Toolbar.ButtonPreset.Delete
+                      label="작업 지시 취소"
+                      onClick={cmdPlanBackward}
+                    />
+                  )}
+              </div>
             </Toolbar.Container>
-            <div className="flex-1 overflow-y-scroll px-4 pb-4">
+            <div className="flex-initial basis-px bg-gray-200" />
+            {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
+              tab === "plan" && (
+                <div className="flex-1 flex h-0">
+                  <div className="flex-1 bg-slate-100">
+                    {plan.data?.assignStockEvent &&
+                      plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" && (
+                        <TaskMap
+                          plan={plan.data}
+                          packagingType={
+                            plan.data.assignStockEvent.stock.packaging.type
+                          }
+                          readonly
+                        />
+                      )}
+                  </div>
+                </div>
+              )}
+            {plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" &&
+              tab === "invoice" && (
+                <div className="flex-1 flex flex-col overflow-y-scroll h-0 w">
+                  <Table.Default<Model.Invoice>
+                    data={invoices.data ?? undefined}
+                    keySelector={(p) => p.id}
+                    selection="none"
+                    columns={[
+                      {
+                        title: "송장 번호",
+                        dataIndex: "invoiceNo",
+                        render: (value) => (
+                          <div className="font-fixed">
+                            {Util.formatSerial(value)}
+                          </div>
+                        ),
+                      },
+                      {
+                        title: "상태",
+                        render: (record: Model.Invoice) =>
+                          Util.formatInvoiceStatus(record.invoiceStatus),
+                      },
+                      {
+                        title: "도착지",
+                        render: (_, record) =>
+                          record.plan?.orderStock?.dstLocation.name ??
+                          record.plan?.orderProcess?.srcLocation.name,
+                      },
+                      {
+                        title: "예정일",
+                        render: (_, record) => (
+                          <div className="font-fixed">
+                            {Util.formatIso8601ToLocalDate(
+                              record.plan?.orderStock?.wantedDate ??
+                                record.plan?.orderProcess?.srcWantedDate ??
+                                null
+                            )}
+                          </div>
+                        ),
+                      },
+                      ...Table.Preset.columnPackagingType<Model.Invoice>(
+                        (p) => p.packaging
+                      ),
+                      {
+                        title: "지종",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.product.paperType.name,
+                      },
+                      {
+                        title: "제지사",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.product.manufacturer.name,
+                      },
+                      {
+                        title: "평량",
+                        render: (_value: any, record: Model.Invoice) => (
+                          <div className="text-right font-fixed">{`${Util.comma(
+                            record.grammage
+                          )} ${Util.UNIT_GPM}`}</div>
+                        ),
+                      },
+                      {
+                        title: "규격",
+                        render: (_value: any, record: Model.Invoice) => (
+                          <div className="font-fixed">
+                            {
+                              Util.findPaperSize(
+                                record.sizeX ?? 1,
+                                record.sizeY ?? 1
+                              )?.name
+                            }
+                          </div>
+                        ),
+                      },
+                      {
+                        title: "지폭",
+                        render: (_value: any, record: Model.Invoice) => (
+                          <div className="text-right font-fixed">{`${Util.comma(
+                            record.sizeX
+                          )} mm`}</div>
+                        ),
+                      },
+                      {
+                        title: "지장",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.packaging?.type !== "ROLL" && record.sizeY ? (
+                            <div className="text-right font-fixed">{`${Util.comma(
+                              record.sizeY
+                            )} mm`}</div>
+                          ) : null,
+                      },
+                      {
+                        title: "색상",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.paperColor?.name,
+                      },
+                      {
+                        title: "무늬",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.paperPattern?.name,
+                      },
+                      {
+                        title: "인증",
+                        render: (_value: any, record: Model.Invoice) =>
+                          record.paperCert?.name,
+                      },
+                      ...Table.Preset.columnQuantity<Model.Invoice>(
+                        (p) => p,
+                        (p) => p.quantity,
+                        {}
+                      ),
+                      {
+                        key: "action",
+                        render: (record: Model.Invoice) => (
+                          <div className="flex gap-x-1 h-8">
+                            {record.invoiceStatus !== "CANCELLED" && (
+                              <button
+                                className="flex-initial bg-red-500 text-white rounded-sm px-2"
+                                onClick={() => cmdCancelInvoice(record)}
+                              >
+                                송장 취소
+                              </button>
+                            )}
+                          </div>
+                        ),
+                        width: "100px",
+                        fixed: "right",
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+            <div className="flex-1 overflow-y-scroll pb-4">
               <div className="flex-1 flex flex-col gap-y-2">
                 <Table.Default<Model.PlanStockGroup>
                   data={groupList.data ?? undefined}
@@ -1408,6 +1516,70 @@ function RightSideOrder(props: RightSideOrderProps) {
                       (p) => p.quantity,
                       { prefix: "" }
                     ),
+                    {
+                      render: (record: Model.PlanStockGroup) => (
+                        <div className="flex gap-x-1 h-8">
+                          {!record.warehouse && !record.isAssigned && (
+                            <button
+                              className="flex-initial bg-slate-500 text-white rounded-sm px-2"
+                              onClick={() =>
+                                record.plan &&
+                                setOpenUpdate({
+                                  planId: record.plan.id,
+                                  productId: record.product.id,
+                                  packagingId: record.packaging.id,
+                                  grammage: record.grammage,
+                                  sizeX: record.sizeX,
+                                  sizeY: record.sizeY,
+                                  paperColorGroupId:
+                                    record.paperColorGroup?.id ?? null,
+                                  paperColorId: record.paperColor?.id ?? null,
+                                  paperPatternId:
+                                    record.paperPattern?.id ?? null,
+                                  paperCertId: record.paperCert?.id ?? null,
+                                  quantity: record.quantity,
+                                })
+                              }
+                            >
+                              수정
+                            </button>
+                          )}
+                          {!record.warehouse && !record.isAssigned && (
+                            <button
+                              className="flex-initial bg-slate-500 text-white rounded-sm px-2"
+                              onClick={() =>
+                                record.plan &&
+                                setOpenUpdatePrice({
+                                  planId: record.plan.id,
+                                  productId: record.product.id,
+                                  packagingId: record.packaging.id,
+                                  grammage: record.grammage,
+                                  sizeX: record.sizeX,
+                                  sizeY: record.sizeY,
+                                  paperColorGroupId:
+                                    record.paperColorGroup?.id ?? null,
+                                  paperColorId: record.paperColor?.id ?? null,
+                                  paperPatternId:
+                                    record.paperPattern?.id ?? null,
+                                  paperCertId: record.paperCert?.id ?? null,
+                                })
+                              }
+                            >
+                              금액 수정
+                            </button>
+                          )}
+                          {!record.warehouse && !record.isAssigned && (
+                            <button
+                              className="flex-initial bg-red-500 text-white rounded-sm px-2"
+                              onClick={() => cmdDelete(record)}
+                            >
+                              삭제
+                            </button>
+                          )}
+                        </div>
+                      ),
+                      fixed: "right",
+                    },
                   ]}
                 />
                 {onlyGroup &&
@@ -1426,21 +1598,6 @@ function RightSideOrder(props: RightSideOrderProps) {
                       message="아직 입고처리 되지 않은 예정재고입니다."
                     />
                   ))}
-              </div>
-            </div>
-            <div className="flex-initial basis-px bg-gray-200" />
-            <div className="flex-1 flex h-0">
-              <div className="flex-1 bg-slate-100">
-                {plan.data?.assignStockEvent &&
-                  plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" && (
-                    <TaskMap
-                      plan={plan.data}
-                      packagingType={
-                        plan.data.assignStockEvent.stock.packaging.type
-                      }
-                      readonly
-                    />
-                  )}
               </div>
             </div>
           </>
@@ -1545,6 +1702,24 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiPlanStart, props.order]);
 
+  const apiPlanBackward = ApiHook.Working.Plan.useBackward();
+  const cmdPlanBackward = useCallback(async () => {
+    const plan = (
+      props.order?.orderStock ?? props.order?.orderProcess
+    )?.plan.find((p) => p.companyId === props.order?.dstCompany.id);
+    if (!plan) return;
+
+    if (
+      !(await Util.confirm(
+        "현장 작업자에게 사전 공지한 후 취소할 것을 권장합니다. 작업 지시 취소 하시겠습니까?"
+      ))
+    )
+      return;
+    await apiPlanBackward.mutateAsync({
+      id: plan.id,
+    });
+  }, [apiPlanBackward, props.order]);
+
   const isVirtual = !!props.order?.srcCompany.managedById;
   const status = !props.order
     ? 0
@@ -1566,86 +1741,205 @@ function RightSideSales(props: RightSideSalesProps) {
 
   const me = ApiHook.Auth.useGetMe();
 
+  const planId =
+    (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
+      mine(me.data)
+    )?.id ?? null;
+
   const plan = ApiHook.Working.Plan.useGetItem({
-    id:
-      (props.order?.orderStock ?? props.order?.orderProcess)?.plan.find(
-        mine(me.data)
-      )?.id ?? null,
+    id: planId,
   });
+
+  const invoices = ApiHook.Shipping.Invoice.useGetList({
+    query: {
+      planId: planId,
+    },
+  });
+  const apiCancelInvoice = ApiHook.Shipping.Invoice.useCancel();
+  const cmdCancelInvoice = useCallback(
+    async (invoice: Model.Invoice) => {
+      if (!(await Util.confirm("선택한 송장을 취소하시겠습니까?"))) return;
+      await apiCancelInvoice.mutateAsync({
+        data: {
+          invoiceIds: [invoice.id],
+        },
+      });
+    },
+    [apiCancelInvoice]
+  );
+
+  const targetPlan = (
+    props.order?.orderProcess?.plan ?? props.order?.orderStock?.plan
+  )?.find((p) => p.companyId === props.order?.dstCompany.id);
+
+  console.log(targetPlan);
 
   return (
     <div className="flex-1 w-0 flex">
       <div className="flex-1 flex flex-col w-0">
-        <Toolbar.Container rootClassName="flex-1 p-4">
-          <div className="flex-1 flex flex-col justify-center select-none mx-8">
-            <Steps items={steps} current={status} />
-          </div>
-          {props.order?.status === "OFFER_PREPARING" && (
-            <Toolbar.ButtonPreset.Delete
-              label="주문 삭제"
-              onClick={cmdCancel}
-            />
+        {props.order?.status === "ACCEPTED" &&
+          (targetPlan?.status === "PREPARING" ||
+            targetPlan?.status === "PROGRESSING") && (
+            <Toolbar.Container rootClassName="flex-1 px-4 py-2">
+              {targetPlan.status === "PREPARING" && (
+                <Toolbar.ButtonPreset.Continue
+                  label="작업 지시"
+                  onClick={cmdPlanStart}
+                />
+              )}
+              {targetPlan.status === "PROGRESSING" && (
+                <Toolbar.ButtonPreset.Delete
+                  label="작업 지시 취소"
+                  onClick={cmdPlanBackward}
+                />
+              )}
+            </Toolbar.Container>
           )}
-          {!isVirtual && props.order?.status === "OFFER_PREPARING" && (
-            <Toolbar.ButtonPreset.Send
-              label="주문 승인 요청"
-              onClick={cmdRequest}
-            />
-          )}
-          {isVirtual && props.order?.status === "OFFER_PREPARING" && (
-            <Toolbar.ButtonPreset.Continue
-              label="매출 등록"
-              onClick={cmdAccept(isVirtual)}
-            />
-          )}
-          {props.order?.status === "ORDER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Reject
-              label="주문 거절"
-              onClick={cmdReject}
-            />
-          )}
-          {props.order?.status === "ORDER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Continue
-              label="주문 승인"
-              onClick={cmdAccept(isVirtual)}
-            />
-          )}
-          {props.order?.status === "OFFER_REQUESTED" && (
-            <Toolbar.ButtonPreset.Send label="재고 승인" disabled />
-          )}
-          {props.order?.status === "OFFER_REJECTED" && (
-            <Toolbar.ButtonPreset.Continue
-              label="수주 내용 재입력"
-              onClick={cmdReset}
-            />
-          )}
-          {props.order?.status === "ACCEPTED" &&
-            ((props.order.orderType === "NORMAL" &&
-              props.order.orderStock?.plan.find(
-                (p) => p.companyId === props.order?.dstCompany.id
-              )?.status === "PREPARING") ||
-              (props.order.orderType === "OUTSOURCE_PROCESS" &&
-                props.order.orderProcess?.plan.find(
-                  (p) => p.companyId === props.order?.dstCompany.id
-                )?.status === "PREPARING")) && (
-              <Toolbar.ButtonPreset.Continue
-                label="작업 지시"
-                onClick={cmdPlanStart}
+        {plan.data?.assignStockEvent && (
+          <>
+            <div className="basis-px bg-gray-200" />
+            <div className="flex-1 flex h-0">
+              <div className="flex-1 bg-slate-100">
+                <TaskMap
+                  plan={plan.data}
+                  packagingType={
+                    plan.data.assignStockEvent.stock.packaging.type
+                  }
+                  readonly
+                />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col overflow-y-scroll h-0 w">
+              <Table.Default<Model.Invoice>
+                data={invoices.data ?? undefined}
+                keySelector={(p) => p.id}
+                selection="none"
+                columns={[
+                  {
+                    title: "송장 번호",
+                    dataIndex: "invoiceNo",
+                    render: (value) => (
+                      <div className="font-fixed">
+                        {Util.formatSerial(value)}
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "상태",
+                    render: (record: Model.Invoice) =>
+                      Util.formatInvoiceStatus(record.invoiceStatus),
+                  },
+                  {
+                    title: "도착지",
+                    render: (_, record) =>
+                      record.plan?.orderStock?.dstLocation.name ??
+                      record.plan?.orderProcess?.srcLocation.name,
+                  },
+                  {
+                    title: "예정일",
+                    render: (_, record) => (
+                      <div className="font-fixed">
+                        {Util.formatIso8601ToLocalDate(
+                          record.plan?.orderStock?.wantedDate ??
+                            record.plan?.orderProcess?.srcWantedDate ??
+                            null
+                        )}
+                      </div>
+                    ),
+                  },
+                  ...Table.Preset.columnPackagingType<Model.Invoice>(
+                    (p) => p.packaging
+                  ),
+                  {
+                    title: "지종",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.product.paperType.name,
+                  },
+                  {
+                    title: "제지사",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.product.manufacturer.name,
+                  },
+                  {
+                    title: "평량",
+                    render: (_value: any, record: Model.Invoice) => (
+                      <div className="text-right font-fixed">{`${Util.comma(
+                        record.grammage
+                      )} ${Util.UNIT_GPM}`}</div>
+                    ),
+                  },
+                  {
+                    title: "규격",
+                    render: (_value: any, record: Model.Invoice) => (
+                      <div className="font-fixed">
+                        {
+                          Util.findPaperSize(
+                            record.sizeX ?? 1,
+                            record.sizeY ?? 1
+                          )?.name
+                        }
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "지폭",
+                    render: (_value: any, record: Model.Invoice) => (
+                      <div className="text-right font-fixed">{`${Util.comma(
+                        record.sizeX
+                      )} mm`}</div>
+                    ),
+                  },
+                  {
+                    title: "지장",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.packaging?.type !== "ROLL" && record.sizeY ? (
+                        <div className="text-right font-fixed">{`${Util.comma(
+                          record.sizeY
+                        )} mm`}</div>
+                      ) : null,
+                  },
+                  {
+                    title: "색상",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.paperColor?.name,
+                  },
+                  {
+                    title: "무늬",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.paperPattern?.name,
+                  },
+                  {
+                    title: "인증",
+                    render: (_value: any, record: Model.Invoice) =>
+                      record.paperCert?.name,
+                  },
+                  ...Table.Preset.columnQuantity<Model.Invoice>(
+                    (p) => p,
+                    (p) => p.quantity,
+                    {}
+                  ),
+                  {
+                    key: "action",
+                    render: (record: Model.Invoice) => (
+                      <div className="flex gap-x-1 h-8">
+                        {record.invoiceStatus !== "CANCELLED" && (
+                          <button
+                            className="flex-initial bg-red-500 text-white rounded-sm px-2"
+                            onClick={() => cmdCancelInvoice(record)}
+                          >
+                            송장 취소
+                          </button>
+                        )}
+                      </div>
+                    ),
+                    width: "100px",
+                    fixed: "right",
+                  },
+                ]}
               />
-            )}
-        </Toolbar.Container>
-        <div className="basis-px bg-gray-200" />
-        <div className="flex-1 flex h-0">
-          <div className="flex-1 bg-slate-100">
-            {plan.data?.assignStockEvent && (
-              <TaskMap
-                plan={plan.data}
-                packagingType={plan.data.assignStockEvent.stock.packaging.type}
-                readonly
-              />
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
         {props.order?.orderType === "OUTSOURCE_PROCESS" &&
           plan.data?.assignStockEvent && (
             <>
@@ -2322,12 +2616,6 @@ function BasePricePanel(props: BasePricePanelProps) {
   }, [props.order, me.data, form, apiUpdate]);
 
   const defaultVatPrice = (suppliedPrice ?? 0) * 0.1;
-
-  const positiveCompany = [props.order.srcCompany, props.order.dstCompany]
-    .filter((_) => me.data)
-    .find((p) => p.id !== me.data?.companyId);
-
-  const isSales = props.order.dstCompany.id === me.data?.companyId;
 
   useEffect(() => {
     if (tradePrice.data) {

@@ -23,9 +23,7 @@ export default function Component(props: Props) {
   const cmdAccept = useCallback(
     async (request: Api.BusinessRelationshipRequestAcceptRequest) => {
       await apiAccept.mutateAsync({
-        data: {
-          companyId: request.companyId,
-        },
+        data: { companyId: request.companyId },
       });
 
       setSelected([]);

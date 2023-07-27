@@ -84,6 +84,27 @@ export function useStart() {
   );
 }
 
+export function useBackward() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { id: number }) => {
+      const resp = await axios.post(
+        `${API_HOST}/working/plan/${params.id}/backward`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["plan", "item", variables.id]);
+        await queryClient.invalidateQueries(["plan", "list"]);
+        await queryClient.invalidateQueries(["stockInhouse"]);
+        await queryClient.invalidateQueries(["order"]);
+      },
+    }
+  );
+}
+
 export function useComplete() {
   const queryClient = useQueryClient();
 

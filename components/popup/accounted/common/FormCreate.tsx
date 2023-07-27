@@ -105,7 +105,7 @@ export default function Component(props: Props) {
         label="거래처"
         rules={[{ required: true }]}
       >
-        <FormControl.SelectPartner />
+        <FormControl.SelectCompanyRegistrationNumber />
       </Form.Item>
 
       <Form.Item

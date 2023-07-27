@@ -351,6 +351,11 @@ function SelectWarehouse(props: ItemProps) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, maxWidth: 400, flex: "1 0 auto" }}
       />
     </div>
@@ -370,6 +375,8 @@ function SelectPackaging(props: ItemProps) {
       </div>
     ),
     value: item.id,
+    text: `${Util.formatPackaging(item)})`,
+    type: item.type,
   }));
   const change = useCallback(
     (value: string[]) => {
@@ -388,6 +395,13 @@ function SelectPackaging(props: ItemProps) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? `${option.type} ${option.text}`
+                .toLowerCase()
+                .indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>
@@ -417,6 +431,11 @@ function SelectPaperType(props: ItemProps) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>
@@ -446,6 +465,11 @@ function SelectManufacturer(props: ItemProps) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>
@@ -461,11 +485,12 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
     },
   });
   const options = useMemo(() => {
+    console.log(list.data);
     return list.data?.items
       .filter(
         (x) =>
           props.virtual === undefined ||
-          (x.srcCompany.managedById !== undefined) === props.virtual
+          !!x.srcCompany.managedById === props.virtual
       )
       .map((x) => ({
         label: (
@@ -489,7 +514,7 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
         text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
         value: x.srcCompany.id,
       }));
-  }, [list.data?.items, props.virtual]);
+  }, [list.data, props.virtual]);
   const change = useCallback(
     (value: string[]) => {
       props.onChange(value.join("|"));
@@ -507,6 +532,11 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>
@@ -514,6 +544,9 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
 }
 
 function SelectCompanyRegistrationNumber(props: ItemProps) {
+  const partners = ApiHook.Inhouse.Partner.useGetList({
+    query: {},
+  });
   const list = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
     query: {},
   });
@@ -521,7 +554,10 @@ function SelectCompanyRegistrationNumber(props: ItemProps) {
     label: (
       <div className="flex font-fixed gap-x-4">
         <div className="flex-1 whitespace-pre">
-          {item.partner?.partnerNickName ?? item.businessName}
+          {partners.data?.items.find(
+            (p) =>
+              p.companyRegistrationNumber === item.companyRegistrationNumber
+          )?.partnerNickName ?? item.businessName}
         </div>
         <div className="flex-basis whitespace-pre font-fixed">
           {Util.formatCompanyRegistrationNo(item.companyRegistrationNumber)}
@@ -548,6 +584,11 @@ function SelectCompanyRegistrationNumber(props: ItemProps) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>
@@ -618,6 +659,11 @@ function SelectLocation(props: ItemProps<{ isPublic?: boolean }>) {
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
         onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.text?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>

@@ -3,6 +3,7 @@ import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
+import classNames from "classnames";
 import { useEffect } from "react";
 import { useCallback, useState } from "react";
 import { TbHome, TbHomeShield } from "react-icons/tb";
@@ -49,6 +50,54 @@ export default function Component() {
     }
   }, [list.data, only]);
 
+  const progressColumn = useCallback((record: Model.ShippingItem) => {
+    const preparing = record.invoice.filter(
+      (p) => p.invoiceStatus === "DONE_SHIPPING"
+    );
+    const progressing = record.invoice.filter(
+      (p) => p.invoiceStatus === "ON_SHIPPING"
+    );
+    const progressed = record.invoice.filter(
+      (p) => p.invoiceStatus === "DONE_SHIPPING"
+    );
+    return (
+      <div className="flex gap-x-2 text-gray-400 select-none">
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-amber-600 border-amber-600": preparing.length > 0,
+              "text-gray-300 border-gray-300": preparing.length === 0,
+            }
+          )}
+        >
+          {`상차 완료 ${preparing.length}`}
+        </div>
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-green-600 border-green-600": progressing.length > 0,
+              "text-gray-300 border-gray-300": progressing.length === 0,
+            }
+          )}
+        >
+          {`배송중 ${progressing.length}`}
+        </div>
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-blue-600 border-blue-600": progressed.length > 0,
+              "text-gray-300 border-gray-300": progressed.length === 0,
+            }
+          )}
+        >
+          {`배송 완료 ${progressed.length}`}
+        </div>
+      </div>
+    );
+  }, []);
   return (
     <Page title="배송 설정">
       <StatBar.Container>
@@ -94,8 +143,7 @@ export default function Component() {
           },
           {
             title: "배송 상태",
-            dataIndex: "status",
-            render: (value) => <div>{Util.shippingStatusToString(value)}</div>,
+            render: (record: Model.ShippingItem) => progressColumn(record),
           },
           {
             title: "운송장 개수",
