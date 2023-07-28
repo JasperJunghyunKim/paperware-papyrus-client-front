@@ -243,7 +243,7 @@ export function formatPackagingPriceUnit(
 export function formatInvoiceStatus(status: Model.Enum.InvoiceStatus) {
   switch (status) {
     case "WAIT_LOADING":
-      return "출고 대기";
+      return "상차 대기";
     case "WAIT_SHIPPING":
       return "상차 완료";
     case "ON_SHIPPING":
