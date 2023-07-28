@@ -140,14 +140,15 @@ function Item(props: ItemProps) {
             <div className="flex-1">
               {Util.taskTypeToString(props.data.value.type)}
             </div>
-            {props.plan.status === "PREPARING" && (
-              <div
-                className="flex-initial flex flex-col justify-center text-2xl cursor-pointer hover:text-red-600"
-                onClick={() => cmdDelete()}
-              >
-                <TbX />
-              </div>
-            )}
+            {props.plan.status === "PREPARING" &&
+              props.data.value.status === "PREPARING" && (
+                <div
+                  className="flex-initial flex flex-col justify-center text-2xl cursor-pointer hover:text-red-600"
+                  onClick={() => cmdDelete()}
+                >
+                  <TbX />
+                </div>
+              )}
             {props.plan.status === "PROGRESSING" && (
               <div
                 className={classNames(
@@ -528,20 +529,32 @@ function ConvertingNode(props: ConvertingProps) {
             value={w}
             onChange={(p) => setW(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           <MiniFormNumber
             label="공정 지장"
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           <MiniFormString
             label="메모"
             value={m}
             onChange={(p) => setM(p)}
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           {props.plan.status === "PREPARING" && isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
@@ -647,20 +660,32 @@ function GuillotineNode(props: GuillotineProps) {
             value={w}
             onChange={(p) => setW(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           <MiniFormNumber
             label="공정 지장"
             value={h}
             onChange={(p) => setH(p ?? 0)}
             unit="mm"
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           <MiniFormString
             label="메모"
             value={m}
             onChange={(p) => setM(p)}
-            disabled={props.plan.status !== "PREPARING" || props.disabled}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />
@@ -810,7 +835,11 @@ function QuantityNode(props: QuantityProps) {
                 label="중량"
                 value={Util.gramsToTon(q ?? 0)}
                 unit="T"
-                disabled={props.plan.status !== "PREPARING" || props.disabled}
+                disabled={
+                  props.plan.status !== "PREPARING" ||
+                  props.disabled ||
+                  props.current.value.status !== "PREPARING"
+                }
                 onChange={(p) => setQ(Util.tonToGrams(p ?? 0))}
                 precision={3}
               />
@@ -829,7 +858,11 @@ function QuantityNode(props: QuantityProps) {
                 value={q}
                 onChange={(p) => setQ(p ?? 0)}
                 unit="BOX"
-                disabled={props.plan.status !== "PREPARING" || props.disabled}
+                disabled={
+                  props.plan.status !== "PREPARING" ||
+                  props.disabled ||
+                  props.current.value.status !== "PREPARING"
+                }
                 max={999999999}
               />
               <MiniFormNumber
@@ -848,7 +881,11 @@ function QuantityNode(props: QuantityProps) {
                 value={q / 500}
                 onChange={(p) => setQ((p ?? 0) * 500)}
                 unit="R"
-                disabled={props.plan.status !== "PREPARING" || props.disabled}
+                disabled={
+                  props.plan.status !== "PREPARING" ||
+                  props.disabled ||
+                  props.current.value.status !== "PREPARING"
+                }
                 max={999999999}
                 precision={3}
               />
@@ -857,7 +894,11 @@ function QuantityNode(props: QuantityProps) {
                 value={q}
                 onChange={(p) => setQ(p ?? 0)}
                 unit="매"
-                disabled={props.plan.status !== "PREPARING" || props.disabled}
+                disabled={
+                  props.plan.status !== "PREPARING" ||
+                  props.disabled ||
+                  props.current.value.status !== "PREPARING"
+                }
                 max={999999999}
               />
               <MiniFormNumber
@@ -874,7 +915,11 @@ function QuantityNode(props: QuantityProps) {
             label="메모"
             value={m}
             onChange={(p) => setM(p)}
-            disabled={props.plan.status !== "PREPARING"}
+            disabled={
+              props.plan.status !== "PREPARING" ||
+              props.disabled ||
+              props.current.value.status !== "PREPARING"
+            }
           />
           {isChanged() && (
             <MiniButton label="저장" onClick={async () => await cmdUpdate()} />

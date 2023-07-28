@@ -108,7 +108,7 @@ export default function Component(props: Props) {
     });
   }, [apiReject, order.data]);
 
-  const apiCancel = ApiHook.Trade.Common.useCancel();
+  const apiCancel = ApiHook.Trade.Common.useDelete();
   const cmdCancel = useCallback(async () => {
     if (!order.data) return;
     if (!(await Util.confirm("주문을 삭제하시겠습니까?"))) return;
@@ -322,7 +322,20 @@ export default function Component(props: Props) {
 
   return (
     <Popup.Template.Full
-      title={title(props.open) ?? `${isSales ? "매출" : "매입"} 상세`}
+      title={
+        title(props.open) ?? (
+          <div className="flex-initial flex gap-x-2">
+            <div className="flex-initial">{isSales ? "매출" : "매입"} 상세</div>
+            {order.data && (
+              <div className="flex-initial font-fixed font-normal text-gray-300">
+                ({isSales ? "매출" : "매입"} 번호:{" "}
+                {Util.formatSerial(order.data.orderNo)}) ―{" "}
+                {Util.orderStatusToString(order.data.status)}
+              </div>
+            )}
+          </div>
+        )
+      }
       {...props}
       open={!!props.open}
       width="calc(100vw - 80px)"
@@ -1672,7 +1685,7 @@ function RightSideSales(props: RightSideSalesProps) {
     });
   }, [apiReject, props.order]);
 
-  const apiCancel = ApiHook.Trade.Common.useCancel();
+  const apiCancel = ApiHook.Trade.Common.useDelete();
   const cmdCancel = useCallback(async () => {
     if (!props.order) return;
     if (!(await Util.confirm("수주를 삭제하시겠습니까?"))) return;
@@ -2681,11 +2694,6 @@ function BasePricePanel(props: BasePricePanelProps) {
             type="secondary"
             label="금액 정보 저장"
             onClick={cmdUpdate}
-          />
-          <Button.Default
-            type="primary"
-            icon={<TbRubberStamp />}
-            label="거래 마감"
           />
         </div>
         <div className="h-8" />

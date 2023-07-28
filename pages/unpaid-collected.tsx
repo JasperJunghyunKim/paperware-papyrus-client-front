@@ -136,8 +136,8 @@ export default function Component() {
         footer={() => (
           <>
             <T.Summary.Row className="bg-gray-200 font-fixed text-right">
-              <T.Summary.Cell index={1}></T.Summary.Cell>
-              <T.Summary.Cell index={2}>{list.data?.total} 원</T.Summary.Cell>
+              <T.Summary.Cell index={1} />
+              <T.Summary.Cell index={2} />
               <T.Summary.Cell index={3}>
                 {Util.comma(list.data?.totalPrice.totalPrice)} 원
               </T.Summary.Cell>

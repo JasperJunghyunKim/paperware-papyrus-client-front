@@ -1,4 +1,5 @@
 import { Model } from "@/@shared";
+import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
@@ -9,6 +10,11 @@ import { useCallback, useState } from "react";
 import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
+type TempPlan = {
+  status: Enum.PlanStatus;
+  task: { type: Enum.TaskType; status: Enum.TaskStatus }[];
+  invoice: { invoiceStatus: Enum.InvoiceStatus }[];
+};
 
 export default function Component() {
   const info = ApiHook.Auth.useGetMe();
@@ -30,6 +36,22 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
+  const apiDelete = ApiHook.Trade.Common.useDelete();
+  const cmdDelete = useCallback(async () => {
+    if (
+      !only ||
+      !(await Util.confirm(`선택한 매출(${only.orderNo})을 취소하시겠습니까?`))
+    ) {
+      return;
+    }
+
+    await apiDelete.mutateAsync({
+      orderId: only.id,
+    });
+
+    setSelected([]);
+  }, [apiDelete, only]);
+
   const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (
@@ -45,6 +67,119 @@ export default function Component() {
 
     setSelected([]);
   }, [apiCancel, only]);
+
+  const findPlan = (record: Model.Order) => {
+    return (record.orderStock ?? record.orderProcess)?.plan?.find(
+      (p) => p.companyId === record.dstCompany.id
+    ) as TempPlan | undefined;
+  };
+
+  const progressColumn = useCallback(
+    (types: Model.Enum.TaskType[], record: TempPlan | undefined) => {
+      if (!record) return null;
+
+      const preparing = record.task.filter(
+        (p) => types.some((q) => q === p.type) && p.status === "PREPARING"
+      );
+      const progressing = record.task.filter(
+        (p) => types.some((q) => q === p.type) && p.status === "PROGRESSING"
+      );
+      const progressed = record.task.filter(
+        (p) => types.some((q) => q === p.type) && p.status === "PROGRESSED"
+      );
+      return (
+        <div className="flex gap-x-2 text-gray-400 select-none">
+          <div
+            className={classNames(
+              "flex-initial border border-solid px-2 rounded-full",
+              {
+                "text-amber-600 border-amber-600": preparing.length > 0,
+                "text-gray-300 border-gray-300": preparing.length === 0,
+              }
+            )}
+          >
+            {`대기 ${preparing.length}`}
+          </div>
+          {types.every((p) => p !== "RELEASE") && (
+            <div
+              className={classNames(
+                "flex-initial border border-solid px-2 rounded-full",
+                {
+                  "text-green-600 border-green-600": progressing.length > 0,
+                  "text-gray-300 border-gray-300": progressing.length === 0,
+                }
+              )}
+            >
+              {`진행 ${progressing.length}`}
+            </div>
+          )}
+          <div
+            className={classNames(
+              "flex-initial border border-solid px-2 rounded-full",
+              {
+                "text-blue-600 border-blue-600": progressed.length > 0,
+                "text-gray-300 border-gray-300": progressed.length === 0,
+              }
+            )}
+          >
+            {`완료 ${progressed.length}`}
+          </div>
+        </div>
+      );
+    },
+    []
+  );
+
+  const shippingStatusColumn = useCallback((record: TempPlan | undefined) => {
+    if (!record) return null;
+
+    const preparing = record.invoice.filter(
+      (p) => p.invoiceStatus === "WAIT_SHIPPING"
+    );
+    const progressing = record.invoice.filter(
+      (p) => p.invoiceStatus === "ON_SHIPPING"
+    );
+    const progressed = record.invoice.filter(
+      (p) => p.invoiceStatus === "DONE_SHIPPING"
+    );
+    return (
+      <div className="flex gap-x-2 text-gray-400 select-none">
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-amber-600 border-amber-600": preparing.length > 0,
+              "text-gray-300 border-gray-300": preparing.length === 0,
+            }
+          )}
+        >
+          {`상차 완료 ${preparing.length}`}
+        </div>
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-green-600 border-green-600": progressing.length > 0,
+              "text-gray-300 border-gray-300": progressing.length === 0,
+            }
+          )}
+        >
+          {`배송중 ${progressing.length}`}
+        </div>
+        <div
+          className={classNames(
+            "flex-initial border border-solid px-2 rounded-full",
+            {
+              "text-blue-600 border-blue-600": progressed.length > 0,
+              "text-gray-300 border-gray-300": progressed.length === 0,
+            }
+          )}
+        >
+          {`배송 완료 ${progressed.length}`}
+        </div>
+      </div>
+    );
+  }, []);
 
   return (
     <Page title="매출 주문 목록">
@@ -64,9 +199,12 @@ export default function Component() {
             only.status === "ORDER_REJECTED") && (
             <Toolbar.ButtonPreset.Delete
               label="매출 삭제"
-              onClick={cmdCancel}
+              onClick={cmdDelete}
             />
           )}
+        {only && only.status === "ACCEPTED" && (
+          <Toolbar.ButtonPreset.Delete label="매출 취소" onClick={cmdCancel} />
+        )}
         <Toolbar.ButtonPreset.Update
           label="매출 정보 상세"
           onClick={() => only && setOpenStockUpsert(only.id)}
@@ -155,6 +293,21 @@ export default function Component() {
               </div>
             ),
           },
+          {
+            title: "공정 상태",
+            render: (record: Model.Order) =>
+              progressColumn(["CONVERTING", "GUILLOTINE"], findPlan(record)),
+          },
+          {
+            title: "출고 상태",
+            render: (record: Model.Order) =>
+              progressColumn(["RELEASE"], findPlan(record)),
+          },
+          {
+            title: "배송 상태",
+            render: (record: Model.Order) =>
+              shippingStatusColumn(findPlan(record)),
+          },
           ...Table.Preset.columnStockGroup<Model.Order>((record) =>
             Util.assignStockFromOrder(record)
           ),
@@ -163,6 +316,42 @@ export default function Component() {
             (record) => Util.assignQuantityFromOrder(record),
             { prefix: "매출", negative: false }
           ),
+          {
+            title: "매입 공급가",
+            render: (record: Model.Order) =>
+              record.purchaseSuppliedPrice ? (
+                <div className="font-fixed text-right">
+                  {Util.comma(record.purchaseSuppliedPrice)} 원
+                </div>
+              ) : null,
+          },
+          {
+            title: "매출 공급가",
+            render: (record: Model.Order) =>
+              record.salesSuppliedPrice ? (
+                <div className="font-fixed text-right">
+                  {Util.comma(record.salesSuppliedPrice)} 원
+                </div>
+              ) : null,
+          },
+          {
+            title: "매출 이익",
+            render: (record: Model.Order) =>
+              record.salesProfit ? (
+                <div className="font-fixed text-right">
+                  {Util.comma(record.salesProfit)} 원
+                </div>
+              ) : null,
+          },
+          {
+            title: "매출 이익율",
+            render: (record: Model.Order) =>
+              record.salesProfitRate ? (
+                <div className="font-fixed text-right">
+                  {record.salesProfitRate} %
+                </div>
+              ) : null,
+          },
           {
             title: "마감",
             render: (record: Model.Order) => (

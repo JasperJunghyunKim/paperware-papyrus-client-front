@@ -72,11 +72,34 @@ export function useRequest() {
   );
 }
 
+export function useDelete() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: { orderId: number }) => {
+      const resp = await axios.post(
+        `${API_HOST}/order/${params.orderId}/delete`
+      );
+      return resp.data;
+    },
+    {
+      onSuccess: async (_data, variables) => {
+        await queryClient.invalidateQueries(["order", "list"]);
+        await queryClient.invalidateQueries([
+          "order",
+          "item",
+          variables.orderId,
+        ]);
+        message.info("삭제되었습니다.");
+      },
+    }
+  );
+}
+
 export function useCancel() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    ["order", "cancel"],
     async (params: { orderId: number }) => {
       const resp = await axios.post(
         `${API_HOST}/order/${params.orderId}/cancel`

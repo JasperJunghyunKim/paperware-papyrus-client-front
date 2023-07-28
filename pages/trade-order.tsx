@@ -30,6 +30,22 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
+  const apiDelete = ApiHook.Trade.Common.useDelete();
+  const cmdDelete = useCallback(async () => {
+    if (
+      !only ||
+      !(await Util.confirm(`선택한 매입(${only.orderNo})을 취소하시겠습니까?`))
+    ) {
+      return;
+    }
+
+    await apiDelete.mutateAsync({
+      orderId: only.id,
+    });
+
+    setSelected([]);
+  }, [apiDelete, only]);
+
   const apiCancel = ApiHook.Trade.Common.useCancel();
   const cmdCancel = useCallback(async () => {
     if (
@@ -64,6 +80,14 @@ export default function Component() {
             only.status === "ORDER_REJECTED") && (
             <Toolbar.ButtonPreset.Delete
               label="매입 삭제"
+              onClick={cmdDelete}
+            />
+          )}
+        {only &&
+          only.status === "ACCEPTED" &&
+          only.dstCompany.managedById !== null && (
+            <Toolbar.ButtonPreset.Delete
+              label="매입 취소"
               onClick={cmdCancel}
             />
           )}

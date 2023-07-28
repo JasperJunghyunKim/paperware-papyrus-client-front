@@ -52,7 +52,7 @@ export default function Component() {
 
   const progressColumn = useCallback((record: Model.ShippingItem) => {
     const preparing = record.invoice.filter(
-      (p) => p.invoiceStatus === "DONE_SHIPPING"
+      (p) => p.invoiceStatus === "WAIT_SHIPPING"
     );
     const progressing = record.invoice.filter(
       (p) => p.invoiceStatus === "ON_SHIPPING"

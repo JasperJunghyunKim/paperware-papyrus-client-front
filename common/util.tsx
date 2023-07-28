@@ -463,7 +463,9 @@ export function orderStatusToString(value: Model.Enum.OrderStatus) {
     case "OFFER_REJECTED":
       return "구매 제안 반려";
     case "ACCEPTED":
-      return "승인";
+      return "주문 확정";
+    case "CANCELLED":
+      return "주문 취소";
   }
 }
 
