@@ -1,3 +1,4 @@
+import { Model } from "@/@shared";
 import { OrderRequestCreateRequest } from "@/@shared/api";
 import { ApiHook } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
@@ -78,6 +79,12 @@ export default function Component(props: Props) {
 
     cmdCheck();
   }, [props.open]);
+
+  const editable = (index: number) =>
+    (form.getFieldValue(["orderRequestItems"])[index]
+      .status as Model.Enum.OrderRequestItemStatus) === "REQUESTED" ||
+    (form.getFieldValue(["orderRequestItems"])[index]
+      .status as Model.Enum.OrderRequestItemStatus) === "ON_CHECKING";
 
   return (
     <Popup.Template.Full
@@ -180,10 +187,7 @@ export default function Component(props: Props) {
                           >
                             <Input
                               placeholder="완료 메모"
-                              disabled={
-                                form.getFieldValue(["orderRequestItems"])[index]
-                                  .status !== "REQUESTED"
-                              }
+                              disabled={!editable(index)}
                               addonBefore="완료 메모"
                             />
                           </Form.Item>
@@ -192,8 +196,7 @@ export default function Component(props: Props) {
                             name={[name, "id"]}
                             hidden
                           />
-                          {form.getFieldValue(["orderRequestItems"])[index]
-                            .status === "REQUESTED" && (
+                          {editable(index) && (
                             <div
                               className="flex-initial whitespace-nowrap bg-cyan-600 hover:bg-cyan-500 text-white px-2 py-1 rounded select-none cursor-pointer"
                               onClick={() =>

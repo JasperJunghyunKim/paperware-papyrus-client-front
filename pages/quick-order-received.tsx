@@ -96,11 +96,6 @@ export default function Component() {
           onClick={() => only && setOpenDetail(only.orderRequest.id)}
           disabled={!only}
         />
-        <Toolbar.ButtonPreset.Continue
-          label="주문 완료"
-          onClick={async () => await cmdDone()}
-          disabled={!(only && only.status == "REQUESTED")}
-        />
       </Toolbar.Container>
       <Table.Default<RecordType>
         data={list.data}
