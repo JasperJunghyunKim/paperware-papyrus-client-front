@@ -318,8 +318,14 @@ export default function Component(props: Props) {
                         {
                           title: "전량 사용",
                           render: (record: Model.StockEvent) => (
-                            <div className="text-blue-600">
-                              {record.useRemainder ? "전량 사용" : ""}
+                            <div
+                              className={
+                                record.useRemainder
+                                  ? "text-blue-600"
+                                  : "text-gray-600"
+                              }
+                            >
+                              {record.useRemainder ? "전량 사용" : "직접 입력"}
                             </div>
                           ),
                         },

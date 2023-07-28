@@ -193,7 +193,7 @@ export default function Component(props: Props) {
               >
                 <Radio.Group
                   options={[
-                    { label: "사용량 입력", value: false },
+                    { label: "직접 입력", value: false },
                     { label: "전량 사용", value: true },
                   ]}
                   optionType="button"
