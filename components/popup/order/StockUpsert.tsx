@@ -1790,7 +1790,8 @@ function RightSideSales(props: RightSideSalesProps) {
   return (
     <div className="flex-1 w-0 flex">
       <div className="flex-1 flex flex-col w-0">
-        {props.order?.status === "ACCEPTED" &&
+        {(props.order?.status === "ACCEPTED" ||
+          props.order?.status === "CANCELLED") &&
           (targetPlan?.status === "PREPARING" ||
             targetPlan?.status === "PROGRESSING") && (
             <Toolbar.Container rootClassName="flex-1 px-4 py-2">
