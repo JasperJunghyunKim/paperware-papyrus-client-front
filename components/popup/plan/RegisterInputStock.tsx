@@ -33,6 +33,7 @@ export default function Component(props: Props) {
   const paperPatternId = useWatch(["paperPatternId"], form);
   const paperCertId = useWatch(["paperCertId"], form);
   const quantity = useWatch(["quantity"], form);
+  const useRemainder = useWatch<boolean>(["useRemainder"], form);
 
   const packaging = metadata.data?.packagings.find((x) => x.id === packagingId);
 

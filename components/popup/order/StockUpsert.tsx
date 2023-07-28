@@ -438,6 +438,11 @@ function DataForm(props: DataFormProps) {
     props.initialOrder === null ||
     props.initialOrder.status === "OFFER_PREPARING" ||
     props.initialOrder.status === "ORDER_PREPARING";
+  const metaEditable =
+    editable ||
+    props.initialOrder?.status === "ACCEPTED" ||
+    props.initialOrder?.status === "CANCELLED";
+
   const manual =
     (!props.isSales &&
       companies.data?.items.find((p) => p.srcCompany.id === dstCompanyId)
@@ -562,7 +567,7 @@ function DataForm(props: DataFormProps) {
   const apiUpdateProcess = ApiHook.Trade.OrderProcess.useUpdate();
   const apiUpdateEtc = ApiHook.Trade.OrderEtc.useUpdate();
   const cmdUpdate = useCallback(async () => {
-    const values = (await form.validateFields()) as OrderUpdateMixType;
+    const values = form.getFieldsValue() as OrderUpdateMixType;
 
     if (props.initialOrder === null) {
       return;
@@ -722,7 +727,7 @@ function DataForm(props: DataFormProps) {
         rules={REQUIRED_RULES}
         initialValue={Util.dateToIso8601(dayjs())}
       >
-        <FormControl.DatePicker disabled={!editable} />
+        <FormControl.DatePicker disabled={!metaEditable} />
       </Form.Item>
 
       {orderType == "NORMAL" &&
@@ -730,12 +735,12 @@ function DataForm(props: DataFormProps) {
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
             <FormControl.SelectLocationForSales
               companyId={srcCompanyId}
-              disabled={!editable}
+              disabled={!metaEditable}
             />
           </Form.Item>
         ) : dstCompanyId ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-            <FormControl.SelectLocationForPurchase disabled={!editable} />
+            <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
           </Form.Item>
         ) : null)}
       {orderType == "NORMAL" && (
@@ -745,7 +750,7 @@ function DataForm(props: DataFormProps) {
             label={props.isSales ? "납품 요청일" : "도착 희망일"}
             rules={REQUIRED_RULES}
           >
-            <FormControl.DatePicker disabled={!editable} />
+            <FormControl.DatePicker disabled={!metaEditable} />
           </Form.Item>
           {!props.isSales && (
             <Form.Item
@@ -769,7 +774,7 @@ function DataForm(props: DataFormProps) {
               label="원지 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForPurchase disabled={!editable} />
+              <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
             </Form.Item>
           )}
           {!props.isSales && dstCompanyId && (
@@ -780,7 +785,7 @@ function DataForm(props: DataFormProps) {
             >
               <FormControl.SelectLocationForSales
                 companyId={dstCompanyId}
-                disabled={!editable}
+                disabled={!metaEditable}
               />
             </Form.Item>
           )}
@@ -789,7 +794,7 @@ function DataForm(props: DataFormProps) {
             label={props.isSales ? "원지 도착 예정일" : "원지 도착 예정일"}
             rules={REQUIRED_RULES}
           >
-            <FormControl.DatePicker disabled={!editable} />
+            <FormControl.DatePicker disabled={!metaEditable} />
           </Form.Item>
           <FormControl.Util.Split label="주문 배송 정보" />
           {props.isSales && srcCompanyId && (
@@ -800,7 +805,7 @@ function DataForm(props: DataFormProps) {
             >
               <FormControl.SelectLocationForSales
                 companyId={srcCompanyId}
-                disabled={!editable}
+                disabled={!metaEditable}
               />
             </Form.Item>
           )}
@@ -810,7 +815,7 @@ function DataForm(props: DataFormProps) {
               label="최종 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForPurchase disabled={!editable} />
+              <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
             </Form.Item>
           )}
           <Form.Item
@@ -818,7 +823,7 @@ function DataForm(props: DataFormProps) {
             label={props.isSales ? "최종 납품 요청일" : "최종 도착 희망일"}
             rules={REQUIRED_RULES}
           >
-            <FormControl.DatePicker disabled={!editable} />
+            <FormControl.DatePicker disabled={!metaEditable} />
           </Form.Item>
           {!props.isSales && (
             <Form.Item
@@ -839,9 +844,9 @@ function DataForm(props: DataFormProps) {
         </Form.Item>
       )}
       <Form.Item name="memo" label="기타 요청사항">
-        <Input.TextArea maxLength={100} disabled={!editable} />
+        <Input.TextArea maxLength={100} disabled={!metaEditable} />
       </Form.Item>
-      {props.initialOrder && editable && (
+      {props.initialOrder && metaEditable && (
         <div className="flex-initial flex justify-end">
           <Button.Preset.Edit
             label={`${props.isSales ? "수주" : "주문"} 정보 ${

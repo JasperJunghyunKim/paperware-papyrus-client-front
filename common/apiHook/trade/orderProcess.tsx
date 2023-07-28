@@ -35,7 +35,7 @@ export function useUpdate() {
       data: Api.OrderProcessInfoUpdateRequest;
     }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/process/${params.orderId}`,
+        `${API_HOST}/order/${params.orderId}/process`,
         params.data
       );
       return resp.data;

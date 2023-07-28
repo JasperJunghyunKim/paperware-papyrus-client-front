@@ -32,7 +32,7 @@ export function useUpdate() {
     ["order", "etc", "update"],
     async (params: { orderId: number; data: Api.OrderEtcUpdateRequest }) => {
       const resp = await axios.put(
-        `${API_HOST}/order/etc/${params.orderId}`,
+        `${API_HOST}/order/${params.orderId}/etc`,
         params.data
       );
       return resp.data;

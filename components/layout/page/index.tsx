@@ -231,14 +231,8 @@ export default function Component(props: PropsWithChildren<Props>) {
         <div className="basis-60" />
         <div className="flex-1 w-0 bg-slate-100 flex flex-col">
           <header className="flex flex-initial px-4 h-16 bg-white border-solid border-0 border-b border-gray-200 select-none fixed top-0 right-0 left-60 z-10">
-            <div className="flex-1 flex flex-row items-center h-full">
-              <ConfigProvider theme={{ token: { borderRadius: 100 } }}>
-                <AutoComplete dropdownMatchSelectWidth={500} className="w-64">
-                  <Input placeholder="검색" addonAfter={<TbSearch />} />
-                </AutoComplete>
-              </ConfigProvider>
-            </div>
-            <div className="flex-initial flex gap-x-4 w-full justify-end">
+            <div className="flex-1">{/* TODO */}</div>
+            <div className="flex-initial flex gap-x-4 justify-end">
               <div className="flex-initial basis-10 flex-shrink-0 flex flex-col justify-center">
                 <div className="basis-10 rounded-full bg-gray-200 text-center flex flex-col justify-center text-xl">
                   {user.data?.name?.substring(0, 1)}
