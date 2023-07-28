@@ -1,7 +1,7 @@
 import { ApiHook, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form } from "antd";
+import { Form, Radio } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import { useCallback, useEffect } from "react";
 
@@ -185,17 +185,34 @@ export default function Component(props: Props) {
                   disabled
                 />
               </Form.Item>
-              <Form.Item name="quantity" label="투입 수량">
-                <FormControl.Quantity
-                  spec={{
-                    grammage: grammage,
-                    sizeX,
-                    sizeY,
-                    packaging,
-                  }}
-                  onlyPositive
+              <div className="h-2" />
+              <Form.Item
+                name="useRemainder"
+                label="실투입 수량"
+                initialValue={false}
+              >
+                <Radio.Group
+                  options={[
+                    { label: "사용량 입력", value: false },
+                    { label: "전량 사용", value: true },
+                  ]}
+                  optionType="button"
+                  buttonStyle="solid"
                 />
               </Form.Item>
+              {!useRemainder && (
+                <Form.Item name="quantity" label="투입 수량">
+                  <FormControl.Quantity
+                    spec={{
+                      grammage: grammage,
+                      sizeX,
+                      sizeY,
+                      packaging,
+                    }}
+                    onlyPositive
+                  />
+                </Form.Item>
+              )}
             </>
           )}
           <Form.Item className="flex justify-end mt-4 ">
