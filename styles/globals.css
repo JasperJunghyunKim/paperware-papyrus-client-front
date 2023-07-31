@@ -49,7 +49,7 @@ button {
 }
 
 .ant-form-item {
-  margin-bottom: 8px !important;
+  margin-bottom: 8px;
 }
 
 @tailwind components;

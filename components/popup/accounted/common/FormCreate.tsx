@@ -107,7 +107,6 @@ export default function Component(props: Props) {
       >
         <FormControl.SelectCompanyRegistrationNumber />
       </Form.Item>
-
       <Form.Item
         name="accountedMethod"
         label={`${labelName} 수단`}

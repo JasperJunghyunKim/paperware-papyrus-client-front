@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function Component(props: Props) {
-  const staticData = ApiHook.Inhouse.Partner.useGetList({
+  const staticData = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
     query: {},
   });
 
@@ -18,7 +18,9 @@ export default function Component(props: Props) {
     const options = staticData.data?.items.map((x) => ({
       label: <Item item={x} />,
       value: x.companyRegistrationNumber,
-      temp: `${x.partnerNickName} ${x.companyRegistrationNumber}`,
+      temp: `${x.partner?.partnerNickName ?? x.businessName} ${
+        x.companyRegistrationNumber
+      }`,
     }));
     options?.sort((a, b) => a.temp.localeCompare(b.temp));
     return options;
@@ -47,14 +49,16 @@ export default function Component(props: Props) {
 }
 
 interface ItemProps {
-  item: Model.Partner;
+  item: Model.BusinessRelationshipCompact;
 }
 
 function Item(props: ItemProps) {
   const x = props.item;
   return (
     <div className="flex font-fixed gap-x-4">
-      <div className="flex-1">{x.partnerNickName}</div>
+      <div className="flex-1">
+        {x.partner?.partnerNickName ?? x.businessName}
+      </div>
       <div className="flex-initial text-gray-400">
         {Util.formatCompanyRegistrationNo(x.companyRegistrationNumber)}
       </div>

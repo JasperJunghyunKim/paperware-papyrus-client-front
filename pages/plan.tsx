@@ -156,7 +156,7 @@ export default function Component() {
                 : record.type === "TRADE_OUTSOURCE_PROCESS_BUYER"
                 ? record.orderProcess?.order.dstCompany
                     .companyRegistrationNumber
-                : record.orderStock?.order.dstCompany.companyRegistrationNumber,
+                : record.orderStock?.order.srcCompany.companyRegistrationNumber,
           }),
           {
             title: "납품 도착지",
@@ -184,11 +184,11 @@ export default function Component() {
           {
             title: "수급 도착지",
             render: (_, record: RecordType) =>
-              (record.assignStockEvent?.stock as any).plan?.planType ===
+              (record.assignStockEvent?.stock as any).plan?.type ===
               "TRADE_OUTSOURCE_PROCESS_SELLER"
                 ? (record.assignStockEvent?.stock as any).plan?.orderProcess
                     ?.dstLocation.name
-                : (record.assignStockEvent?.stock as any).plan?.planType ===
+                : (record.assignStockEvent?.stock as any).plan?.type ===
                   "TRADE_OUTSOURCE_PROCESS_BUYER"
                 ? (record.assignStockEvent?.stock as any).plan?.orderProcess
                     ?.srcLocation.name
@@ -202,11 +202,11 @@ export default function Component() {
             render: (_, record) => (
               <div className="font-fixed">
                 {Util.formatIso8601ToLocalDate(
-                  (record.assignStockEvent?.stock as any).plan?.planType ===
+                  (record.assignStockEvent?.stock as any).plan?.type ===
                     "TRADE_OUTSOURCE_PROCESS_SELLER"
                     ? (record.assignStockEvent?.stock as any).plan.orderProcess
                         ?.dstWantedDate ?? null
-                    : (record.assignStockEvent?.stock as any).plan?.planType ===
+                    : (record.assignStockEvent?.stock as any).plan?.type ===
                       "TRADE_OUTSOURCE_PROCESS_BUYER"
                     ? (record.assignStockEvent?.stock as any).plan.orderProcess
                         ?.srcWantedDate ?? null

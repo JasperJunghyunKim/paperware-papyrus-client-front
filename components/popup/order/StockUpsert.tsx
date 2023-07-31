@@ -440,8 +440,15 @@ function DataForm(props: DataFormProps) {
     props.initialOrder.status === "ORDER_PREPARING";
   const metaEditable =
     editable ||
-    props.initialOrder?.status === "ACCEPTED" ||
-    props.initialOrder?.status === "CANCELLED";
+    (props.isSales
+      ? props.initialOrder?.status === "ACCEPTED" ||
+        props.initialOrder?.status === "CANCELLED"
+      : props.initialOrder?.dstCompany.managedById === null
+      ? false
+      : (props.initialOrder?.status === "ACCEPTED" ||
+          props.initialOrder?.status === "CANCELLED") &&
+        props.initialOrder.orderType !== "DEPOSIT" &&
+        props.initialOrder.orderType !== "ETC");
 
   const manual =
     (!props.isSales &&
@@ -760,7 +767,7 @@ function DataForm(props: DataFormProps) {
               rules={REQUIRED_RULES}
               initialValue={false}
             >
-              <Switch disabled={!editable} />
+              <Switch />
             </Form.Item>
           )}
         </>
@@ -833,7 +840,7 @@ function DataForm(props: DataFormProps) {
               rules={REQUIRED_RULES}
               initialValue={false}
             >
-              <Switch disabled={!editable} />
+              <Switch />
             </Form.Item>
           )}
         </>

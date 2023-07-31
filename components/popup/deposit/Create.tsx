@@ -81,12 +81,12 @@ export default function Component(props: Props) {
         <Form form={form} onFinish={cmd} layout="vertical">
           {props.open === "PURCHASE" && (
             <Form.Item name="srcCompanyRegistrationNumber" label="거래처">
-              <FormControl.SelectCompanyPurchase />
+              <FormControl.SelectCompanyRegistrationNumber />
             </Form.Item>
           )}
           {props.open === "SALES" && (
             <Form.Item name="dstCompanyRegistrationNumber" label="거래처">
-              <FormControl.SelectCompanySales />
+              <FormControl.SelectCompanyRegistrationNumber />
             </Form.Item>
           )}
           <Form.Item

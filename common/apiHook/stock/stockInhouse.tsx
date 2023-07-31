@@ -2,6 +2,7 @@ import { Api } from "@/@shared";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
+import _ from "lodash";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function useGetGroupList(params: {
@@ -291,8 +292,8 @@ export function useGetStockGroupHistory(params: {
         !params.query.productId ||
         !params.query.packagingId ||
         !params.query.grammage ||
-        !params.query.sizeX ||
-        !params.query.sizeY
+        !_.isNumber(params.query.sizeX) ||
+        !_.isNumber(params.query.sizeY)
       ) {
         return null;
       }
