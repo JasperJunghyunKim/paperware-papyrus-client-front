@@ -140,11 +140,11 @@ export default function Component(props: Props) {
                                 message: "상품명을 입력해주세요.",
                               },
                             ]}
-                            noStyle
+                            rootClassName="flex-[5_0_0] m-0 p-0"
                           >
                             <Input
                               placeholder="상품명"
-                              rootClassName="w-[300px]"
+                              rootClassName="w-full"
                               disabled
                               addonBefore="상품명"
                             />
@@ -158,24 +158,25 @@ export default function Component(props: Props) {
                                 message: "수량을 입력해주세요.",
                               },
                             ]}
-                            noStyle
+                            rootClassName="flex-[3_0_0] m-0 p-0"
                           >
                             <Input
                               placeholder="수량"
-                              rootClassName="w-[300px]"
                               disabled
                               addonBefore="수량"
+                              rootClassName="w-full"
                             />
                           </Form.Item>
                           <Form.Item
                             {...restFields}
                             name={[name, "memo"]}
-                            noStyle
+                            rootClassName="flex-[5_0_0] m-0 p-0"
                           >
                             <Input
                               placeholder="비고"
                               disabled
                               addonBefore="비고"
+                              rootClassName="w-full"
                             />
                           </Form.Item>
                         </div>
