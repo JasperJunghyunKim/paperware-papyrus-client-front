@@ -724,7 +724,7 @@ function DataForm(props: DataFormProps) {
         <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanySales
             disabled={!!props.initialOrder}
-            virtual={orderType === "OUTSOURCE_PROCESS" ? true : undefined}
+            virtual={orderType === "OUTSOURCE_PROCESS" ? false : undefined}
           />
         </Form.Item>
       )}
@@ -743,11 +743,15 @@ function DataForm(props: DataFormProps) {
             <FormControl.SelectLocationForSales
               companyId={srcCompanyId}
               disabled={!metaEditable}
+              initial={props.initialOrder?.orderStock?.dstLocation}
             />
           </Form.Item>
         ) : dstCompanyId ? (
           <Form.Item name="locationId" label="도착지" rules={REQUIRED_RULES}>
-            <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
+            <FormControl.SelectLocationForPurchase
+              disabled={!metaEditable}
+              initial={props.initialOrder?.orderStock?.dstLocation}
+            />
           </Form.Item>
         ) : null)}
       {orderType == "NORMAL" && (
@@ -781,7 +785,10 @@ function DataForm(props: DataFormProps) {
               label="원지 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
+              <FormControl.SelectLocationForPurchase
+                disabled={!metaEditable}
+                initial={props.initialOrder?.orderProcess?.dstLocation}
+              />
             </Form.Item>
           )}
           {!props.isSales && dstCompanyId && (
@@ -793,6 +800,7 @@ function DataForm(props: DataFormProps) {
               <FormControl.SelectLocationForSales
                 companyId={dstCompanyId}
                 disabled={!metaEditable}
+                initial={props.initialOrder?.orderProcess?.dstLocation}
               />
             </Form.Item>
           )}
@@ -813,6 +821,7 @@ function DataForm(props: DataFormProps) {
               <FormControl.SelectLocationForSales
                 companyId={srcCompanyId}
                 disabled={!metaEditable}
+                initial={props.initialOrder?.orderProcess?.srcLocation}
               />
             </Form.Item>
           )}
@@ -822,7 +831,10 @@ function DataForm(props: DataFormProps) {
               label="최종 도착지"
               rules={REQUIRED_RULES}
             >
-              <FormControl.SelectLocationForPurchase disabled={!metaEditable} />
+              <FormControl.SelectLocationForPurchase
+                disabled={!metaEditable}
+                initial={props.initialOrder?.orderProcess?.srcLocation}
+              />
             </Form.Item>
           )}
           <Form.Item
@@ -1796,8 +1808,6 @@ function RightSideSales(props: RightSideSalesProps) {
   const targetPlan = (
     props.order?.orderProcess?.plan ?? props.order?.orderStock?.plan
   )?.find((p) => p.companyId === props.order?.dstCompany.id);
-
-  console.log(targetPlan);
 
   return (
     <div className="flex-1 w-0 flex">

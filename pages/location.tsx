@@ -4,7 +4,7 @@ import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useCallback, useState } from "react";
-import { TbHome, TbHomeShield, TbMapPin, TbMapPinFilled } from "react-icons/tb";
+import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);

@@ -1,3 +1,4 @@
+import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
@@ -10,6 +11,7 @@ interface Props {
   onChange?: (value: number) => void;
   disabled?: boolean;
   isPublic?: boolean;
+  initial?: Model.Location;
 }
 
 /** 자사의 도착지를 선택하는 컴포넌트 */
@@ -35,6 +37,17 @@ export default function Component(props: Props) {
         value: x.id,
       }));
 
+    const c =
+      props.initial &&
+      a?.every((p) => p.value !== props.initial?.id) &&
+      b?.every((p) => p.value !== props.initial?.id)
+        ? [props.initial].map((x) => ({
+            label: <Item item={x} />,
+            text: `${x.name} ${Util.formatAddress(x.address)}`,
+            value: x.id,
+          }))
+        : [];
+
     return props.isPublic
       ? a
       : [
@@ -46,8 +59,16 @@ export default function Component(props: Props) {
             label: "기타 도착지",
             options: a ?? [],
           },
+          ...(c
+            ? [
+                {
+                  label: "최근 선택",
+                  options: c,
+                },
+              ]
+            : []),
         ];
-  }, [list, props.isPublic]);
+  }, [list, props.isPublic, props.initial]);
 
   return (
     <div className="flex flex-col gap-y-1">

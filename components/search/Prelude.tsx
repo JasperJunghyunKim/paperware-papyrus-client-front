@@ -485,7 +485,6 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
     },
   });
   const options = useMemo(() => {
-    console.log(list.data);
     return list.data?.items
       .filter(
         (x) =>

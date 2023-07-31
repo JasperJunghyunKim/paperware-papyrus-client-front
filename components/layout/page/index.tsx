@@ -218,6 +218,7 @@ export default function Component(props: PropsWithChildren<Props>) {
 
   return (
     <>
+      <title>PAPERWARE ─ 페이퍼웨어</title>
       <div className="flex">
         <div className="flex-shrink-0 flex-grow-0 bg-white text-black border-solid border-0 border-r border-gray-200 overflow-y-scroll h-screen top-0 fixed w-60">
           <Logo.Paperware />
