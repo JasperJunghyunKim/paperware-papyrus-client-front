@@ -10,17 +10,31 @@ interface Props {
 }
 
 export default function Component(props: Props) {
+  const partners = ApiHook.Inhouse.Partner.useGetList({
+    query: {},
+  });
   const staticData = ApiHook.Inhouse.BusinessRelationship.useGetCompactList({
     query: {},
   });
 
   const options = useMemo(() => {
     const options = staticData.data?.items.map((x) => ({
-      label: <Item item={x} />,
+      label: (
+        <Item
+          item={x}
+          partner={partners.data?.items.find(
+            (p) => p.companyRegistrationNumber === x.companyRegistrationNumber
+          )}
+        />
+      ),
       value: x.companyRegistrationNumber,
-      temp: `${x.partner?.partnerNickName ?? x.businessName} ${
-        x.companyRegistrationNumber
-      }`,
+      temp: `${
+        partners.data?.items.find(
+          (p) => p.companyRegistrationNumber === x.companyRegistrationNumber
+        ) ??
+        x.partner?.partnerNickName ??
+        x.businessName
+      } ${x.companyRegistrationNumber}`,
     }));
     options?.sort((a, b) => a.temp.localeCompare(b.temp));
     return options;
@@ -50,6 +64,7 @@ export default function Component(props: Props) {
 
 interface ItemProps {
   item: Model.BusinessRelationshipCompact;
+  partner?: Model.Partner;
 }
 
 function Item(props: ItemProps) {
@@ -57,7 +72,7 @@ function Item(props: ItemProps) {
   return (
     <div className="flex font-fixed gap-x-4">
       <div className="flex-1">
-        {x.partner?.partnerNickName ?? x.businessName}
+        {props.partner?.partnerNickName ?? x.businessName}
       </div>
       <div className="flex-initial text-gray-400">
         {Util.formatCompanyRegistrationNo(x.companyRegistrationNumber)}

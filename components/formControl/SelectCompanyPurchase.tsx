@@ -1,3 +1,4 @@
+import { Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { Record } from "@/common/protocol";
 import { Select } from "antd";
@@ -16,6 +17,10 @@ interface Props {
 export default function Component(props: Props) {
   const me = ApiHook.Auth.useGetMe();
 
+  const partners = ApiHook.Inhouse.Partner.useGetList({
+    query: {},
+  });
+
   const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
     query: {
       dstCompanyId: me.data?.companyId,
@@ -30,11 +35,27 @@ export default function Component(props: Props) {
           !!x.srcCompany.managedById === props.virtual
       )
       .map((x) => ({
-        label: <Item item={x} />,
-        text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
+        label: (
+          <Item
+            item={x}
+            partner={partners.data?.items.find(
+              (p) =>
+                p.companyRegistrationNumber ===
+                x.srcCompany.companyRegistrationNumber
+            )}
+          />
+        ),
+        text: `${x.srcCompany.businessName} ${
+          partners.data?.items.find(
+            (p) =>
+              p.companyRegistrationNumber ===
+              x.srcCompany.companyRegistrationNumber
+          )?.partnerNickName
+        }
+          ${x.srcCompany.phoneNo}`,
         value: x.srcCompany.id,
       }));
-  }, [list.data?.items, props.virtual]);
+  }, [list.data?.items, props.virtual, partners.data]);
 
   return (
     <div className="flex flex-col gap-y-1">
@@ -59,6 +80,7 @@ export default function Component(props: Props) {
 
 interface ItemProps {
   item: RecordType;
+  partner: Model.Partner | undefined;
 }
 
 function Item(props: ItemProps) {
@@ -66,7 +88,7 @@ function Item(props: ItemProps) {
   return (
     <div className="flex font-fixed gap-x-4">
       <div className="flex-initial whitespace-pre">
-        {x.srcCompany.businessName}
+        {props.partner?.partnerNickName ?? x.dstCompany.businessName}
       </div>
       <div className="flex-1 text-gray-400 text-right font-fixed">
         {x.srcCompany.phoneNo}
