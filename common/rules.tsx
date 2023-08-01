@@ -37,3 +37,8 @@ export const required = (): Rule => ({
   required: true,
   message: "필수 입력 항목입니다.",
 });
+
+export const password = (): Rule => ({
+  pattern: /^(?=.*[a-zA-Z])(?=.*[0-9]).{10,}$/,
+  message: "영문, 숫자를 포함한 10자 이상으로 입력해주세요.",
+});

@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 export default function Component() {
   const account = ApiHook.Setting.Account.useGet();
-  const [smsSended, setSmsSended] = useState(true);
+  const [smsSended, setSmsSended] = useState(false);
 
   const [formPassword] = useForm<AccountPasswordUpdateRequest>();
   const password = useWatch("password", formPassword);
@@ -81,7 +81,12 @@ export default function Component() {
         <Form.Item label={"아이디"}>
           <Input disabled value={account.data?.username} />
         </Form.Item>
-        <Form.Item label={"비밀번호 변경"} name={"password"}>
+        <Form.Item
+          label={"비밀번호 변경"}
+          name={"password"}
+          rules={[R.password()]}
+          hasFeedback={!isPasswordEmpty}
+        >
           <Input.Password placeholder="비밀번호를 입력하세요." />
         </Form.Item>
         {!isPasswordEmpty && (
@@ -91,7 +96,7 @@ export default function Component() {
               name={"_passwordConfirm"}
               hasFeedback
               dependencies={["password"]}
-              rules={[R.confirm("password"), R.length(4, 20)]}
+              rules={[R.confirm("password")]}
             >
               <Input.Password placeholder="비밀번호를 다시 입력하세요." />
             </Form.Item>
