@@ -2,11 +2,11 @@ import { Model } from "@/@shared";
 import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Icon, Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
@@ -26,10 +26,12 @@ export default function Component() {
     ["srcCompany", "companyRegistrationNumber"],
     { title: "매출처", fallback: (record) => record.srcCompany.businessName }
   );
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.Common.useGetList({
     query: {
       ...page,
+      ...search,
       dstCompanyId: info.data?.companyId,
     },
   });
@@ -181,6 +183,10 @@ export default function Component() {
     );
   }, []);
 
+  useEffect(() => {
+    setSelected([]);
+  }, [list.data]);
+
   return (
     <Page title="매출 주문 목록">
       <StatBar.Container>
@@ -211,6 +217,100 @@ export default function Component() {
           disabled={!only}
         />
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-order-type",
+            field: "orderTypes",
+            label: "매출 유형",
+            trade: "SALES",
+          },
+          {
+            type: "select-company-sales",
+            field: "srcCompanyId",
+            label: "매출처",
+          },
+          {
+            type: "text",
+            field: "orderNo",
+            label: "매출 번호",
+          },
+          {
+            type: "date-range",
+            field: "orderDate",
+            label: "매출일",
+          },
+          {
+            type: "date-range",
+            field: "wantedDate",
+            label: "납품 요청일",
+          },
+          {
+            type: "select-order-status",
+            field: "orderStatus",
+            label: "매출 상태",
+            trade: "SALES",
+          },
+          {
+            type: "select-order-process-status",
+            field: "taskStatus",
+            label: "공정 상태",
+          },
+          {
+            type: "select-order-release-status",
+            field: "releaseStatus",
+            label: "출고 상태",
+          },
+          {
+            type: "select-order-shipping-status",
+            field: "invoiceStatus",
+            label: "배송 상태",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "지종",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "number",
+            field: "sizeX",
+            label: "지폭",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "number",
+            field: "sizeY",
+            label: "지장",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "select-book-close-method",
+            field: "bookCloseMethods",
+            label: "마감",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<RecordType>
         data={list.data}
         page={page}
@@ -348,7 +448,7 @@ export default function Component() {
             render: (record: Model.Order) =>
               record.salesProfitRate ? (
                 <div className="font-fixed text-right">
-                  {record.salesProfitRate} %
+                  {Util.comma(record.salesProfitRate, 3)} %
                 </div>
               ) : null,
           },

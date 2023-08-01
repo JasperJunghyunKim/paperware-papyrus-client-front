@@ -1,11 +1,13 @@
 import { Util } from "@/common";
 import { DatePicker } from "antd";
+import classNames from "classnames";
 
 interface Props {
   value?: string;
   onChange?: (value: string | undefined) => void;
   disabled?: boolean;
   placeholder?: string;
+  rootClassName?: string;
 }
 
 export default function Component(props: Props) {
@@ -16,6 +18,7 @@ export default function Component(props: Props) {
         onChange={(x) => props.onChange?.(Util.dateToIso8601(x))}
         disabled={props.disabled}
         placeholder={props.placeholder}
+        className={classNames("w-full", props.rootClassName)}
       />
     </div>
   );

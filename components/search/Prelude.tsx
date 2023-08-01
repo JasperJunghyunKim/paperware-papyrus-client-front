@@ -1,11 +1,12 @@
 import { ApiHook, Util } from "@/common";
 import { Input, InputNumber, Select, Switch } from "antd";
+import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { TbSearch } from "react-icons/tb";
 import { match } from "ts-pattern";
 import { Icon } from "..";
 import { DatePicker } from "../formControl";
-import classNames from "classnames";
 
 interface Props {
   items: SearchItem[];
@@ -24,13 +25,26 @@ interface SearchItem {
     | "select-papertype"
     | "select-manufacturer"
     | "select-company-purchase"
+    | "select-company-sales"
     | "select-company-registration-number"
     | "select-location"
+    | "select-order-type"
+    | "select-order-status"
+    | "select-order-process-status"
+    | "select-order-release-status"
+    | "select-order-shipping-status"
+    | "select-book-close-method"
+    | "select-converting-status"
+    | "select-guillotine-status"
+    | "select-release-status"
+    | "select-arrived"
     | "date-range"
     | "check";
   options?: { label: string; value: string }[];
   min?: number;
   max?: number;
+  trade?: "SALES" | "PURCHASE";
+  virtual?: boolean;
 }
 
 export default function Component(props: Props) {
@@ -68,9 +82,26 @@ export default function Component(props: Props) {
     setData(props.value);
   }, [props.value]);
 
+  const valueFieldCount = useMemo(() => {
+    return Object.keys(props.value).length;
+  }, [props.value]);
+
   return (
-    <div className="flex-initial basis-8 flex bg-white p-4 gap-x-4 rounded border border-solid border-gray-200">
-      <div className="flex-1 flex flex-wrap gap-4">
+    <div
+      className={classNames(
+        "flex-initial basis-8 flex bg-white p-2 gap-x-4 rounded outline",
+        {
+          "outline-gray-200 outline-1": valueFieldCount === 0,
+          "outline-blue-800 outline-2": valueFieldCount > 0,
+        }
+      )}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          search();
+        }
+      }}
+    >
+      <div className="flex-1 flex flex-wrap gap-4 p-2">
         {props.items.map((item) => (
           <div key={item.field} className="flex-initial flex ">
             {match(item.type)
@@ -176,7 +207,12 @@ export default function Component(props: Props) {
                 <SelectCompanyPurchase
                   {...getFieldValue(item.field)}
                   onChange={setFieldValue(item.field)}
-                  virtual={false}
+                />
+              ))
+              .with("select-company-sales", () => (
+                <SelectCompanySales
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
                 />
               ))
               .with("select-company-registration-number", () => (
@@ -191,6 +227,68 @@ export default function Component(props: Props) {
                   onChange={setFieldValue(item.field)}
                 />
               ))
+              .with("select-order-type", () => (
+                <SelectOrderType
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                  trade={item.trade ?? "SALES"}
+                />
+              ))
+              .with("select-order-status", () => (
+                <SelectOrderStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                  trade={item.trade ?? "SALES"}
+                />
+              ))
+              .with("select-order-process-status", () => (
+                <SelectOrderProcessStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-order-release-status", () => (
+                <SelectOrderReleaseStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-order-shipping-status", () => (
+                <SelectOrderShippingStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-book-close-method", () => (
+                <SelectBookCloseMethod
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-converting-status", () => (
+                <SelectConvertingStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-guillotine-status", () => (
+                <SelectGuillotineStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-release-status", () => (
+                <SelectReleaseStatus
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-arrived", () => (
+                <SelectArrived
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
               .with("check", () => (
                 <Check
                   {...getFieldValue(item.field)}
@@ -201,13 +299,24 @@ export default function Component(props: Props) {
           </div>
         ))}
       </div>
-      <div className="flex-initial basis-24">
+      <div className="flex-initial flex flex-col basis-24 gap-y-2">
         <button
-          className="bg-blue-800 hover:bg-blue-700 text-white w-full h-full rounded"
+          className="flex-1 bg-blue-800 hover:bg-blue-700 text-white w-full h-full py-2 rounded"
           onClick={search}
         >
-          검색
+          <TbSearch size={24} />
         </button>
+        {valueFieldCount !== 0 && (
+          <button
+            className="flex-initial bg-gray-200 hover:bg-gray-300 text-sm text-gray-700 w-full py-2 rounded"
+            onClick={() => {
+              setData({});
+              props.onSearch({});
+            }}
+          >
+            검색 초기화
+          </button>
+        )}
       </div>
     </div>
   );
@@ -222,12 +331,15 @@ type ItemProps<T = {}> = {
 
 function Text(props: ItemProps) {
   return (
-    <div>
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
       <Input
         value={props.value ?? undefined}
         onChange={(e) =>
           props.onChange(Util.emptyStringToUndefined(e.target.value) ?? null)
         }
+        rootClassName="flex-1 w-64"
+        placeholder={`${props.label} 입력`}
       />
     </div>
   );
@@ -306,11 +418,13 @@ function DateRange(props: {
       <DatePicker
         value={props.minValue ?? undefined}
         onChange={(value) => props.onMinChange(value ?? null)}
+        rootClassName="w-32"
       />
       ~
       <DatePicker
         value={props.maxValue ?? undefined}
         onChange={(value) => props.onMaxChange(value ?? null)}
+        rootClassName="w-32"
       />
     </div>
   );
@@ -332,7 +446,7 @@ function SelectWarehouse(props: ItemProps) {
   const list = ApiHook.Inhouse.Warehouse.useGetList({ query: {} });
   const options = list.data?.items?.map((item) => ({
     label: item.name,
-    value: item.id,
+    value: item.id.toString(),
   }));
   const change = useCallback(
     (value: string[]) => {
@@ -350,6 +464,7 @@ function SelectWarehouse(props: ItemProps) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -374,7 +489,7 @@ function SelectPackaging(props: ItemProps) {
         <div className="flex-1">{Util.formatPackaging(item)}</div>
       </div>
     ),
-    value: item.id,
+    value: item.id.toString(),
     text: `${Util.formatPackaging(item)})`,
     type: item.type,
   }));
@@ -394,6 +509,7 @@ function SelectPackaging(props: ItemProps) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -412,7 +528,7 @@ function SelectPaperType(props: ItemProps) {
   const list = ApiHook.Static.PaperMetadata.useGetAll();
   const options = list.data?.paperTypes.map((item) => ({
     label: item.name,
-    value: item.id,
+    value: item.id.toString(),
   }));
   const change = useCallback(
     (value: string[]) => {
@@ -430,6 +546,7 @@ function SelectPaperType(props: ItemProps) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -446,7 +563,7 @@ function SelectManufacturer(props: ItemProps) {
   const list = ApiHook.Static.PaperMetadata.useGetAll();
   const options = list.data?.manufacturers.map((item) => ({
     label: item.name,
-    value: item.id,
+    value: item.id.toString(),
   }));
   const change = useCallback(
     (value: string[]) => {
@@ -464,6 +581,7 @@ function SelectManufacturer(props: ItemProps) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -478,6 +596,8 @@ function SelectManufacturer(props: ItemProps) {
 
 function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
   const me = ApiHook.Auth.useGetMe();
+
+  const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
 
   const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
     query: {
@@ -495,7 +615,11 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
         label: (
           <div className="flex font-fixed gap-x-4">
             <div className="flex-initial whitespace-pre">
-              {x.srcCompany.businessName}
+              {partners.data?.items.find(
+                (p) =>
+                  p.companyRegistrationNumber ===
+                  x.srcCompany.companyRegistrationNumber
+              )?.partnerNickName ?? x.srcCompany.businessName}
             </div>
             <div className="flex-1 text-gray-400 text-right font-fixed">
               {x.srcCompany.phoneNo}
@@ -510,8 +634,14 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
             </div>
           </div>
         ),
-        text: `${x.srcCompany.businessName} ${x.srcCompany.phoneNo}`,
-        value: x.srcCompany.id,
+        text: `${x.srcCompany.businessName} ${
+          partners.data?.items.find(
+            (p) =>
+              p.companyRegistrationNumber ===
+              x.srcCompany.companyRegistrationNumber
+          )?.partnerNickName
+        } ${x.srcCompany.phoneNo}`,
+        value: x.srcCompany.id.toString(),
       }));
   }, [list.data, props.virtual]);
   const change = useCallback(
@@ -526,10 +656,90 @@ function SelectCompanyPurchase(props: ItemProps<{ virtual?: boolean }>) {
       <div className="flex-initial text-sm">{props.label}</div>
       <Select
         options={options}
-        placeholder="거래처 선택"
+        placeholder="매입처 선택"
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectCompanySales(props: ItemProps<{ virtual?: boolean }>) {
+  const me = ApiHook.Auth.useGetMe();
+
+  const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
+
+  const list = ApiHook.Inhouse.BusinessRelationship.useGetList({
+    query: {
+      srcCompanyId: me.data?.companyId,
+    },
+  });
+  const options = useMemo(() => {
+    return list.data?.items
+      .filter(
+        (x) =>
+          props.virtual === undefined ||
+          !!x.srcCompany.managedById === props.virtual
+      )
+      .map((x) => ({
+        label: (
+          <div className="flex font-fixed gap-x-4">
+            <div className="flex-initial whitespace-pre">
+              {partners.data?.items.find(
+                (p) =>
+                  p.companyRegistrationNumber ===
+                  x.dstCompany.companyRegistrationNumber
+              )?.partnerNickName ?? x.dstCompany.businessName}
+            </div>
+            <div className="flex-1 text-gray-400 text-right font-fixed">
+              {x.dstCompany.phoneNo}
+            </div>
+            <div
+              className={classNames("flex-basis whitespace-pre font-fixed", {
+                "text-gray-400": x.dstCompany.managedById === null,
+                "text-purple-600": x.dstCompany.managedById !== null,
+              })}
+            >
+              {x.dstCompany.managedById !== null ? "비연결" : "연결"}
+            </div>
+          </div>
+        ),
+        text: `${x.dstCompany.businessName} ${
+          partners.data?.items.find(
+            (p) =>
+              p.companyRegistrationNumber ===
+              x.dstCompany.companyRegistrationNumber
+          )?.partnerNickName
+        } ${x.dstCompany.phoneNo}`,
+        value: x.dstCompany.id.toString(),
+      }));
+  }, [list.data, props.virtual]);
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder="매출처 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -582,6 +792,7 @@ function SelectCompanyRegistrationNumber(props: ItemProps) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
@@ -610,7 +821,7 @@ function SelectLocation(props: ItemProps<{ isPublic?: boolean }>) {
           </div>
         ),
         text: `${x.name} ${Util.formatAddress(x.address)}`,
-        value: x.id,
+        value: x.id.toString(),
       }));
 
     const b = list.data?.items
@@ -624,7 +835,7 @@ function SelectLocation(props: ItemProps<{ isPublic?: boolean }>) {
           </div>
         ),
         text: `${x.name} ${Util.formatAddress(x.address)}`,
-        value: x.id,
+        value: x.id.toString(),
       }));
 
     return props.isPublic
@@ -657,12 +868,392 @@ function SelectLocation(props: ItemProps<{ isPublic?: boolean }>) {
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
         onChange={change}
         filterOption={(input, option) =>
           option
             ? option.text?.toLowerCase().indexOf(input.toLowerCase()) >= 0
             : false
         }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectOrderType(props: ItemProps & { trade: "SALES" | "PURCHASE" }) {
+  const options = useMemo(
+    () => [
+      {
+        label: `정상 ${props.trade === "SALES" ? "매출" : "매입"}`,
+        value: "NORMAL",
+      },
+      {
+        label: `${props.trade === "SALES" ? "매출" : "매입"} 보관`,
+        value: "NORMAL_DEPOSIT",
+      },
+      {
+        label: `외주 공정 ${props.trade === "SALES" ? "매출" : "매입"}`,
+        value: "PROCESS",
+      },
+      {
+        label: `기타 ${props.trade === "SALES" ? "매출" : "매입"}`,
+        value: "ETC",
+      },
+    ],
+    [props.trade]
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder={`${props.trade === "SALES" ? "매출" : "매입"} 유형 선택`}
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectOrderStatus(props: ItemProps & { trade: "SALES" | "PURCHASE" }) {
+  const options = useMemo(
+    () => [
+      {
+        label: "작성중",
+        value: props.trade === "SALES" ? "OFFER_PREPARING" : "ORDER_PREPARING",
+      },
+      { label: "구매 제안 요청", value: "OFFER_REQUESTED" },
+      { label: "구매 제안 반려", value: "OFFER_REJECTED" },
+      { label: "주문 접수", value: "ORDER_REQUESTED" },
+      { label: "주문 반려", value: "ORDER_REJECTED" },
+      { label: "주문 취소", value: "CANCELLED" },
+      { label: "주문 확정", value: "ACCEPTED" },
+    ],
+    [props.trade]
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder={`${props.trade === "SALES" ? "매출" : "매입"} 상태 선택`}
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectOrderProcessStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "공정 대기", value: "PREPARING" },
+      { label: "공정 진행", value: "PROGRESSING" },
+      { label: "공정 완료", value: "PROGRESSED" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label}</div>
+      <Select
+        options={options}
+        placeholder="공정 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectOrderReleaseStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "출고 대기", value: "PREPARING" },
+      { label: "출고 완료", value: "PROGRESSED" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">
+        {props.label ?? "출고 상태 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="출고 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectOrderShippingStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "상차 완료", value: "WAIT_SHIPPING" },
+      { label: "배송 중", value: "ON_SHIPPING" },
+      { label: "배송 완료", value: "DONE_SHIPPING" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">
+        {props.label ?? "배송 상태 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="배송 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectBookCloseMethod(props: ItemProps) {
+  const options = useMemo(
+    () => [{ label: "전자세금계산서", value: "TAX_INVOICE" }],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">{props.label ?? "마감 선택"}</div>
+      <Select
+        options={options}
+        placeholder="마감 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        filterOption={(input, option) =>
+          option
+            ? option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            : false
+        }
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectConvertingStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "작업 대기", value: "PREPARING" },
+      { label: "작업 진행", value: "PROGRESSING" },
+      { label: "작업 완료", value: "PROGRESSED" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">
+        {props.label ?? "컨버팅 상태 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="컨버팅 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectGuillotineStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "작업 대기", value: "PREPARING" },
+      { label: "작업 진행", value: "PROGRESSING" },
+      { label: "작업 완료", value: "PROGRESSED" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">
+        {props.label ?? "길로틴 상태 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="길로틴 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectReleaseStatus(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "출고 대기", value: "PREPARING" },
+      { label: "출고 완료", value: "PROGRESSED" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">
+        {props.label ?? "출고 상태 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="출고 상태 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectArrived(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "도착 재고 (자사 재고)", value: "true" },
+      { label: "예정 재고", value: "false" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">{props.label ?? "수급 선택"}</div>
+      <Select
+        options={options}
+        placeholder="수급 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
         style={{ minWidth: 150, flex: "1 0 auto" }}
       />
     </div>

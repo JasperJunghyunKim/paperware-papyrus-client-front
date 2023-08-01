@@ -5,8 +5,31 @@ import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function useGetList(params: { query: Partial<Api.PlanListQuery> }) {
+  params.query.planNo = params.query.planNo?.replaceAll("-", "");
   return useQuery(
-    ["plan", "list", params.query.skip, params.query.take, params.query.type],
+    [
+      "plan",
+      "list",
+      params.query.skip,
+      params.query.take,
+      params.query.type,
+      params.query.planNo,
+      params.query.convertingStatus,
+      params.query.guillotineStatus,
+      params.query.releaseStatus,
+      params.query.partnerCompanyRegistrationNumbers,
+      params.query.minWantedDate,
+      params.query.maxWantedDate,
+      params.query.arrived,
+      params.query.warehouseIds,
+      params.query.packagingIds,
+      params.query.paperTypeIds,
+      params.query.manufacturerIds,
+      params.query.minGrammage,
+      params.query.maxGrammage,
+      params.query.sizeX,
+      params.query.sizeY,
+    ],
     async () => {
       const resp = await axios.get<Api.PlanListResponse>(
         `${API_HOST}/working/plan`,

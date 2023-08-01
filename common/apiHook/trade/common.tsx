@@ -7,6 +7,9 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 export function useGetList(params: {
   query: Partial<Api.OrderListQuery> | null;
 }) {
+  if (params.query?.orderNo) {
+    params.query.orderNo = params.query?.orderNo?.replaceAll("-", "");
+  }
   return useQuery(
     [
       "order",
@@ -15,9 +18,29 @@ export function useGetList(params: {
       params.query?.take,
       params.query?.dstCompanyId,
       params.query?.srcCompanyId,
-      params.query?.bookClosed,
-      params.query?.month,
       params.query?.srcCompanyRegistrationNumber,
+      params.query?.bookClosed,
+      params.query?.year,
+      params.query?.month,
+      params.query?.orderTypes,
+      params.query?.partnerCompanyRegistionNumbers,
+      params.query?.orderNo,
+      params.query?.minOrderDate,
+      params.query?.maxOrderDate,
+      params.query?.minWantedDate,
+      params.query?.maxWantedDate,
+      params.query?.orderStatus,
+      params.query?.taskStatus,
+      params.query?.releaseStatus,
+      params.query?.invoiceStatus,
+      params.query?.packagingIds,
+      params.query?.paperTypeIds,
+      params.query?.manufacturerIds,
+      params.query?.minGrammage,
+      params.query?.maxGrammage,
+      params.query?.sizeX,
+      params.query?.sizeY,
+      params.query?.bookCloseMethods,
     ],
     async () => {
       const resp = await axios.get<Api.OrderListResponse>(`${API_HOST}/order`, {

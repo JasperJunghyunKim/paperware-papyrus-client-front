@@ -2,11 +2,11 @@ import { Model } from "@/@shared";
 import { Enum } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Icon, Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { OrderUpsertOpen } from "@/components/popup/order/StockUpsert";
 import classNames from "classnames";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TbHome2 } from "react-icons/tb";
 
 type RecordType = Model.Order;
@@ -26,9 +26,11 @@ export default function Component() {
     ["dstCompany", "companyRegistrationNumber"],
     { title: "매입처", fallback: (record) => record.dstCompany.businessName }
   );
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.Common.useGetList({
     query: {
+      ...search,
       ...page,
       srcCompanyId: info.data?.companyId,
     },
@@ -181,6 +183,10 @@ export default function Component() {
     );
   }, []);
 
+  useEffect(() => {
+    setSelected([]);
+  }, [list.data]);
+
   return (
     <Page title="매입 주문 목록">
       <StatBar.Container>
@@ -216,6 +222,88 @@ export default function Component() {
           disabled={!only}
         />
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-order-type",
+            field: "orderTypes",
+            label: "매입 유형",
+            trade: "PURCHASE",
+          },
+          {
+            type: "select-company-purchase",
+            field: "dstCompanyId",
+            label: "매입처",
+          },
+          {
+            type: "text",
+            field: "orderNo",
+            label: "매입 번호",
+          },
+          {
+            type: "date-range",
+            field: "orderDate",
+            label: "매입일",
+          },
+          {
+            type: "date-range",
+            field: "wantedDate",
+            label: "도착 희망일",
+          },
+          {
+            type: "select-order-status",
+            field: "status",
+            label: "매입 상태",
+            trade: "PURCHASE",
+          },
+          {
+            type: "select-order-process-status",
+            field: "processStauts",
+            label: "공정 상태",
+          },
+          {
+            type: "select-order-release-status",
+            field: "releaseStatus",
+            label: "출고 상태",
+          },
+          {
+            type: "select-order-shipping-status",
+            field: "invoiceStatus",
+            label: "배송 상태",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "종이",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "range",
+            field: "sizeX",
+            label: "지폭",
+            min: 0,
+            max: 9999,
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<RecordType>
         data={list.data}
         page={page}

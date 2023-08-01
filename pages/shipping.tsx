@@ -1,7 +1,7 @@
 import { Api, Model } from "@/@shared";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import classNames from "classnames";
 import { useEffect } from "react";
@@ -11,8 +11,11 @@ import { TbHome, TbHomeShield } from "react-icons/tb";
 export default function Component() {
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
-  const list = ApiHook.Shipping.Shipping.useGetList({ query: page });
+  const list = ApiHook.Shipping.Shipping.useGetList({
+    query: { ...page, ...search },
+  });
   const [selected, setSelected] = useState<Model.Shipping[]>([]);
 
   const only = Util.only(selected);
@@ -128,6 +131,17 @@ export default function Component() {
           </>
         )}
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-order-shipping-status",
+            label: "배송 상태",
+            field: "invoiceStatus",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<Model.Shipping>
         data={list.data}
         page={page}

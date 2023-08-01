@@ -6,7 +6,13 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export function useGetList(params: { query: Partial<Api.ShippingListQuery> }) {
   return useQuery(
-    ["shipping", "list", params.query.skip, params.query.take],
+    [
+      "shipping",
+      "list",
+      params.query.skip,
+      params.query.take,
+      params.query.invoiceStatus,
+    ],
     async () => {
       const resp = await axios.get<Api.ShippingListResponse>(
         `${API_HOST}/shipping`,

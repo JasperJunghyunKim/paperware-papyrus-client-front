@@ -2,10 +2,10 @@ import { Model } from "@/@shared";
 import { PlanListItem } from "@/@shared/api";
 import { ApiHook, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Icon, Popup, StatBar, Table, Toolbar } from "@/components";
+import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import classNames from "classnames";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TbHome, TbHomeShield } from "react-icons/tb";
 
 type RecordType = PlanListItem;
@@ -14,8 +14,14 @@ export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
 
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
-  const list = ApiHook.Working.Plan.useGetList({ query: page });
+  const list = ApiHook.Working.Plan.useGetList({
+    query: {
+      ...page,
+      ...search,
+    },
+  });
   const [selected, setSelected] = useState<RecordType[]>([]);
 
   const only = Util.only(selected);
@@ -88,6 +94,10 @@ export default function Component() {
     []
   );
 
+  useEffect(() => {
+    setSelected([]);
+  }, [list.data]);
+
   return (
     <Page title="작업 계획 목록">
       <StatBar.Container>
@@ -108,6 +118,84 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
+      <Search
+        items={[
+          { type: "text", field: "planNo", label: "작업 번호" },
+          {
+            type: "select-converting-status",
+            field: "convertingStatus",
+            label: "컨버팅 상태",
+          },
+          {
+            type: "select-guillotine-status",
+            field: "guillotineStatus",
+            label: "길로틴 상태",
+          },
+          {
+            type: "select-release-status",
+            field: "releaseStatus",
+            label: "출고 상태",
+          },
+          {
+            type: "select-company-registration-number",
+            field: "partnerCompanyRegistrationNumbers",
+            label: "납품처",
+          },
+          {
+            type: "date-range",
+            field: "wantedDate",
+            label: "납품 요청일",
+          },
+          {
+            type: "select-arrived",
+            field: "arrived",
+            label: "수급 여부",
+          },
+          {
+            type: "select-warehouse",
+            field: "warehouseIds",
+            label: "창고",
+          },
+          {
+            type: "select-packaging",
+            field: "packagingIds",
+            label: "포장",
+          },
+          {
+            type: "select-papertype",
+            field: "paperTypeIds",
+            label: "지종",
+          },
+          {
+            type: "select-manufacturer",
+            field: "manufacturerIds",
+            label: "제지사",
+          },
+          {
+            type: "range",
+            field: "grammage",
+            label: "평량",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "number",
+            field: "sizeX",
+            label: "지폭",
+            min: 0,
+            max: 9999,
+          },
+          {
+            type: "number",
+            field: "sizeY",
+            label: "지장",
+            min: 0,
+            max: 9999,
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<RecordType>
         data={list.data}
         page={page}
