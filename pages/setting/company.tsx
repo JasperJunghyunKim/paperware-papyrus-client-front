@@ -70,10 +70,10 @@ export default function Component() {
           <FormControl.Address />
         </Form.Item>
         <Form.Item label="업태" name="bizType" rules={[R.length(1, 20)]}>
-          <Input rootClassName="w-48" />
+          <Input />
         </Form.Item>
         <Form.Item label="업종" name="bizItem" rules={[R.length(1, 20)]}>
-          <Input rootClassName="w-48" />
+          <Input />
         </Form.Item>
         <Form.Item label="등록일시">
           <FormControl.DatePicker
