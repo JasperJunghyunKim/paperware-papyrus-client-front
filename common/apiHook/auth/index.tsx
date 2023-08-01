@@ -1,5 +1,11 @@
+import {
+  AuthNoCheckRequest,
+  SendSmsAuthenticationRequest,
+} from "@/@shared/api/auth/auth.request";
+import { AuthNoCheckResponse } from "@/@shared/api/auth/auth.response";
 import { API_HOST } from "@/common/const";
 import { FormBody, Record } from "@/common/protocol";
+import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery } from "react-query";
 
@@ -22,6 +28,37 @@ export function useGetMe() {
     },
     {
       staleTime: 5000,
+    }
+  );
+}
+
+export function useSendSmsVerifyCode() {
+  return useMutation(
+    async (payload: SendSmsAuthenticationRequest) => {
+      const response = await axios.post(`${API_HOST}/auth/sms`, payload);
+      return response.data;
+    },
+    {
+      onSuccess: async () => {
+        message.success("인증번호가 발송되었습니다.");
+      },
+    }
+  );
+}
+
+export function useValidateVerifyCode() {
+  return useMutation(
+    async (payload: AuthNoCheckRequest) => {
+      const response = await axios.post<AuthNoCheckResponse>(
+        `${API_HOST}/auth/authNo`,
+        payload
+      );
+      return response.data;
+    },
+    {
+      onSuccess: async () => {
+        message.success("인증되었습니다.");
+      },
     }
   );
 }

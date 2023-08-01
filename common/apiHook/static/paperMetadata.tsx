@@ -1,6 +1,5 @@
 import { Api } from "@/@shared";
 import { API_HOST } from "@/common/const";
-import { Record } from "@/common/protocol";
 import axios from "axios";
 import { useQuery } from "react-query";
 

@@ -821,3 +821,9 @@ export function formatPlanType(value: Model.Enum.PlanType) {
 export function emptyStringToUndefined(value: string | null | undefined) {
   return !value || value === "" ? undefined : value;
 }
+
+export async function sleep(seconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), seconds * 1000);
+  });
+}

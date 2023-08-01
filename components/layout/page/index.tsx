@@ -34,6 +34,7 @@ import {
   TbSearch,
   TbServer2,
   TbServerBolt,
+  TbSettings,
   TbSubtask,
   TbTournament,
   TbTruck,
@@ -196,6 +197,17 @@ export default function Component(props: PropsWithChildren<Props>) {
         label: "미지급 잔액",
         icon: <TbCashBanknote />,
         path: "/unpaid-paid",
+      },
+      { path: null },
+      {
+        label: "계정 설정",
+        icon: <TbSettings />,
+        path: "/setting/account",
+      },
+      {
+        label: "회사 설정",
+        icon: <TbSettings />,
+        path: "/setting/company",
       },
     ],
     [businessRelationshipRequestCount.data?.value]
