@@ -18,7 +18,7 @@ import { message } from "antd";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
-export function useGetList(params: { query: SettingUserListQuery }) {
+export function useGetList(params: { query: Partial<SettingUserListQuery> }) {
   return useQuery(["setting", "user", "list", params.query], async () => {
     const resp = await axios.get<SettingUserListReseponse>(
       `${API_HOST}/setting/user`,
