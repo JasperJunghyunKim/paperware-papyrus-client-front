@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
 import { CARD_OPTIONS } from "@/components/formControl/SelectCard";
@@ -20,7 +20,9 @@ export default function Component() {
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
-      !(await Util.confirm(`해당 카드를 (${only.cardName})를 삭제하시겠습니까?`))
+      !(await Util.confirm(
+        `해당 카드를 (${only.cardName})를 삭제하시겠습니까?`
+      ))
     ) {
       return;
     }
@@ -28,11 +30,10 @@ export default function Component() {
     await api.mutateAsync({
       id: only.cardId,
     });
-
   }, [api, only]);
 
   return (
-    <Page title="카드 조회">
+    <Page title="카드 조회" menu={Const.Menu.SETTING_CARD}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
           label="카드 내역 추가"
@@ -68,7 +69,8 @@ export default function Component() {
           {
             title: "카드사 명",
             dataIndex: ["cardCompany"],
-            render: (value) => CARD_OPTIONS.find((item) => item.value === value)?.label,
+            render: (value) =>
+              CARD_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
             title: "카드 번호",

@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
 import { BANK_OPTIONS } from "@/components/formControl/SelectBank";
@@ -15,13 +15,17 @@ export default function Component() {
 
   const only = Util.only(selected);
 
-  const list = ApiHook.Inhouse.BankAccount.useGetBankAccountList({ query: page });
+  const list = ApiHook.Inhouse.BankAccount.useGetBankAccountList({
+    query: page,
+  });
   const api = ApiHook.Inhouse.BankAccount.useBankAccountDelete();
 
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
-      !(await Util.confirm(`해당 계좌를 (${only.accountName})를 삭제하시겠습니까?`))
+      !(await Util.confirm(
+        `해당 계좌를 (${only.accountName})를 삭제하시겠습니까?`
+      ))
     ) {
       return;
     }
@@ -29,11 +33,10 @@ export default function Component() {
     await api.mutateAsync({
       id: only.accountId,
     });
-
   }, [api, only]);
 
   return (
-    <Page title="계좌 조회">
+    <Page title="계좌 조회" menu={Const.Menu.SETTING_ACCOUNTED}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
           label="계좌 추가"
@@ -65,7 +68,8 @@ export default function Component() {
           {
             title: "은행 이름",
             dataIndex: ["bankComapny"],
-            render: (value) => BANK_OPTIONS.find((item) => item.value === value)?.label,
+            render: (value) =>
+              BANK_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
             title: "계좌 이름",
@@ -74,7 +78,8 @@ export default function Component() {
           {
             title: "계좌 종류",
             dataIndex: ["accountType"],
-            render: (value) => BANK_ACCOUNT_OPTIONS.find((item) => item.value === value)?.label,
+            render: (value) =>
+              BANK_ACCOUNT_OPTIONS.find((item) => item.value === value)?.label,
           },
           {
             title: "계좌 번호",

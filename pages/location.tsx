@@ -1,4 +1,4 @@
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
@@ -29,7 +29,7 @@ export default function Component() {
   }, [apiDelete, only]);
 
   return (
-    <Page title="도착지 설정">
+    <Page title="도착지 설정" menu={Const.Menu.SETTING_LOCATION}>
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

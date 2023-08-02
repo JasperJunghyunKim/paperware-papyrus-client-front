@@ -43,6 +43,12 @@ export interface User {
     invoiceCode: string;
     businessName: string;
   };
+  phoneNo: string;
+  birthDate: string | null;
+  isAdmin: boolean;
+  menu: {
+    menu: string;
+  };
 }
 
 export interface Warehouse {

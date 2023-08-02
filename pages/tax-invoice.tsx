@@ -1,6 +1,6 @@
 import { Api, Model } from "@/@shared";
 import PartnerTaxManager from "@/@shared/models/partner-tax-manager";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { emptyStringToUndefined } from "@/common/util";
 import { Button, FormControl, Icon, Popup, Table, Toolbar } from "@/components";
@@ -45,7 +45,7 @@ export default function Component() {
   }, [apiDelete, only]);
 
   return (
-    <Page title="전자세금계산서 목록">
+    <Page title="전자세금계산서 목록" menu={Const.Menu.TAX_INVOICE}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
           label="전자세금계산서 추가"

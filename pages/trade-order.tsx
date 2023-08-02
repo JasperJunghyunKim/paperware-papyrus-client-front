@@ -1,6 +1,6 @@
 import { Model } from "@/@shared";
 import { Enum } from "@/@shared/models";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Icon, Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -188,7 +188,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="매입 주문 목록">
+    <Page title="매입 주문 목록" menu={Const.Menu.TRADE_PURCHASE}>
       <StatBar.Container>
         <StatBar.Item icon={<TbHome2 />} label="관리 매입처" value={"-"} />
       </StatBar.Container>

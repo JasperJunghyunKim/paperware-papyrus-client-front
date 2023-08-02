@@ -1,6 +1,6 @@
 import { Model } from "@/@shared";
 import { PlanListItem } from "@/@shared/api";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -99,7 +99,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="작업 계획 목록">
+    <Page title="작업 계획 목록" menu={Const.Menu.PLAN}>
       <StatBar.Container>
         <StatBar.Item icon={<TbHome />} label="작업 계획" value={"-"} />
         <StatBar.Item

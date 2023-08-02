@@ -2,7 +2,11 @@ import {
   AuthNoCheckRequest,
   SendSmsAuthenticationRequest,
 } from "@/@shared/api/auth/auth.request";
-import { AuthNoCheckResponse } from "@/@shared/api/auth/auth.response";
+import {
+  AuthNoCheckResponse,
+  LoginResponse,
+} from "@/@shared/api/auth/auth.response";
+import { User } from "@/@shared/models";
 import { API_HOST } from "@/common/const";
 import { FormBody, Record } from "@/common/protocol";
 import { message } from "antd";
@@ -11,7 +15,7 @@ import { useMutation, useQuery } from "react-query";
 
 export function useSignIn() {
   return useMutation(async (payload: FormBody.SignIn) => {
-    const response = await axios.post<string>(
+    const response = await axios.post<LoginResponse>(
       `${API_HOST}/auth/signin`,
       payload
     );

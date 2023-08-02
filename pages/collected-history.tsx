@@ -1,6 +1,6 @@
 import { Model } from "@/@shared";
 import { Enum } from "@/@shared/models";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Condition, Popup, Table, Toolbar } from "@/components";
 import { accountedAtom } from "@/components/condition/accounted/accounted.state";
@@ -17,7 +17,9 @@ export default function Component() {
   const [openUpdate, setOpenUpdate] = useState<number | false>(false);
   const [method, setMethod] = useState<Enum.Method | null>(null);
   const [page, setPage] = usePage();
-  const [selectedCollected, setSelectedCollected] = useState<Model.Accounted[]>([]);
+  const [selectedCollected, setSelectedCollected] = useState<Model.Accounted[]>(
+    []
+  );
   const [only, setOnly] = useState<Model.Accounted>();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -25,51 +27,52 @@ export default function Component() {
     query: {
       ...page,
       ...condition,
-      companyRegistrationNumber: condition.companyRegistrationNumber === '전체' ? '' : condition.companyRegistrationNumber,
+      companyRegistrationNumber:
+        condition.companyRegistrationNumber === "전체"
+          ? ""
+          : condition.companyRegistrationNumber,
       accountedType: "COLLECTED",
     },
     successCallback: (data) => {
       if (data?.items.length === 0) {
         setOnly(undefined);
       }
-    }
+    },
   });
   const apiByCashDelete = ApiHook.Partner.ByCash.useByCashDelete();
   const apiByEtcDelete = ApiHook.Partner.ByEtc.useByEtcDelete();
-  const apiByBankAccountDelete = ApiHook.Partner.ByBankAccount.useByBankAccountDelete();
+  const apiByBankAccountDelete =
+    ApiHook.Partner.ByBankAccount.useByBankAccountDelete();
   const apiByCardDelete = ApiHook.Partner.ByCard.useByCardDelete();
   const apiByOffsetDelete = ApiHook.Partner.ByOffset.useByOffsetDelete();
   const apiBySecurityDelete = ApiHook.Partner.BySecurity.useBySecurityDelete();
 
   const cmdDelete = useCallback(async () => {
-    if (
-      !only ||
-      !(await Util.confirm(`해당 거래를 삭제하시겠습니까?`))
-    ) {
+    if (!only || !(await Util.confirm(`해당 거래를 삭제하시겠습니까?`))) {
       return;
     }
 
     const method: Enum.Method = only.accountedMethod;
 
     switch (method) {
-      case 'ACCOUNT_TRANSFER':
+      case "ACCOUNT_TRANSFER":
         await apiByBankAccountDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
         });
         break;
-      case 'CARD_PAYMENT':
+      case "CARD_PAYMENT":
         await apiByCardDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
         });
         break;
-      case 'PROMISSORY_NOTE':
-        if (only.securityStatus !== 'NONE') {
+      case "PROMISSORY_NOTE":
+        if (only.securityStatus !== "NONE") {
           return messageApi.open({
-            type: 'error',
-            content: '해당 유가증권이 사용중에 있습니다.'
-          })
+            type: "error",
+            content: "해당 유가증권이 사용중에 있습니다.",
+          });
         }
 
         await apiBySecurityDelete.mutateAsync({
@@ -77,30 +80,38 @@ export default function Component() {
           accountedType: only.accountedType,
         });
         break;
-      case 'OFFSET':
+      case "OFFSET":
         await apiByOffsetDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
         });
         break;
-      case 'CASH':
+      case "CASH":
         await apiByCashDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
         });
         break;
-      case 'ETC':
+      case "ETC":
         await apiByEtcDelete.mutateAsync({
           id: only.accountedId,
           accountedType: only.accountedType,
         });
         break;
     }
-
-  }, [apiByBankAccountDelete, apiByCardDelete, apiByCashDelete, apiByEtcDelete, apiByOffsetDelete, apiBySecurityDelete, messageApi, only]);
+  }, [
+    apiByBankAccountDelete,
+    apiByCardDelete,
+    apiByCashDelete,
+    apiByEtcDelete,
+    apiByOffsetDelete,
+    apiBySecurityDelete,
+    messageApi,
+    only,
+  ]);
 
   return (
-    <Page title="수금 내역 조회">
+    <Page title="수금 내역 조회" menu={Const.Menu.COLLETED}>
       {contextHolder}
       <Condition.Container>
         <Condition.Item accountedType="COLLECTED" />
@@ -115,7 +126,7 @@ export default function Component() {
           <Toolbar.ButtonPreset.Update
             label="수금 내역 상세"
             onClick={() => {
-              setOpenUpdate(only.accountedId)
+              setOpenUpdate(only.accountedId);
               setMethod(only.accountedMethod);
             }}
           />
@@ -147,28 +158,37 @@ export default function Component() {
             title: "수금일",
             dataIndex: ["accountedDate"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "수금 금액",
             dataIndex: ["amount"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.comma(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "계정 과목",
             dataIndex: ["accountedSubject"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.accountedSubject('COLLECTED', SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.accountedSubject(
+                "COLLECTED",
+                SUBJECT_OPTIONS.filter((item) => item.value === value)[0].value
+              )}`}</div>
             ),
           },
           {
             title: "수금 수단",
             dataIndex: ["accountedMethod"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${METHOD_OPTIONS.filter((item) => item.value === value)[0].label}`}</div>
+              <div className="text-right font-fixed">{`${
+                METHOD_OPTIONS.filter((item) => item.value === value)[0].label
+              }`}</div>
             ),
           },
           {
@@ -177,8 +197,17 @@ export default function Component() {
           },
         ]}
       />
-      <Popup.Accounted.Create accountedType="COLLECTED" open={openCreate} onClose={setOpenCreate} />
-      <Popup.Accounted.Update accountedType="COLLECTED" method={method} open={openUpdate} onClose={setOpenUpdate} />
+      <Popup.Accounted.Create
+        accountedType="COLLECTED"
+        open={openCreate}
+        onClose={setOpenCreate}
+      />
+      <Popup.Accounted.Update
+        accountedType="COLLECTED"
+        method={method}
+        open={openUpdate}
+        onClose={setOpenUpdate}
+      />
     </Page>
   );
 }

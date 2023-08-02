@@ -1,5 +1,5 @@
 import { Api, Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -102,7 +102,7 @@ export default function Component() {
     );
   }, []);
   return (
-    <Page title="배송 설정">
+    <Page title="배송 설정" menu={Const.Menu.SHIPPING}>
       <StatBar.Container>
         <StatBar.Item icon={<TbHome />} label="공개 배송" value={"-"} />
         <StatBar.Item

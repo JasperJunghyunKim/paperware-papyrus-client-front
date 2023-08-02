@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Record } from "@/common/protocol";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
@@ -47,7 +47,7 @@ export default function Component() {
   }, [apiDelete, list, only]);
 
   return (
-    <Page title="고시가 설정">
+    <Page title="고시가 설정" menu={Const.Menu.SETTING_OFFICIAL_PRICE}>
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

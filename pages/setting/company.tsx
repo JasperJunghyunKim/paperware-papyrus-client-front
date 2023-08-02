@@ -1,4 +1,4 @@
-import { ApiHook } from "@/common";
+import { ApiHook, Const } from "@/common";
 import { Page } from "@/components/layout";
 import { Alert, Form, Input } from "antd";
 import * as R from "@/common/rules";
@@ -32,7 +32,7 @@ export default function Component() {
   };
 
   return (
-    <Page title="회사 설정">
+    <Page title="회사 정보 설정" menu={Const.Menu.SETTING_COMPANY}>
       <Alert
         message="등록된 회사 정보는 플랫폼 내 거래처로 등록된 회사에게 공개됩니다."
         type="info"

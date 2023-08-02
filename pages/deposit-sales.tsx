@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -27,7 +27,7 @@ export default function Component() {
   const only = Util.only(selected);
 
   return (
-    <Page title="매출 보관량 조회">
+    <Page title="매출 보관량 조회" menu={Const.Menu.DEPOSIT_SALES}>
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

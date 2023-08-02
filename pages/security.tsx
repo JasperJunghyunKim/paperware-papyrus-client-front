@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -19,7 +19,9 @@ export default function Component() {
   const cmdDelete = useCallback(async () => {
     if (
       !only ||
-      !(await Util.confirm(`해당 유가증권을 (${only.securitySerial})를 삭제하시겠습니까?`))
+      !(await Util.confirm(
+        `해당 유가증권을 (${only.securitySerial})를 삭제하시겠습니까?`
+      ))
     ) {
       return;
     }
@@ -27,11 +29,10 @@ export default function Component() {
     await api.mutateAsync({
       id: only.securityId,
     });
-
   }, [api, only]);
 
   return (
-    <Page title="유가증권 조회">
+    <Page title="유가증권 조회" menu={Const.Menu.SECURITIES}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
           label="유가증권 추가"
@@ -64,14 +65,18 @@ export default function Component() {
             title: "생성구분",
             dataIndex: ["drawedStatus"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.drawedStatusToSTring(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.drawedStatusToSTring(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "유형",
             dataIndex: ["securityType"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.securityTypeToSTring(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.securityTypeToSTring(
+                value
+              )}`}</div>
             ),
           },
           {
@@ -82,28 +87,36 @@ export default function Component() {
             title: "금액",
             dataIndex: ["securityAmount"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.comma(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.comma(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "발행일",
             dataIndex: ["drawedDate"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "만기일",
             dataIndex: ["maturedDate"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.formatIso8601ToLocalDate(
+                value
+              )}`}</div>
             ),
           },
           {
             title: "상태",
             dataIndex: ["securityStatus"],
             render: (value) => (
-              <div className="text-right font-fixed">{`${Util.securityStatusToSTring(value)}`}</div>
+              <div className="text-right font-fixed">{`${Util.securityStatusToSTring(
+                value
+              )}`}</div>
             ),
           },
         ]}

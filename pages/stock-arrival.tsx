@@ -1,5 +1,5 @@
 import { Api, Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -34,7 +34,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="예정 목록">
+    <Page title="예정 목록" menu={Const.Menu.STOCK_ARRIVAL}>
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

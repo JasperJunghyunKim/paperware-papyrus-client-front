@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -48,7 +48,7 @@ export default function Component() {
   }, [selectedGroup]);
 
   return (
-    <Page title="자사 재고 관리">
+    <Page title="자사 재고 관리" menu={Const.Menu.STOCK_INHOUSE}>
       <StatBar.Container>
         <StatBar.Item icon={<TbMapPinFilled />} label="자사 재고" value={"-"} />
         <StatBar.Item

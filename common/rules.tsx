@@ -42,3 +42,18 @@ export const password = (): Rule => ({
   pattern: /^(?=.*[a-zA-Z])(?=.*[0-9]).{10,}$/,
   message: "영문, 숫자를 포함한 10자 이상으로 입력해주세요.",
 });
+
+export const pattern = (regex: RegExp, message?: string): Rule => ({
+  pattern: regex,
+  message: message ?? "형식이 올바르지 않습니다.",
+});
+
+export const check = (fn: (value: any) => boolean, message: string): Rule => ({
+  validator(_, value) {
+    if (fn(value)) {
+      return Promise.resolve();
+    }
+
+    return Promise.reject(message);
+  },
+});

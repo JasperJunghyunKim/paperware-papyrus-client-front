@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -60,7 +60,7 @@ export default function Component() {
   );
 
   return (
-    <Page title="거래처 관리">
+    <Page title="거래처 설정" menu={Const.Menu.SETTING_PARTNER}>
       <StatBar.Container>
         <StatBar.Item icon={<TbHomeMove />} label="연결 거래처" value={"-"} />
         <StatBar.Item

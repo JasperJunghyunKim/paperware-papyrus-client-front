@@ -1,4 +1,4 @@
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Search, Table } from "@/components";
 import { Page } from "@/components/layout";
@@ -31,7 +31,7 @@ export default function Component() {
   };
 
   return (
-    <Page title="미지급 잔액">
+    <Page title="미지급 잔액" menu={Const.Menu.UNPAID_PAID}>
       <Search
         items={[
           {

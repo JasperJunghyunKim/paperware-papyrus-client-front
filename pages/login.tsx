@@ -17,7 +17,7 @@ export default function Home() {
     const values = form.getFieldsValue();
     const resp = await apiSignIn.mutateAsync(values);
 
-    localStorage.setItem("at", resp);
+    localStorage.setItem("at", resp.accessToken);
     axios.defaults.headers.common["Authorization"] = `Bearer ${resp}`;
 
     await router.replace("/");

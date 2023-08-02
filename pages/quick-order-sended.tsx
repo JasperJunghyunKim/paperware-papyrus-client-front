@@ -1,5 +1,5 @@
 import { OrderRequestItem } from "@/@shared/models";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -71,7 +71,7 @@ export default function Component() {
   }, [apiCancel, only]);
 
   return (
-    <Page title="퀵 주문 발신함">
+    <Page title="퀵 주문 발신함" menu={Const.Menu.ORDER_REQUEST_SENT}>
       <StatBar.Container>
         <StatBar.Item
           icon={<TbMapPinFilled />}

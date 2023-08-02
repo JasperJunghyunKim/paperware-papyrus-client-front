@@ -1,5 +1,5 @@
 import { Model } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table } from "@/components";
 import { Page } from "@/components/layout";
@@ -21,7 +21,7 @@ export default function Component() {
   const [selectedGroup, setSelectedGroup] = useState<RecordType[]>([]);
 
   return (
-    <Page title="매입처 재고 조회">
+    <Page title="매입처 재고 조회" menu={Const.Menu.STOCK_PARTNER}>
       <StatBar.Container>
         <StatBar.Item icon={<TbMapPinFilled />} label="매입처" value={"-"} />
       </StatBar.Container>

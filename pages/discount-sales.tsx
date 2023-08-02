@@ -1,5 +1,5 @@
 import DiscountRateCondition from "@/@shared/models/discount-rate-condition";
-import { ApiHook, Util } from "@/common";
+import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
 import { Popup, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
@@ -43,7 +43,7 @@ export default function Component() {
   }, [apiDelete, only]);
 
   return (
-    <Page title="매출 할인율 설정">
+    <Page title="매출 할인율 설정" menu={Const.Menu.SETTING_DISCOUNT_SALES}>
       <StatBar.Container>
         <StatBar.Item icon={<TbDiscount />} label="할인율" value={"-"} />
       </StatBar.Container>
