@@ -41,6 +41,7 @@ import {
   TbVectorTriangle,
 } from "react-icons/tb";
 import Menu, { Menu as MenuDef } from "./Menu";
+import axios from "axios";
 
 export interface Props {
   title: string;
@@ -260,6 +261,7 @@ export default function Component(props: PropsWithChildren<Props>) {
   const me = ApiHook.Auth.useGetMe();
 
   useEffect(() => {
+    console.log(me);
     if (me.isError) {
       router.replace("/login");
     }
@@ -268,6 +270,7 @@ export default function Component(props: PropsWithChildren<Props>) {
   const logout = useCallback(async () => {
     if (!(await Util.confirm("로그아웃 하시겠습니까?"))) return;
 
+    axios.defaults.headers.common["Authorization"] = "";
     localStorage.removeItem("at");
     router.replace("/login");
   }, [router]);

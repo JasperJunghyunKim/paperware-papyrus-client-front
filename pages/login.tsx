@@ -1,16 +1,19 @@
 import { ApiHook } from "@/common";
 import { FormBody } from "@/common/protocol";
+import { sleep } from "@/common/util";
 import { Button, Logo } from "@/components";
 import { Form, Input } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
 
   const [form] = useForm<FormBody.SignIn>();
+
+  const apiMe = ApiHook.Auth.useGetMe();
 
   const apiSignIn = ApiHook.Auth.useSignIn();
   const cmdSignIn = useCallback(async () => {
@@ -18,7 +21,11 @@ export default function Home() {
     const resp = await apiSignIn.mutateAsync(values);
 
     localStorage.setItem("at", resp.accessToken);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${resp}`;
+    axios.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${resp.accessToken}`;
+
+    await apiMe.refetch();
 
     await router.replace("/");
   }, [apiSignIn, form, router]);
