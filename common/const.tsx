@@ -2,7 +2,6 @@ export const API_HOST =
   process.env["NEXT_PUBLIC_API_HOST"] ?? "http://localhost:3000";
 
 export enum Menu {
-  DASHBOARD = "sidebar.dashboard",
   STOCK_INHOUSE = "sidebar.stock-inhouse",
   STOCK_ARRIVAL = "sidebar.stock-arrival",
   STOCK_PARTNER = "sidebar.stock-partner",
@@ -21,7 +20,6 @@ export enum Menu {
   UNPAID_COLLECTED = "sidebar.unpaid-collected",
   UNPAID_PAID = "sidebar.unpaid-paid",
   TAX_INVOICE = "sidebar.tax-invoice",
-  SETTING_ACCOUNT = "sidebar.setting-account",
   SETTING_COMPANY = "sidebar.setting-company",
   SETTING_USER = "sidebar.setting-user",
   SETTING_ROLE = "sidebar.setting-role",

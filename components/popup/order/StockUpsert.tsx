@@ -724,7 +724,7 @@ function DataForm(props: DataFormProps) {
         <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanySales
             disabled={!!props.initialOrder}
-            virtual={orderType === "OUTSOURCE_PROCESS" ? false : undefined}
+            virtual={orderType === "OUTSOURCE_PROCESS" ? true : undefined}
           />
         </Form.Item>
       )}
@@ -2308,14 +2308,13 @@ function PricePanel(props: PricePanelProps) {
           ),
         }}
       >
-        {props.order.orderType === "NORMAL" &&
-          positiveCompany &&
-          props.order.status !== "CANCELLED" && (
-            <>
-              <FormControl.Util.Split
-                label={isSales ? "보관 출고" : "보관 입고"}
-              />
-              <Form.Item name="deposit">
+        {props.order.orderType === "NORMAL" && positiveCompany && (
+          <>
+            <FormControl.Util.Split
+              label={isSales ? "보관 출고" : "보관 입고"}
+            />
+            <Form.Item name="deposit">
+              {props.order.status !== "CANCELLED" ? (
                 <div className="flex-1 flex gap-x-2">
                   <Button.Preset.SelectDeposit
                     option={{
@@ -2344,46 +2343,66 @@ function PricePanel(props: PricePanelProps) {
                     rootClassName="flex-1"
                   />
                 </div>
-              </Form.Item>
-              {depositSpec && (
-                <>
-                  <Form.Item name={["deposit", "packaging", "id"]} label="포장">
-                    <FormControl.SelectPackaging disabled />
-                  </Form.Item>
-                  <Form.Item name={["deposit", "productId"]} label="제품">
-                    <FormControl.SelectProduct disabled />
-                  </Form.Item>
-                  <Form.Item
-                    name={["deposit", "grammage"]}
-                    label="평량"
-                    rootClassName="flex-1"
-                  >
-                    <Number
-                      min={0}
-                      max={9999}
-                      precision={0}
-                      unit={Util.UNIT_GPM}
-                      disabled
-                    />
-                  </Form.Item>
-                  {depositPackaging && (
-                    <Form.Item>
-                      <div className="flex justify-between gap-x-2">
-                        {depositPackaging.type !== "ROLL" && (
-                          <Form.Item label="규격" rootClassName="flex-1">
-                            <FormControl.Util.PaperSize
-                              sizeX={depositSizeX}
-                              sizeY={depositSizeY}
-                              onChange={(sizeX, sizeY) =>
-                                form.setFieldsValue({ sizeX, sizeY })
-                              }
-                              disabled
-                            />
-                          </Form.Item>
-                        )}
+              ) : (
+                <Alert
+                  message="취소된 주문의 보관품은 수정할 수 없습니다."
+                  className="mb-4"
+                />
+              )}
+            </Form.Item>
+            {depositSpec && (
+              <>
+                <Form.Item name={["deposit", "packaging", "id"]} label="포장">
+                  <FormControl.SelectPackaging disabled />
+                </Form.Item>
+                <Form.Item name={["deposit", "productId"]} label="제품">
+                  <FormControl.SelectProduct disabled />
+                </Form.Item>
+                <Form.Item
+                  name={["deposit", "grammage"]}
+                  label="평량"
+                  rootClassName="flex-1"
+                >
+                  <Number
+                    min={0}
+                    max={9999}
+                    precision={0}
+                    unit={Util.UNIT_GPM}
+                    disabled
+                  />
+                </Form.Item>
+                {depositPackaging && (
+                  <Form.Item>
+                    <div className="flex justify-between gap-x-2">
+                      {depositPackaging.type !== "ROLL" && (
+                        <Form.Item label="규격" rootClassName="flex-1">
+                          <FormControl.Util.PaperSize
+                            sizeX={depositSizeX}
+                            sizeY={depositSizeY}
+                            onChange={(sizeX, sizeY) =>
+                              form.setFieldsValue({ sizeX, sizeY })
+                            }
+                            disabled
+                          />
+                        </Form.Item>
+                      )}
+                      <Form.Item
+                        name={["deposit", "sizeX"]}
+                        label="지폭"
+                        rootClassName="flex-1"
+                      >
+                        <Number
+                          min={0}
+                          max={9999}
+                          precision={0}
+                          unit="mm"
+                          disabled
+                        />
+                      </Form.Item>
+                      {depositPackaging.type !== "ROLL" && (
                         <Form.Item
-                          name={["deposit", "sizeX"]}
-                          label="지폭"
+                          name={["deposit", "sizeY"]}
+                          label="지장"
                           rootClassName="flex-1"
                         >
                           <Number
@@ -2394,57 +2413,44 @@ function PricePanel(props: PricePanelProps) {
                             disabled
                           />
                         </Form.Item>
-                        {depositPackaging.type !== "ROLL" && (
-                          <Form.Item
-                            name={["deposit", "sizeY"]}
-                            label="지장"
-                            rootClassName="flex-1"
-                          >
-                            <Number
-                              min={0}
-                              max={9999}
-                              precision={0}
-                              unit="mm"
-                              disabled
-                            />
-                          </Form.Item>
-                        )}
-                      </div>
+                      )}
+                    </div>
+                  </Form.Item>
+                )}
+                <Form.Item name={["deposit", "paperColorGroupId"]} label="색군">
+                  <FormControl.SelectColorGroup disabled />
+                </Form.Item>
+                <Form.Item name={["deposit", "paperColorId"]} label="색상">
+                  <FormControl.SelectColor disabled />
+                </Form.Item>
+                <Form.Item name={["deposit", "paperPatternId"]} label="무늬">
+                  <FormControl.SelectPattern disabled />
+                </Form.Item>
+                <Form.Item name={["deposit", "paperCertId"]} label="인증">
+                  <FormControl.SelectCert disabled />
+                </Form.Item>
+                {depositSpec && (
+                  <>
+                    <Form.Item
+                      name={["deposit", "quantity"]}
+                      label={isSales ? "출고 수량" : "입고 수량"}
+                      rules={[
+                        {
+                          required: true,
+                          message: `${
+                            isSales ? "출고" : "입고"
+                          } 수량을 입력해주세요.`,
+                        },
+                      ]}
+                    >
+                      <FormControl.Quantity
+                        spec={depositSpec}
+                        disabled={props.order.status === "CANCELLED"}
+                      />
                     </Form.Item>
-                  )}
-                  <Form.Item
-                    name={["deposit", "paperColorGroupId"]}
-                    label="색군"
-                  >
-                    <FormControl.SelectColorGroup disabled />
-                  </Form.Item>
-                  <Form.Item name={["deposit", "paperColorId"]} label="색상">
-                    <FormControl.SelectColor disabled />
-                  </Form.Item>
-                  <Form.Item name={["deposit", "paperPatternId"]} label="무늬">
-                    <FormControl.SelectPattern disabled />
-                  </Form.Item>
-                  <Form.Item name={["deposit", "paperCertId"]} label="인증">
-                    <FormControl.SelectCert disabled />
-                  </Form.Item>
-                  {depositSpec && (
-                    <>
-                      <Form.Item
-                        name={["deposit", "quantity"]}
-                        label={isSales ? "출고 수량" : "입고 수량"}
-                        rules={[
-                          {
-                            required: true,
-                            message: `${
-                              isSales ? "출고" : "입고"
-                            } 수량을 입력해주세요.`,
-                          },
-                        ]}
-                      >
-                        <FormControl.Quantity spec={depositSpec} />
-                      </Form.Item>
-                    </>
-                  )}
+                  </>
+                )}
+                {props.order.status !== "CANCELLED" && (
                   <div className="flex-initial flex justify-end mt-4 gap-x-2">
                     <Button.Default
                       type="primary"
@@ -2460,10 +2466,11 @@ function PricePanel(props: PricePanelProps) {
                       rootClassName="flex-1"
                     />
                   </div>
-                </>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </>
+        )}
         <FormControl.Util.Split label="금액 정보" />
         {props.order.orderType !== "ETC" &&
           props.order.orderType !== "OUTSOURCE_PROCESS" && (

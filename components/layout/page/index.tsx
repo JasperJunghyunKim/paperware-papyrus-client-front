@@ -63,7 +63,6 @@ export default function Component(props: PropsWithChildren<Props>) {
         path: "/",
         noti: 0,
         type: "wip",
-        menu: Const.Menu.DASHBOARD,
       },
       { path: null },
       {
@@ -180,23 +179,9 @@ export default function Component(props: PropsWithChildren<Props>) {
       },
       { path: null },
       {
-        label: "카드 관리",
-        icon: <TbCards />,
-        path: "/card",
-        menu: Const.Menu.SETTING_CARD,
-      },
-      {
-        label: "계좌 관리",
-        icon: <TbBuildingBank />,
-        path: "/bank-account",
-        menu: Const.Menu.SETTING_ACCOUNTED,
-      },
-      { path: null },
-      {
         label: "계정 설정",
         icon: <TbSettings />,
         path: "/setting/account",
-        menu: Const.Menu.SETTING_ACCOUNT,
       },
       {
         label: "회사 정보 설정",
@@ -235,6 +220,18 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbMapPin />,
         path: "/location",
         menu: Const.Menu.SETTING_LOCATION,
+      },
+      {
+        label: "카드 관리",
+        icon: <TbCards />,
+        path: "/card",
+        menu: Const.Menu.SETTING_CARD,
+      },
+      {
+        label: "계좌 관리",
+        icon: <TbBuildingBank />,
+        path: "/bank-account",
+        menu: Const.Menu.SETTING_ACCOUNTED,
       },
       {
         label: "고시가 설정",
@@ -296,7 +293,9 @@ export default function Component(props: PropsWithChildren<Props>) {
       <title>PAPERWARE ─ 페이퍼웨어</title>
       <div className="flex">
         <div className="flex-shrink-0 flex-grow-0 bg-white text-black border-solid border-0 border-r border-gray-200 overflow-y-scroll h-screen top-0 fixed w-60">
-          <Logo.Paperware />
+          <div className="flex-initial flex justify-center py-8">
+            <Logo.Paperware classNames="h-10 w-auto" />
+          </div>
           <aside>
             <div className="flex-initial">
               <Menu menus={menus} />

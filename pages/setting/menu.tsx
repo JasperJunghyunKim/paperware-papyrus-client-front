@@ -139,7 +139,6 @@ function PopupUpdateUser(props: PopupUpdateUserProps) {
     .map(([key, value]) => ({
       key: value,
       label: match(value)
-        .with(Const.Menu.DASHBOARD, () => "대시보드")
         .with(Const.Menu.STOCK_INHOUSE, () => "자사 재고 관리")
         .with(Const.Menu.STOCK_ARRIVAL, () => "예정 목록")
         .with(Const.Menu.STOCK_PARTNER, () => "매입처 재고 조회")

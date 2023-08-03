@@ -92,7 +92,7 @@ export default function Component(props: Props) {
                     {record.orderDeposit
                       ? `${props.type === "SALES" ? "매출" : "매입"} 보관`
                       : record.targetOrder
-                      ? `보관 ${props.type === "SALES" ? "출고" : "입고"}`
+                      ? `보관 ${record.change < 0 ? "출고" : "입고"}`
                       : record.change > 0
                       ? "보관량 증가"
                       : "보관량 차감"}

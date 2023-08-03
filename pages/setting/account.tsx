@@ -43,6 +43,7 @@ export default function Component() {
   const cmdUpdatePassword = async () => {
     const values = await formPassword.validateFields();
     await apiUpdatePassword.mutateAsync(values);
+    formPassword.resetFields();
   };
 
   const apiUpdateAccount = ApiHook.Setting.Account.useUpdate();
@@ -152,12 +153,13 @@ export default function Component() {
           {smsSended && (
             <>
               <Button.Default
-                label="인증번호 확인"
-                onClick={cmdValidateVerifyCode}
+                label="다시 입력"
+                onClick={() => setSmsSended(false)}
               />
               <Button.Default
-                label="취소"
-                onClick={() => setSmsSended(false)}
+                type="primary"
+                label="인증번호 확인"
+                onClick={cmdValidateVerifyCode}
               />
             </>
           )}

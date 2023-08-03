@@ -46,6 +46,7 @@ export interface User {
   phoneNo: string;
   birthDate: string | null;
   isAdmin: boolean;
+  isActivated: boolean;
   menu: {
     menu: string;
   };
