@@ -32,7 +32,7 @@ export function useByOffsetCreate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (params: { data: Api.ByOffsetCreateRequest }) => {
+    async (params: { data: any }) => {
       const resp = await axios.post(
         `${API_HOST}/accounted/accountedType/${params.data.accountedType}/offset`,
         params.data
@@ -51,7 +51,7 @@ export function useByOffsetUpdate() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (params: { data: Api.ByOffsetUpdateRequest; id: number }) => {
+    async (params: { data: any; id: number }) => {
       const resp = await axios.patch(
         `${API_HOST}/accounted/accountedType/${params.data.accountedType}/accountedId/${params.id}/offset`,
         params.data
