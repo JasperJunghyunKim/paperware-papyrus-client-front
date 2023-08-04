@@ -75,7 +75,7 @@ export default function Component(props: Props) {
         return;
       }
 
-      values.accountedType = props.accountedType;
+      (values as any).accountedType = props.accountedType;
 
       switch (props.method) {
         case "ACCOUNT_TRANSFER":
@@ -94,11 +94,6 @@ export default function Component(props: Props) {
               type: "error",
               content: "수수료가 지급금액보다 큽니다.",
             });
-          }
-
-          // 수수료가 체크 안될경우...
-          if (!cardReq.isCharge) {
-            cardReq.totalAmount = 0;
           }
 
           await apiByCard.mutateAsync({
