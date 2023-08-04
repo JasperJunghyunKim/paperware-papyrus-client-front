@@ -157,7 +157,6 @@ export default function Component(props: Props) {
               rules={[{ required: true }]}
             >
               <FormControl.Number
-                disabled
                 rootClassName="text-right"
                 min={0}
                 precision={0}
