@@ -105,13 +105,6 @@ export default function Component(props: Props) {
           const req: any = values;
 
           if (props.accountedType === "COLLECTED") {
-            if (resBySecurity.data?.security?.securityStatus !== "NONE") {
-              return messageApi.open({
-                type: "error",
-                content: "해당 유가증권은 사용중에 있습니다.",
-              });
-            }
-
             await apiBySecurity.mutateAsync({
               data: {
                 ...req,
