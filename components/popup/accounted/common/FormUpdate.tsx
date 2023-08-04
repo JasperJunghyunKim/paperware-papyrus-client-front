@@ -165,22 +165,7 @@ export default function Component(props: Props) {
               />
             </Form.Item>
           ) : getFieldValue("accountedMethod") ===
-            ("CARD_PAYMENT" as Model.Enum.Method) ? (
-            <Form.Item
-              name="totalAmount"
-              label={`${labelName} 금액`}
-              rules={[{ required: true }]}
-            >
-              <FormControl.Number
-                ref={amountCardRef}
-                disabled
-                rootClassName="text-right"
-                min={0}
-                precision={0}
-                unit="원"
-              />
-            </Form.Item>
-          ) : (
+            ("CARD_PAYMENT" as Model.Enum.Method) ? null : (
             <Form.Item
               name="amount"
               label={`${labelName} 금액`}
