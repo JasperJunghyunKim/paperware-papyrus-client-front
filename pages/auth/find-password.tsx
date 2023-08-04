@@ -71,11 +71,9 @@ export default function Component() {
   };
 
   const password = useWatch("password", form);
-  console.log(password);
   const isPasswordEmpty = !password || password.length === 0;
 
   const a = useWatch([], form);
-  console.log(a);
 
   return (
     <div className="w-screen h-screen flex justify-center items-center">

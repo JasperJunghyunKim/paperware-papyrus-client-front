@@ -36,6 +36,7 @@ import SelectSecurityStatus from "./SelectSecurityStatus";
 import SelectSecurity from "./SelectSecurity";
 import SelectEndorsementType from "./SelectEndorsementType";
 import SelectCompanyRegistrationNumber from "./SelectCompanyRegistrationNumber";
+import SelectUser from "./SelectUser";
 
 export {
   Address,
@@ -75,4 +76,5 @@ export {
   SelectSecurity,
   SelectEndorsementType,
   SelectCompanyRegistrationNumber,
+  SelectUser,
 };

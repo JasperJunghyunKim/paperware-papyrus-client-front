@@ -258,7 +258,6 @@ export default function Component(props: PropsWithChildren<Props>) {
   const me = ApiHook.Auth.useGetMe();
 
   useEffect(() => {
-    console.log(me);
     if (me.isError) {
       router.replace("/login");
     }

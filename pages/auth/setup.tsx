@@ -17,8 +17,6 @@ export default function Component() {
   const router = useRouter();
   const accessToken = router.query.accessToken ?? null;
 
-  console.log(accessToken);
-
   const [form] = useForm();
   const [formPhoneNo] = useForm<
     AccountPhoneNoUpdateRequest & AuthNoCheckRequest

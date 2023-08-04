@@ -188,7 +188,10 @@ function PopupCreateUser(props: PopupCreateUserProps) {
             dependencies={["username"]}
             rules={[
               R.length(1, 20),
-              R.pattern(/^[a-z0-9]+$/, "영문, 숫자만 입력 가능합니다."),
+              R.pattern(
+                /^[a-zA-Z0-9_]+$/,
+                "영문, 숫자, 언더스코어(_)만 입력 가능합니다."
+              ),
             ]}
           >
             <Input />

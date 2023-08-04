@@ -38,6 +38,8 @@ interface SearchItem {
     | "select-guillotine-status"
     | "select-release-status"
     | "select-arrived"
+    | "select-shipping-type"
+    | "select-user"
     | "date-range"
     | "check";
   options?: { label: string; value: string }[];
@@ -285,6 +287,18 @@ export default function Component(props: Props) {
               ))
               .with("select-arrived", () => (
                 <SelectArrived
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-shipping-type", () => (
+                <SelectShippingType
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-user", () => (
+                <SelectUser
                   {...getFieldValue(item.field)}
                   onChange={setFieldValue(item.field)}
                 />
@@ -1249,6 +1263,68 @@ function SelectArrived(props: ItemProps) {
       <Select
         options={options}
         placeholder="수급 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectShippingType(props: ItemProps) {
+  const options = useMemo(
+    () => [
+      { label: "자사 배송", value: "INHOUSE" },
+      { label: "거래처 픽업", value: "PARTNER_PICKUP" },
+      { label: "외주 배송", value: "OUTSOURCE" },
+    ],
+    []
+  );
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange]
+  );
+  return (
+    <div className={"flex-initial flex items-center gap-x-2"}>
+      <div className="flex-initial text-sm">{props.label ?? "배송 구분"}</div>
+      <Select
+        options={options}
+        placeholder="배송 구분 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectUser(props: ItemProps) {
+  const list = ApiHook.Setting.User.useGetList({ query: {} });
+  const options = list.data?.items.map((item) => ({
+    label: item.name,
+    value: item.id.toString(),
+  }));
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props.onChange, props.value]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">{props.label ?? "담당자 선택"}</div>
+      <Select
+        options={options}
+        placeholder="담당자 선택"
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
