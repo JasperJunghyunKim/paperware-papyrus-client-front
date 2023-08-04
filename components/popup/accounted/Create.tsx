@@ -39,12 +39,10 @@ export default function Component(props: Props) {
 
   const cmd = useCallback(
     async (values: Request) => {
+      console.log(values);
       const method: Enum.Method = form.getFieldValue("accountedMethod");
-      values.accountedType = props.accountedType;
-      values.companyId = setSelectPartner.companyId;
-      values.companyRegistrationNumber =
-        setSelectPartner.companyRegistrationNumber;
       (values as any).partnerNickName = setSelectPartner.partnerNickName;
+      (values as any).accountedType = props.accountedType;
 
       switch (method) {
         case "ACCOUNT_TRANSFER":
@@ -63,20 +61,18 @@ export default function Component(props: Props) {
             });
           }
 
-          // 수수료가 체크 안될경우...
-          if (!cardReq.isCharge) {
-            cardReq.totalAmount = 0;
-          }
-
           await apiByCard.mutateAsync({ data: cardReq });
           break;
         case "PROMISSORY_NOTE":
           const req: any = values;
 
+          console.log("aa", req);
+
           if (props.accountedType === "COLLECTED") {
             await apiBySecurity.mutateAsync({
               data: {
                 ...req,
+                companyRegistrationNumber: req.companyRegistrationNumber,
                 memo: req.memo,
                 amount: req.securityAmount,
                 endorsementType: req.endorsementType,
@@ -105,6 +101,7 @@ export default function Component(props: Props) {
             await apiBySecurity.mutateAsync({
               data: {
                 ...req,
+                companyRegistrationNumber: req.companyRegistrationNumber,
                 memo: req.memo,
                 amount: req.securityAmount,
                 endorsementType: req.endorsementType,

@@ -73,7 +73,6 @@ export default function Component(props: Props) {
            * 수수료 포함 : 지급합계 = 카드결제금액(즉, 돈을 받는 거래처가 수수료를 부담함)
            * 수수료 미포함 : 지급합계 = 카드결제금액 - 수수료(즉, 지급등록하는 자사가 수수료를 부담함)
            */
-          props.form.setFieldsValue({ totalAmount: amount - chargeAmount });
         }
       } else {
         /*
@@ -81,10 +80,8 @@ export default function Component(props: Props) {
          * 수수료 포함 : 수금합계 = 카드입금금액 + 수수료 (즉, 수금등록하는 자사가 수수료를 부담함)
          * 수수료 미포함 : 수금합계 = 카드입금금액 (즉, 돈을 지급한 거래처가 수수료를 부담함)
          */
-        props.form.setFieldsValue({ totalAmount: amount + chargeAmount });
       }
     } else {
-      props.form.setFieldsValue({ totalAmount: amount });
     }
   }, [props, amount, chargeAmount, messageApi, isCharge]);
 
