@@ -66,8 +66,6 @@ export default function Component(props: Props) {
         case "PROMISSORY_NOTE":
           const req: any = values;
 
-          console.log("aa", req);
-
           if (props.accountedType === "COLLECTED") {
             await apiBySecurity.mutateAsync({
               data: {

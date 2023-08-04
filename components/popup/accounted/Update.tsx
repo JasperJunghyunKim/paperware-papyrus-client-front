@@ -197,6 +197,8 @@ export default function Component(props: Props) {
     switch (props.method) {
       case "ACCOUNT_TRANSFER":
         form.setFieldsValue({
+          companyRegistrationNumber:
+            resByBankAccount.data?.companyRegistrationNumber,
           partnerNickName: resByBankAccount.data?.partnerNickName,
           accountedDate: resByBankAccount.data?.accountedDate,
           accountedMethod: resByBankAccount.data?.accountedMethod,
@@ -208,6 +210,7 @@ export default function Component(props: Props) {
         break;
       case "CARD_PAYMENT":
         form.setFieldsValue({
+          companyRegistrationNumber: resByCard.data?.companyRegistrationNumber,
           partnerNickName: resByCard.data?.partnerNickName,
           accountedDate: resByCard.data?.accountedDate,
           accountedMethod: resByCard.data?.accountedMethod,
@@ -226,6 +229,8 @@ export default function Component(props: Props) {
         if (props.accountedType === "COLLECTED") {
           // form object type 1level
           form.setFieldsValue({
+            companyRegistrationNumber:
+              resBySecurity.data?.companyRegistrationNumber,
             partnerNickName: resBySecurity.data?.partnerNickName,
             accountedDate: resBySecurity.data?.accountedDate,
             accountedMethod: resBySecurity.data?.accountedMethod,
@@ -252,6 +257,8 @@ export default function Component(props: Props) {
           } as any);
         } else {
           form.setFieldsValue({
+            companyRegistrationNumber:
+              resBySecurity.data?.companyRegistrationNumber,
             partnerNickName: resBySecurity.data?.partnerNickName,
             accountedDate: resBySecurity.data?.accountedDate,
             accountedMethod: resBySecurity.data?.accountedMethod,
@@ -259,39 +266,43 @@ export default function Component(props: Props) {
             memo: resBySecurity.data?.memo,
             amount: resBySecurity.data?.amount,
             securityId: resBySecurity.data?.security.securityId,
-          });
+          } as any);
         }
 
         break;
       case "OFFSET":
         form.setFieldsValue({
+          companyRegistrationNumber:
+            resByOffset.data?.companyRegistrationNumber,
           partnerNickName: resByOffset.data?.partnerNickName,
           accountedDate: resByOffset.data?.accountedDate,
           accountedMethod: resByOffset.data?.accountedMethod,
           accountedSubject: resByOffset.data?.accountedSubject,
           memo: resByOffset.data?.memo,
           amount: resByOffset.data?.amount,
-        });
+        } as any);
         break;
       case "CASH":
         form.setFieldsValue({
+          companyRegistrationNumber: resByCash.data?.companyRegistrationNumber,
           partnerNickName: resByCash.data?.partnerNickName,
           accountedDate: resByCash.data?.accountedDate,
           accountedMethod: resByCash.data?.accountedMethod,
           accountedSubject: resByCash.data?.accountedSubject,
           memo: resByCash.data?.memo,
           amount: resByCash.data?.amount,
-        });
+        } as any);
         break;
       case "ETC":
         form.setFieldsValue({
+          companyRegistrationNumber: resByEtc.data?.companyRegistrationNumber,
           partnerNickName: resByEtc.data?.partnerNickName,
           accountedDate: resByEtc.data?.accountedDate,
           accountedMethod: resByEtc.data?.accountedMethod,
           accountedSubject: resByEtc.data?.accountedSubject,
           memo: resByEtc.data?.memo,
           amount: resByEtc.data?.amount,
-        });
+        } as any);
         break;
     }
   }, [
