@@ -31,7 +31,6 @@ import SelectBank from "./SelectBank";
 import SelectBankAccount from "./SelectBankAccount";
 import SelectSecurityType from "./SelectSecurityType";
 import SelectSecurityStatus from "./SelectSecurityStatus";
-import SelectSecurity from "./SelectSecurity";
 import SelectEndorsementType from "./SelectEndorsementType";
 import SelectCompanyRegistrationNumber from "./SelectCompanyRegistrationNumber";
 import SelectUser from "./SelectUser";
@@ -69,7 +68,6 @@ export {
   SelectBankAccount,
   SelectSecurityType,
   SelectSecurityStatus,
-  SelectSecurity,
   SelectEndorsementType,
   SelectCompanyRegistrationNumber,
   SelectUser,

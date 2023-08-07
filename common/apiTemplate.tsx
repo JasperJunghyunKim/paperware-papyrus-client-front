@@ -1,113 +1,92 @@
+import { message } from "antd";
 import axios from "axios";
-import { useQuery, useQueryClient, useMutation } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { API_HOST } from "./const";
 import { flatQueries } from "./util";
-import { trim } from "lodash";
-import { message } from "antd";
 
-const parseNamePath = (strings: TemplateStringsArray) => {
-  const splitted = strings.join(" ").split(" ").map(trim);
-  return [splitted[0], splitted[1]];
-};
+export namespace $query {
+  const splitName = (value: string) => value.split(".");
+  const parsePath = (value: string, id?: number) =>
+    value.replaceAll(":id", id?.toString() ?? "");
 
-export const useGetListQuery = <T,>(
-  name: string,
-  path: string,
-  query?: Partial<Record<string, any>>
-) =>
-  useQuery(
-    [name, "list", ...flatQueries(query)],
-    async () =>
-      await axios
-        .get<T>(`${API_HOST}/${path}`, {
-          params: query,
-        })
-        .then((res) => res.data)
-  );
+  export const list = <T,>(
+    path: string,
+    name: string,
+    query?: Partial<Record<string, any>>
+  ) =>
+    useQuery(
+      [...splitName(name), "list", ...flatQueries(query)],
+      async () =>
+        await axios
+          .get<T>(`${API_HOST}/${path}`, {
+            params: query,
+          })
+          .then((res) => res.data)
+    );
+  export const item = <T,>(path: string, name: string, id?: number) =>
+    useQuery(
+      [...splitName(name), "item", id],
+      async () =>
+        await axios
+          .get<T>(`${API_HOST}/${parsePath(path)}`)
+          .then((res) => res.data),
+      {
+        enabled: id !== undefined,
+      }
+    );
+  export const create = <T,>(path: string, names: string[], msg?: string) => {
+    const queryClient = useQueryClient();
 
-export const $ql = <T,>(
-  strings: TemplateStringsArray,
-  args?: Partial<Record<string, any>>
-) => {
-  const [name, path] = parseNamePath(strings);
-  return useGetListQuery<T>(name, path, args);
-};
+    return useMutation(
+      async (params: { data: T }) =>
+        await axios
+          .post(`${API_HOST}/${path}`, params.data)
+          .then((res) => res.data),
+      {
+        onSuccess: async () => {
+          for (const name of names)
+            await queryClient.invalidateQueries(splitName(name));
 
-export const useGetItemQuery = <T,>(name: string, path: string, id?: number) =>
-  useQuery(
-    [name, "item", id],
-    async () =>
-      await axios.get<T>(`${API_HOST}/${path}/${id}`).then((res) => res.data),
-    {
-      enabled: id !== undefined,
-    }
-  );
+          message.info(msg ?? "등록되었습니다.");
+        },
+      }
+    );
+  };
+  export const update = <T,>(path: string, names: string[], msg?: string) => {
+    const queryClient = useQueryClient();
 
-export const $qi = <T,>(strings: TemplateStringsArray, args?: number) => {
-  const [name, path] = parseNamePath(strings);
-  return useGetItemQuery<T>(name, path, args);
-};
+    return useMutation(
+      async (params: { id: number; data: T }) =>
+        await axios
+          .put(`${API_HOST}/${parsePath(path, params.id)}`, params.data)
+          .then((res) => res.data),
+      {
+        onSuccess: async () => {
+          for (const name of names)
+            await queryClient.invalidateQueries(splitName(name));
 
-export const useCreateMutation = <T,>(name: string, path: string) => {
-  const queryClient = useQueryClient();
+          message.info(msg ?? "수정되었습니다.");
+        },
+      }
+    );
+  };
 
-  return useMutation(
-    async (params: { data: T }) =>
-      await axios
-        .post(`${API_HOST}/${path}`, params.data)
-        .then((res) => res.data),
-    {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries([name]);
-        message.info("등록되었습니다.");
-      },
-    }
-  );
-};
+  export const remove = (path: string, names: string[], msg?: string) => {
+    const queryClient = useQueryClient();
 
-export const $mc = <T,>(strings: TemplateStringsArray) => {
-  const [name, path] = parseNamePath(strings);
-  return useCreateMutation<T>(name, path);
-};
+    return useMutation(
+      async (id: number) =>
+        await axios
+          .delete(`${API_HOST}/${parsePath(path, id)}`)
+          .then((res) => res.data),
+      {
+        onSuccess: async () => {
+          for (const name of names)
+            await queryClient.invalidateQueries(splitName(name));
 
-export const useUpdateMutation = <T,>(name: string, path: string) => {
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    async (params: { id: number; data: T }) =>
-      await axios
-        .put(`${API_HOST}/${path}/${params.id}`, params.data)
-        .then((res) => res.data),
-    {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries([name]);
-        message.info("수정되었습니다.");
-      },
-    }
-  );
-};
-
-export const $mu = <T,>(strings: TemplateStringsArray) => {
-  const [name, path] = parseNamePath(strings);
-  return useUpdateMutation<T>(name, path);
-};
-
-export const useDeleteMutation = (name: string, path: string) => {
-  const queryClient = useQueryClient();
-
-  return useMutation(
-    async (id: number) =>
-      await axios.delete(`${API_HOST}/${path}/${id}`).then((res) => res.data),
-    {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries([name]);
-        message.info("삭제되었습니다.");
-      },
-    }
-  );
-};
-
-export const $mr = (strings: TemplateStringsArray) => {
-  const [name, path] = parseNamePath(strings);
-  return useDeleteMutation(name, path);
-};
+          message.info(msg ?? "삭제되었습니다.");
+        },
+      }
+    );
+  };
+}

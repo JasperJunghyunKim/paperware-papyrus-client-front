@@ -6,5 +6,4 @@ export * as VirtualCompany from "./virtualCompany";
 export * as Warehouse from "./warehouse";
 export * as OfficialPrice from "./officialPrice";
 export * as Discount from "./discount";
-export * as Security from "./security";
 export * as Partner from "./partner";

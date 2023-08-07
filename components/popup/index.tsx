@@ -9,7 +9,6 @@ export * as OfficialPrice from "./officialPrice";
 export * as Order from "./order";
 export * as Plan from "./plan";
 export * as QuickOrder from "./quick-order";
-export * as Security from "./security";
 export * as Shipping from "./shipping";
 export * as Stock from "./stock";
 export * as StockFinder from "./stockFinder";
