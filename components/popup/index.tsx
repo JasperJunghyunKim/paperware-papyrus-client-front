@@ -18,3 +18,4 @@ export * as Stock from "./stock";
 export * as StockFinder from "./stockFinder";
 export * as Template from "./template";
 export * as Warehouse from "./warehouse";
+export * as Accounting from "./accounting";

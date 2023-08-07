@@ -829,3 +829,7 @@ export async function sleep(seconds: number) {
     setTimeout(() => resolve(), seconds * 1000);
   });
 }
+
+export function flatQueries(query: Object) {
+  return Object.entries(query).map((p) => `${p[0]}=${p[1]}`);
+}

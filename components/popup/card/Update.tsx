@@ -21,9 +21,8 @@ export default function Component(props: Props) {
       if (!props.open) {
         return;
       }
-      debugger
 
-      api.mutateAsync({ id: props.open, data: values })
+      api.mutateAsync({ id: props.open, data: values });
 
       setEdit(false);
       props.onClose(false);
@@ -44,7 +43,6 @@ export default function Component(props: Props) {
       cardNumber: data.data?.cardNumber,
       cardHolder: data.data?.cardHolder,
     } as Api.CardUpdateRequest);
-
   }, [form, data.data, edit]);
 
   return (

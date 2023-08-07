@@ -251,6 +251,16 @@ export default function Component(props: PropsWithChildren<Props>) {
         path: "/discount-purchase",
         menu: Const.Menu.SETTING_DISCOUNT_PURCHASE,
       },
+      {
+        label: "수금 관리 2",
+        icon: <TbVector />,
+        path: "/accounting/collected",
+      },
+      {
+        label: "지급 관리 2",
+        icon: <TbVectorTriangle />,
+        path: "/accounting/paid",
+      },
     ],
     [businessRelationshipRequestCount.data?.value]
   );
