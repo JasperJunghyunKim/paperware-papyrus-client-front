@@ -1,6 +1,3 @@
-export * as Accounted from "./accounted";
-export * as BankAccount from "./bank-account";
-export * as Card from "./card";
 export * as Company from "./company";
 export * as Deposit from "./deposit";
 export * as DepositFinder from "./depositFinder";

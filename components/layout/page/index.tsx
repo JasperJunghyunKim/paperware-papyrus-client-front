@@ -156,7 +156,7 @@ export default function Component(props: PropsWithChildren<Props>) {
       {
         label: "유가증권 관리",
         icon: <TbReportMoney />,
-        path: "/security",
+        path: "/accounting/security",
         menu: Const.Menu.SECURITIES,
       },
       {
@@ -224,7 +224,7 @@ export default function Component(props: PropsWithChildren<Props>) {
       {
         label: "카드 관리",
         icon: <TbCards />,
-        path: "/card",
+        path: "/setting/card",
         menu: Const.Menu.SETTING_CARD,
       },
       {

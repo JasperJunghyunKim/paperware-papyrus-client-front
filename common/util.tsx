@@ -830,6 +830,76 @@ export async function sleep(seconds: number) {
   });
 }
 
-export function flatQueries(query: Object) {
-  return Object.entries(query).map((p) => `${p[0]}=${p[1]}`);
+export function flatQueries(query?: Object) {
+  return query ? Object.entries(query).map((p) => `${p[0]}=${p[1]}`) : [];
+}
+
+export function bankToString(bank: Model.Enum.Bank | null | undefined) {
+  return match(bank)
+    .with("KAKAO_BANK", () => "카카오뱅크")
+    .with("KOOKMIN_BANK", () => "국민은행")
+    .with("KEB_HANA_BANK", () => "기업은행")
+    .with("NH_BANK", () => "NH농협은행")
+    .with("SHINHAN_BANK", () => "신한은행")
+    .with("IBK", () => "산업은행")
+    .with("WOORI_BANK", () => "우리은행")
+    .with("CITI_BANK_KOREA", () => "한국씨티은행")
+    .with("HANA_BANK", () => "하나은행")
+    .with("SC_FIRST_BANK", () => "SC제일은행")
+    .with("KYONGNAM_BANK", () => "경남은행")
+    .with("KWANGJU_BANK", () => "광주은행")
+    .with("DAEGU_BANK", () => "대구은행")
+    .with("DEUTSCHE_BANK", () => "도이치은행")
+    .with("BANK_OF_AMERICA", () => "뱅크오브아메리카")
+    .with("BUSAN_BANK", () => "부산은행")
+    .with("NACF", () => "산리조합중앙회")
+    .with("SAVINGS_BANK", () => "저축은행")
+    .with("NACCSF", () => "새마을금고")
+    .with("SUHYUP_BANK", () => "수협은행")
+    .with("NACUFOK", () => "신협중앙회")
+    .with("POST_OFFICE", () => "우체국")
+    .with("JEONBUK_BANK", () => "전북은행")
+    .with("JEJU_BANK", () => "제주은행")
+    .with("K_BANK", () => "케이뱅크")
+    .with("TOS_BANK", () => "토스뱅크")
+    .otherwise(() => "");
+}
+
+export function accountTypeToString(
+  value: Model.Enum.AccountType | null | undefined
+) {
+  return match(value)
+    .with("DEPOSIT", () => "보통 예금")
+    .otherwise(() => "");
+}
+
+export function cardCompanyString(
+  value: Model.Enum.CardCompany | null | undefined
+) {
+  return match(value)
+    .with("BC_CARD", () => "BC카드")
+    .with("KB_CARD", () => "KB국민카드")
+    .with("SAMSUNG_CARD", () => "삼성카드")
+    .with("SHINHAN_CARD", () => "신한카드")
+    .with("WOORI_CARD", () => "우리카드")
+    .with("HANA_CARD", () => "하나카드")
+    .with("LOTTE_CARD", () => "롯데카드")
+    .with("HYUNDAI_CARD", () => "현대카드")
+    .with("NH_CARD", () => "NH농협카드")
+    .otherwise(() => "");
+}
+
+export function securityTypeToString(
+  value: Model.Enum.SecurityType | null | undefined
+) {
+  return match(value)
+    .with("PROMISSORY_NOTE", () => "약속어음")
+    .with("ELECTRONIC_NOTE", () => "전자어음")
+    .with("ELECTRONIC_BOND", () => "전자채권")
+    .with("PERSONAL_CHECK", () => "자기앞수표")
+    .with("DEMAND_DRAFT", () => "당좌수표")
+    .with("HOUSEHOLD_CHECK", () => "가계수표")
+    .with("STATIONERY_NOTE", () => "문방구어음")
+    .with("ETC", () => "기타")
+    .otherwise(() => "");
 }

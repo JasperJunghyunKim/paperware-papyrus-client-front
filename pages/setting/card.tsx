@@ -1,9 +1,6 @@
-import {
-  BankAccountCreateRequest,
-  BankAccountUpdateRequest,
-} from "@/@shared/api";
-import { BankAccount, User } from "@/@shared/models";
-import { AccountType, Bank } from "@/@shared/models/enum";
+import { CardCreateRequest, CardUpdateRequest } from "@/@shared/api";
+import { Card, User } from "@/@shared/models";
+import { AccountType, Bank, CardCompany } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
 import * as R from "@/common/rules";
@@ -15,16 +12,16 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { TbCircleCheck } from "react-icons/tb";
 
-type RecordType = BankAccount;
+type RecordType = Card;
 
 export default function Component() {
   const [openUpsert, setOpenUpsert] = useState<number | boolean>(false);
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Setting.BankAccount.useGetList({ ...page });
+  const list = ApiHook.Setting.Card.useGetList({ ...page });
   const [selected, setSelected, only] = useSelection<RecordType>([list.data]);
 
-  const apiDelete = ApiHook.Setting.BankAccount.useDelete();
+  const apiDelete = ApiHook.Setting.Card.useDelete();
   const cmdDelete = async () => {
     if (!only || !(await Util.confirm("선택한 항목을 삭제하시겠습니까?")))
       return;
@@ -32,10 +29,10 @@ export default function Component() {
   };
 
   return (
-    <Page title="계좌 관리" menu={Const.Menu.SETTING_ACCOUNTED}>
+    <Page title="카드 관리" menu={Const.Menu.SETTING_ACCOUNTED}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
-          label="계좌 추가"
+          label="카드 추가"
           onClick={() => setOpenUpsert(true)}
         />
         <div className="flex-1" />
@@ -62,24 +59,20 @@ export default function Component() {
         columns={[
           {
             title: "은행",
-            render: (record: RecordType) => Util.bankToString(record.bank),
-          },
-          {
-            title: "계좌명",
-            render: (record: RecordType) => record.accountName,
-          },
-          {
-            title: "계좌유형",
             render: (record: RecordType) =>
-              Util.accountTypeToString(record.accountType),
+              Util.cardCompanyString(record.cardCompany),
           },
           {
-            title: "계좌번호",
-            render: (record: RecordType) => record.accountNumber,
+            title: "카드명",
+            render: (record: RecordType) => record.cardName,
           },
           {
-            title: "계좌소유자",
-            render: (record: RecordType) => record.accountHolder,
+            title: "카드번호",
+            render: (record: RecordType) => record.cardNumber,
+          },
+          {
+            title: "카드소유자",
+            render: (record: RecordType) => record.cardHolder,
           },
         ]}
       />
@@ -93,10 +86,10 @@ interface PopupUpsertProps {
   onClose: (unit: false) => void;
 }
 function PopupUpsert(props: PopupUpsertProps) {
-  const [form] = useForm<BankAccountCreateRequest & BankAccountUpdateRequest>();
+  const [form] = useForm<CardCreateRequest & CardUpdateRequest>();
 
-  const apiCreate = ApiHook.Setting.BankAccount.useCreate();
-  const apiUpdate = ApiHook.Setting.BankAccount.useUpdate();
+  const apiCreate = ApiHook.Setting.Card.useCreate();
+  const apiUpdate = ApiHook.Setting.Card.useUpdate();
   const apiUpsert = props.open === true ? apiCreate : apiUpdate;
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -105,7 +98,7 @@ function PopupUpsert(props: PopupUpsertProps) {
     props.open === true && props.onClose(false);
   };
 
-  const item = ApiHook.Setting.BankAccount.useGetItem(
+  const item = ApiHook.Setting.Card.useGetItem(
     _.isNumber(props.open) ? props.open : undefined
   );
 
@@ -119,69 +112,43 @@ function PopupUpsert(props: PopupUpsertProps) {
   return (
     <Popup.Template.Property
       {...props}
-      title={`계좌 ${wordPost}`}
+      title={`카드 ${wordPost}`}
       open={!!props.open}
     >
       <div className="flex-1 p-4 flex flex-col">
         <Form layout="vertical" form={form} rootClassName="flex flex-col">
-          <Form.Item label="은행" name="bank" rules={[R.required()]}>
+          <Form.Item label="카드회사" name="cardCompany" rules={[R.required()]}>
             <Select
-              options={Array.from<Bank>([
-                "KAKAO_BANK",
-                "KOOKMIN_BANK",
-                "KEB_HANA_BANK",
-                "NH_BANK",
-                "SHINHAN_BANK",
-                "IBK",
-                "WOORI_BANK",
-                "CITI_BANK_KOREA",
-                "HANA_BANK",
-                "SC_FIRST_BANK",
-                "KYONGNAM_BANK",
-                "KWANGJU_BANK",
-                "DAEGU_BANK",
-                "DEUTSCHE_BANK",
-                "BANK_OF_AMERICA",
-                "BUSAN_BANK",
-                "NACF",
-                "SAVINGS_BANK",
-                "NACCSF",
-                "SUHYUP_BANK",
-                "NACUFOK",
-                "POST_OFFICE",
-                "JEONBUK_BANK",
-                "JEJU_BANK",
-                "K_BANK",
-                "TOS_BANK",
+              options={Array.from<CardCompany>([
+                "BC_CARD",
+                "KB_CARD",
+                "SAMSUNG_CARD",
+                "SHINHAN_CARD",
+                "WOORI_CARD",
+                "HANA_CARD",
+                "LOTTE_CARD",
+                "HYUNDAI_CARD",
+                "NH_CARD",
               ]).map((item) => ({
-                label: Util.bankToString(item),
+                label: Util.cardCompanyString(item),
                 value: item,
               }))}
               disabled={props.open !== true}
             />
           </Form.Item>
-          <Form.Item label="계좌명" name="accountName" rules={[R.required()]}>
+          <Form.Item label="카드명" name="cardName" rules={[R.required()]}>
             <Input />
           </Form.Item>
-          <Form.Item label="계좌유형" name="accountType" rules={[R.required()]}>
-            <Select
-              options={Array.from<AccountType>(["DEPOSIT"]).map((item) => ({
-                label: Util.accountTypeToString(item),
-                value: item,
-              }))}
-              disabled={props.open !== true}
-            />
-          </Form.Item>
           <Form.Item
-            label="계좌번호"
-            name="accountNumber"
+            label="카드번호"
+            name="cardNumber"
             rules={[R.required(), R.pattern(/^[0-9-]*$/)]}
           >
             <Input disabled={props.open !== true} />
           </Form.Item>
           <Form.Item
-            label="계좌소유자"
-            name="accountHolder"
+            label="카드소유자"
+            name="cardHolder"
             rules={[R.required()]}
           >
             <Input disabled={props.open !== true} />

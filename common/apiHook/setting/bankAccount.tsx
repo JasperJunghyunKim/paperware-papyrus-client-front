@@ -1,23 +1,22 @@
 import {
   BankAccountCreateRequest,
+  BankAccountItemResponse,
+  BankAccountListQuery,
+  BankAccountListResponse,
   BankAccountUpdateRequest,
 } from "@/@shared/api";
-import { ApiTemplate } from "@/common";
+import { $mc, $mr, $mu, $qi, $ql } from "@/common/apiTemplate";
 
-export const useGetList = ApiTemplate.useGetListQuery(
-  "bank-account",
-  "account"
-);
+export const useGetList = (query?: Partial<BankAccountListQuery>) =>
+  $ql<BankAccountListResponse>`bank-account bank-account ${query}`;
 
-export const useGetItem = ApiTemplate.useGetItemQuery(
-  "bank-account",
-  "account"
-);
+export const useGetItem = (id?: number) =>
+  $qi<BankAccountItemResponse>`bank-account bank-account ${id}`;
 
-export const useCreate =
-  ApiTemplate.useCreateMutation<BankAccountCreateRequest>("bank-account");
+export const useCreate = () =>
+  $mc<BankAccountCreateRequest>`bank-account bank-account`;
 
-export const useUpdate =
-  ApiTemplate.useUpdateMutation<BankAccountUpdateRequest>("bank-account");
+export const useUpdate = () =>
+  $mu<BankAccountUpdateRequest>`bank-account bank-account`;
 
-export const useDelete = ApiTemplate.useDeleteMutation("bank-account");
+export const useDelete = () => $mr`bank-account bank-account`;

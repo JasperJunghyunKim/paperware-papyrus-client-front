@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ApiHook } from ".";
+import { useEffect, useState } from "react";
+import { ApiHook, Util } from ".";
 
 export function usePage() {
   const [page, setPage] = useState<ApiHook.Common.GetPaginationQuery>({
@@ -8,4 +8,13 @@ export function usePage() {
   });
 
   return [page, setPage] as const;
+}
+
+export function useSelection<T>(dependancies: any[] = []) {
+  const [selected, setSelected] = useState<T[]>([]);
+  const only = Util.only(selected);
+
+  useEffect(() => setSelected([]), dependancies);
+
+  return [selected, setSelected, only] as const;
 }

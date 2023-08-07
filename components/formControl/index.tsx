@@ -28,8 +28,6 @@ import SelectSubject from "./SelectSubject";
 import SelectPackagingType from "./SelectPackagingType";
 import SelectCard from "./SelectCard";
 import SelectBank from "./SelectBank";
-import SelectApiBank from "./SelectApiBank";
-import SelectApiCard from "./SelectApiCard";
 import SelectBankAccount from "./SelectBankAccount";
 import SelectSecurityType from "./SelectSecurityType";
 import SelectSecurityStatus from "./SelectSecurityStatus";
@@ -69,8 +67,6 @@ export {
   SelectBank,
   SelectCard,
   SelectBankAccount,
-  SelectApiBank,
-  SelectApiCard,
   SelectSecurityType,
   SelectSecurityStatus,
   SelectSecurity,
