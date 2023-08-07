@@ -22,8 +22,7 @@ export * as Company from "./company";
 export * as User from "./user";
 
 export namespace BankAccount {
-  const path = "bank-account";
-  const name = "bank-account";
+  const [path, name] = ["bank-account", "bank-account"];
   type Id = { id: number };
 
   export const useGetList = (query?: Partial<BankAccountListQuery>) =>
@@ -42,8 +41,7 @@ export namespace BankAccount {
 }
 
 export namespace Card {
-  const path = "card";
-  const name = "card";
+  const [path, name] = ["card", "card"];
   type Id = { id: number };
 
   export const useGetList = (query?: Partial<CardListQuery>) =>
@@ -61,8 +59,7 @@ export namespace Card {
 }
 
 export namespace Security {
-  const path = "security";
-  const name = "security";
+  const [path, name] = ["security", "security"];
   type Id = { id: number };
 
   export const useGetList = (query?: Partial<SecurityListQuery>) =>
