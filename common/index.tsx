@@ -8,3 +8,4 @@ export * as PaperUtil from "./paperUtil";
 export * as PriceUtil from "./priceUtil";
 export * as QuantityUtil from "./quantityUtil";
 export * as Rules from "./rules";
+export * as ApiTemplate from "./apiTemplate";

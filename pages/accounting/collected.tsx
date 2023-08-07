@@ -1,25 +1,11 @@
-import {
-  UserCreateRequest,
-  UserUpdateRequest,
-} from "@/@shared/api/setting/user.request";
 import { SettingUserResponse } from "@/@shared/api/setting/user.response";
 import { User } from "@/@shared/models";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import * as R from "@/common/rules";
-import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
+import { Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { Form, Input, message } from "antd";
-import { useForm, useWatch } from "antd/lib/form/Form";
-import classNames from "classnames";
 import { useEffect, useState } from "react";
-import {
-  TbLock,
-  TbLockOpen,
-  TbManualGearbox,
-  TbUserCircle,
-  TbUserPlus,
-} from "react-icons/tb";
+import { TbLock, TbLockOpen, TbUserCircle } from "react-icons/tb";
 
 export default function Component() {
   const [openUpsert, setOpenUpsert] = useState<

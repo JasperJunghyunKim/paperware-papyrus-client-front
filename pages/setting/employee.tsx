@@ -13,13 +13,7 @@ import { Form, Input, message } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import {
-  TbLock,
-  TbLockOpen,
-  TbManualGearbox,
-  TbUserCircle,
-  TbUserPlus,
-} from "react-icons/tb";
+import { TbLock, TbLockOpen, TbUserCircle } from "react-icons/tb";
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);

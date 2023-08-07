@@ -230,7 +230,7 @@ export default function Component(props: PropsWithChildren<Props>) {
       {
         label: "계좌 관리",
         icon: <TbBuildingBank />,
-        path: "/bank-account",
+        path: "/setting/bank-account",
         menu: Const.Menu.SETTING_ACCOUNTED,
       },
       {
