@@ -6,8 +6,19 @@ import { flatQueries } from "./util";
 
 export namespace $query {
   const splitName = (value: string) => value.split(".");
-  const parsePath = (value: string, id?: number) =>
-    value.replaceAll(":id", id?.toString() ?? "");
+  const parsePath = (value: string, record?: Record<string, any>) => {
+    try {
+      return value.replace(/:(\w+)/g, (_, key) => {
+        if (record?.[key]) {
+          return record[key];
+        } else {
+          throw new Error(`Invalid path: ${value}`);
+        }
+      });
+    } catch (e) {
+      return null;
+    }
+  };
 
   export const list = <T,>(
     path: string,
@@ -23,24 +34,39 @@ export namespace $query {
           })
           .then((res) => res.data)
     );
-  export const item = <T,>(path: string, name: string, id?: number) =>
+
+  export const item = <T, U extends Record<string, any> = {}>(
+    path: string,
+    name: string,
+    record: Partial<U>
+  ) =>
     useQuery(
-      [...splitName(name), "item", id],
+      [...splitName(name), "item", flatQueries(record)],
       async () =>
         await axios
           .get<T>(`${API_HOST}/${parsePath(path)}`)
           .then((res) => res.data),
       {
-        enabled: id !== undefined,
+        enabled: parsePath(path, record) !== null,
       }
     );
+
+  export const get = <T,>(path: string, name: string) =>
+    useQuery(
+      [...splitName(name)],
+      async () =>
+        await axios
+          .get<T>(`${API_HOST}/${parsePath(path)}`)
+          .then((res) => res.data)
+    );
+
   export const create = <T,>(path: string, names: string[], msg?: string) => {
     const queryClient = useQueryClient();
 
     return useMutation(
       async (params: { data: T }) =>
         await axios
-          .post(`${API_HOST}/${path}`, params.data)
+          .post(`${API_HOST}/${parsePath(path)}`, params.data)
           .then((res) => res.data),
       {
         onSuccess: async () => {
@@ -52,13 +78,18 @@ export namespace $query {
       }
     );
   };
-  export const update = <T,>(path: string, names: string[], msg?: string) => {
+
+  export const update = <T, U extends Record<string, any>>(
+    path: string,
+    names: string[],
+    msg?: string
+  ) => {
     const queryClient = useQueryClient();
 
     return useMutation(
-      async (params: { id: number; data: T }) =>
+      async (params: { path: U; data: T }) =>
         await axios
-          .put(`${API_HOST}/${parsePath(path, params.id)}`, params.data)
+          .put(`${API_HOST}/${parsePath(path, params.path)}`, params.data)
           .then((res) => res.data),
       {
         onSuccess: async () => {
@@ -71,13 +102,40 @@ export namespace $query {
     );
   };
 
-  export const remove = (path: string, names: string[], msg?: string) => {
+  export const patch = <T, U extends Record<string, any>>(
+    path: string,
+    names: string[],
+    msg?: string
+  ) => {
     const queryClient = useQueryClient();
 
     return useMutation(
-      async (id: number) =>
+      async (params: { path: U; data: T }) =>
         await axios
-          .delete(`${API_HOST}/${parsePath(path, id)}`)
+          .patch(`${API_HOST}/${parsePath(path, params.path)}`, params.data)
+          .then((res) => res.data),
+      {
+        onSuccess: async () => {
+          for (const name of names)
+            await queryClient.invalidateQueries(splitName(name));
+
+          message.info(msg ?? "수정되었습니다.");
+        },
+      }
+    );
+  };
+
+  export const remove = <U extends Record<string, any>>(
+    path: string,
+    names: string[],
+    msg?: string
+  ) => {
+    const queryClient = useQueryClient();
+
+    return useMutation(
+      async (params: { path: U }) =>
+        await axios
+          .delete(`${API_HOST}/${parsePath(path, params.path)}`)
           .then((res) => res.data),
       {
         onSuccess: async () => {

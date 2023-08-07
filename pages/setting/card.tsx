@@ -1,6 +1,6 @@
 import { CardCreateRequest, CardUpdateRequest } from "@/@shared/api";
-import { Card, User } from "@/@shared/models";
-import { AccountType, Bank, CardCompany } from "@/@shared/models/enum";
+import { Card } from "@/@shared/models";
+import { CardCompany } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
 import * as R from "@/common/rules";
@@ -25,7 +25,7 @@ export default function Component() {
   const cmdDelete = async () => {
     if (!only || !(await Util.confirm("선택한 항목을 삭제하시겠습니까?")))
       return;
-    await apiDelete.mutateAsync(only.id);
+    await apiDelete.mutateAsync({ path: { id: only.id } });
   };
 
   return (
@@ -93,7 +93,7 @@ function PopupUpsert(props: PopupUpsertProps) {
   const apiUpsert = props.open === true ? apiCreate : apiUpdate;
   const cmdUpsert = async () => {
     const data = await form.validateFields();
-    await apiUpsert.mutateAsync({ data, id: props.open as number });
+    await apiUpsert.mutateAsync({ data, path: { id: props.open as number } });
 
     props.open === true && props.onClose(false);
   };

@@ -28,7 +28,7 @@ export default function Component() {
   const cmdDelete = async () => {
     if (!only || !(await Util.confirm("선택한 항목을 삭제하시겠습니까?")))
       return;
-    await apiDelete.mutateAsync(only.id);
+    await apiDelete.mutateAsync({ path: { id: only.id } });
   };
 
   return (
@@ -96,7 +96,7 @@ function PopupUpsert(props: PopupUpsertProps) {
   const apiUpsert = props.open === true ? apiCreate : apiUpdate;
   const cmdUpsert = async () => {
     const data = await form.validateFields();
-    await apiUpsert.mutateAsync({ data, id: props.open as number });
+    await apiUpsert.mutateAsync({ data, path: { id: props.open as number } });
 
     props.open === true && props.onClose(false);
   };

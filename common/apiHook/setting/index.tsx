@@ -24,18 +24,19 @@ export * as User from "./user";
 export namespace BankAccount {
   const path = "bank-account";
   const name = "bank-account";
+  type Id = { id: number };
 
   export const useGetList = (query?: Partial<BankAccountListQuery>) =>
     $query.list<BankAccountListResponse>(path, name, query);
 
   export const useGetItem = (id?: number) =>
-    $query.item<BankAccountItemResponse>(`${path}/:id`, name, id);
+    $query.item<BankAccountItemResponse, Id>(`${path}/:id`, name, { id });
 
   export const useCreate = () =>
     $query.create<BankAccountCreateRequest>(path, [name]);
 
   export const useUpdate = () =>
-    $query.update<BankAccountUpdateRequest>(`${path}/:id`, [name]);
+    $query.update<BankAccountUpdateRequest, Id>(`${path}/:id`, [name]);
 
   export const useDelete = () => $query.remove(`${path}/:id`, [name]);
 }
@@ -43,17 +44,18 @@ export namespace BankAccount {
 export namespace Card {
   const path = "card";
   const name = "card";
+  type Id = { id: number };
 
   export const useGetList = (query?: Partial<CardListQuery>) =>
     $query.list<CardListResponse>(path, name, query);
 
   export const useGetItem = (id?: number) =>
-    $query.item<CardItemResponse>(`${path}/:id`, name, id);
+    $query.item<CardItemResponse, Id>(`${path}/:id`, name, { id });
 
   export const useCreate = () => $query.create<CardCreateRequest>(path, [name]);
 
   export const useUpdate = () =>
-    $query.update<CardUpdateRequest>(`${path}/:id`, [name]);
+    $query.update<CardUpdateRequest, Id>(`${path}/:id`, [name]);
 
   export const useDelete = () => $query.remove(`${path}/:id`, [name]);
 }
@@ -61,21 +63,22 @@ export namespace Card {
 export namespace Security {
   const path = "security";
   const name = "security";
+  type Id = { id: number };
 
   export const useGetList = (query?: Partial<SecurityListQuery>) =>
     $query.list<SecurityListResponse>(path, name, query);
 
   export const useGetItem = (id?: number) =>
-    $query.item<SecurityItemResponse>(`${path}/:id`, name, id);
+    $query.item<SecurityItemResponse, Id>(`${path}/:id`, name, { id });
 
   export const useCreate = () =>
     $query.create<SecurityCreateRequest>(path, [name]);
 
   export const useUpdate = () =>
-    $query.update<SecurityUpdateRequest>(`${path}/:id`, [name]);
+    $query.update<SecurityUpdateRequest, Id>(`${path}/:id`, [name]);
 
   export const useUpdateStatus = () =>
-    $query.update<SecurityUpdateRequest>(`${path}/:id/status`, [name]);
+    $query.update<SecurityUpdateRequest, Id>(`${path}/:id/status`, [name]);
 
   export const useDelete = () => $query.remove(`${path}/:id`, [name]);
 }
