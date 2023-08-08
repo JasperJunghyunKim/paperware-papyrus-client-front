@@ -1,9 +1,11 @@
 import {
   BankAccountCreateRequest,
   BankAccountUpdateRequest,
+  SecurityCreateRequest,
+  SecurityStatusUpdateRequest,
 } from "@/@shared/api";
-import { BankAccount } from "@/@shared/models";
-import { SecurityType } from "@/@shared/models/enum";
+import { BankAccount, Security } from "@/@shared/models";
+import { SecurityStatus, SecurityType } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
 import * as R from "@/common/rules";
@@ -15,16 +17,16 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { TbCircleCheck } from "react-icons/tb";
 
-type RecordType = BankAccount;
+type RecordType = Security;
 
 export default function Component() {
   const [openUpsert, setOpenUpsert] = useState<number | boolean>(false);
 
   const [page, setPage] = usePage();
-  const list = ApiHook.Setting.BankAccount.useGetList({ ...page });
+  const list = ApiHook.Setting.Security.useGetList({ ...page });
   const [selected, setSelected, only] = useSelection<RecordType>([list.data]);
 
-  const apiDelete = ApiHook.Setting.BankAccount.useDelete();
+  const apiDelete = ApiHook.Setting.Security.useDelete();
   const cmdDelete = async () => {
     if (!only || !(await Util.confirm("선택한 항목을 삭제하시겠습니까?")))
       return;
@@ -45,6 +47,10 @@ export default function Component() {
               label="항목 삭제"
               onClick={cmdDelete}
             />
+            <Toolbar.ButtonPreset.Update
+              label="상세 정보"
+              onClick={() => setOpenUpsert(only.id)}
+            />
           </>
         )}
       </Toolbar.Container>
@@ -57,25 +63,74 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "은행",
-            render: (record: RecordType) => Util.bankToString(record.bank),
-          },
-          {
-            title: "유가증권명",
-            render: (record: RecordType) => record.accountName,
-          },
-          {
-            title: "유가증권유형",
+            title: "유가증권 유형",
             render: (record: RecordType) =>
-              Util.accountTypeToString(record.accountType),
+              Util.securityTypeToString(record.securityType),
           },
           {
-            title: "유가증권번호",
-            render: (record: RecordType) => record.accountNumber,
+            title: "유가증권 번호",
+            render: (record: RecordType) => (
+              <div className="font-fixed text-right">
+                {record.securitySerial}
+              </div>
+            ),
           },
           {
-            title: "유가증권소유자",
-            render: (record: RecordType) => record.accountHolder,
+            title: "유가증권 금액",
+            render: (record: RecordType) => (
+              <div className="font-fixed text-right">
+                {Util.comma(record.securityAmount)} 원
+              </div>
+            ),
+          },
+          {
+            title: "유가증권 상태",
+            render: (record: RecordType) =>
+              Util.securityStatusToString(record.securityStatus),
+          },
+          {
+            title: "발행일",
+            render: (record: RecordType) =>
+              Util.formatIso8601ToLocalDate(record.drawedDate),
+          },
+          {
+            title: "발행은행",
+            render: (record: RecordType) =>
+              Util.bankToString(record.drawedBank),
+          },
+          {
+            title: "발행지점명",
+            render: (record: RecordType) => record.drawedBankBranch,
+          },
+          {
+            title: "발행지",
+            render: (record: RecordType) => record.drawedRegion,
+          },
+          {
+            title: "발행인",
+            render: (record: RecordType) => record.drawer,
+          },
+          {
+            title: "만기일",
+            render: (record: RecordType) =>
+              Util.formatIso8601ToLocalDate(record.maturedDate),
+          },
+          {
+            title: "지급은행",
+            render: (record: RecordType) =>
+              Util.bankToString(record.payingBank),
+          },
+          {
+            title: "지급지점명",
+            render: (record: RecordType) => record.payingBankBranch,
+          },
+          {
+            title: "지급인",
+            render: (record: RecordType) => record.payer,
+          },
+          {
+            title: "메모",
+            render: (record: RecordType) => record.memo,
           },
         ]}
       />
@@ -89,25 +144,42 @@ interface PopupUpsertProps {
   onClose: (unit: false) => void;
 }
 function PopupUpsert(props: PopupUpsertProps) {
-  const [form] = useForm<BankAccountCreateRequest & BankAccountUpdateRequest>();
+  const [form] = useForm<SecurityCreateRequest & SecurityStatusUpdateRequest>();
 
-  const apiCreate = ApiHook.Setting.BankAccount.useCreate();
-  const apiUpdate = ApiHook.Setting.BankAccount.useUpdate();
-  const apiUpsert = props.open === true ? apiCreate : apiUpdate;
-  const cmdUpsert = async () => {
+  const apiCreate = ApiHook.Setting.Security.useCreate();
+  const apiUpdateStatus = ApiHook.Setting.Security.useUpdateStatus();
+  const apiUpsert = props.open === true ? apiCreate : apiUpdateStatus;
+  const cmdCreate = async () => {
     const data = await form.validateFields();
     await apiUpsert.mutateAsync({ data, path: { id: props.open as number } });
 
     props.open === true && props.onClose(false);
   };
 
-  const item = ApiHook.Setting.BankAccount.useGetItem(
+  const item = ApiHook.Setting.Security.useGetItem(
     _.isNumber(props.open) ? props.open : undefined
   );
 
   useEffect(
-    () => (item.data ? form.setFieldsValue(item.data) : form.resetFields()),
-    [item.data]
+    () =>
+      item.data
+        ? form.setFieldsValue({
+            securityType: item.data.securityType,
+            securitySerial: item.data.securitySerial,
+            securityAmount: item.data.securityAmount,
+            drawedDate: item.data.drawedDate ?? undefined,
+            drawedBank: item.data.drawedBank ?? undefined,
+            drawedBankBranch: item.data.drawedBankBranch ?? undefined,
+            drawedRegion: item.data.drawedRegion ?? undefined,
+            drawer: item.data.drawer ?? undefined,
+            maturedDate: item.data.maturedDate ?? undefined,
+            payingBank: item.data.payingBank ?? undefined,
+            payingBankBranch: item.data.payingBankBranch ?? undefined,
+            payer: item.data.payer ?? undefined,
+            memo: item.data.memo ?? undefined,
+          })
+        : form.resetFields(),
+    [form, item.data]
   );
 
   const wordPost = props.open === true ? "추가" : "상세";
@@ -156,6 +228,28 @@ function PopupUpsert(props: PopupUpsertProps) {
           >
             <FormControl.Number disabled={props.open !== true} />
           </Form.Item>
+          {item.data && (
+            <Form.Item
+              label="유가증권 상태"
+              name="securityStatus"
+              rules={[R.required()]}
+            >
+              <Select
+                options={Array.from<SecurityStatus>([
+                  "NONE",
+                  "NORMAL_PAYMENT",
+                  "DISCOUNT_PAYMENT",
+                  "INSOLVENCY",
+                  "LOST",
+                  "SAFEKEEPING",
+                ]).map((item) => ({
+                  label: Util.securityStatusToString(item),
+                  value: item,
+                }))}
+                disabled={item.data.bySecurities.length !== 0}
+              />
+            </Form.Item>
+          )}
           <Form.Item label="발행일" name="drawedDate">
             <FormControl.DatePicker disabled={props.open !== true} />
           </Form.Item>
@@ -191,7 +285,7 @@ function PopupUpsert(props: PopupUpsertProps) {
               icon={<TbCircleCheck />}
               label={props.open === true ? "추가" : "수정"}
               type="primary"
-              onClick={cmdUpsert}
+              onClick={cmdCreate}
             />
           </div>
         </Form>

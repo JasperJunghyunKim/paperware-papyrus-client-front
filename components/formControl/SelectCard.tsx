@@ -1,70 +1,56 @@
 import { Model } from "@/@shared";
+import { BankAccount, Card } from "@/@shared/models";
+import { ApiHook, Util } from "@/common";
 import { Select } from "antd";
+import { useMemo } from "react";
 
-export const CARD_OPTIONS = [
-  {
-    label: "비씨카드",
-    value: "BC_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "국민카드",
-    value: "KB_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "삼성카드",
-    value: "SAMSUNG_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "신한카드",
-    value: "SHINHAN_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "우리카드",
-    value: "WOORI_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "하나카드",
-    value: "HANA_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "롯데카드",
-    value: "LOTTE_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "현대카드",
-    value: "HYUNDAI_CARD" as Model.Enum.CardCompany,
-  },
-  {
-    label: "농협카드",
-    value: "NH_CARD" as Model.Enum.CardCompany,
-  },
-];
+type RecordType = Card;
 
 interface Props {
-  isDisabled?: boolean;
-  value?: Model.Enum.CardCompany & string & number;
+  disabled?: boolean;
+  value?: number;
   onChange?: (value: number) => void;
 }
 
 export default function Component(props: Props) {
+  const list = ApiHook.Setting.Card.useGetList({});
+
+  const options = useMemo(() => {
+    return list.data?.items.map((x) => ({
+      label: <Item item={x} />,
+      text: `${x.cardName} ${x.cardHolder} ${Util.cardCompanyString(
+        x.cardCompany
+      )}`,
+      value: x.id,
+    }));
+  }, [list]);
+
   return (
     <div className="flex flex-col gap-y-1">
       <Select
         value={props.value}
         onChange={props.onChange}
-        filterOption={(input, option) => {
-          if (!option) {
-            return false;
-          }
-          return option.label.toLowerCase().includes(input.toLowerCase());
-        }}
-        showSearch
-        allowClear
-        dropdownMatchSelectWidth={false}
-        disabled={props.isDisabled}
-        options={CARD_OPTIONS}
-        placeholder="카드 목록"
+        disabled={props.disabled}
+        options={options}
+        placeholder="카드 종류"
       />
+    </div>
+  );
+}
+
+interface ItemProps {
+  item: RecordType;
+}
+
+function Item(props: ItemProps) {
+  const x = props.item;
+  return (
+    <div className="flex font-fixed gap-x-4">
+      <div className="flex-1 whitespace-pre">{x.cardName}</div>
+      <div className="flex-initial whitespace-pre">{x.cardHolder}</div>
+      <div className="flex-initial text-gray-400 text-right">
+        {Util.cardCompanyString(x.cardCompany)}
+      </div>
     </div>
   );
 }

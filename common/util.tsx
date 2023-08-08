@@ -574,62 +574,6 @@ export function convertQuantity(
   };
 }
 
-export function accountedSubject(
-  accountedType: AccountedType,
-  subject: Subject
-): string {
-  if (accountedType === "PAID") {
-    switch (subject) {
-      case "ACCOUNTS_RECEIVABLE":
-        return "외상 매입금";
-      case "UNPAID":
-        return "미지급금";
-      case "ADVANCES":
-        return "선지급금";
-      case "MISCELLANEOUS_INCOME":
-        return "잡손실";
-      case "PRODUCT_SALES":
-        return "상품 매입";
-      case "ETC":
-        return "기타";
-      case "All":
-        return "전체";
-    }
-  } else {
-    switch (subject) {
-      case "ACCOUNTS_RECEIVABLE":
-        return "외상 매출금";
-      case "UNPAID":
-        return "미수금";
-      case "ADVANCES":
-        return "선수금";
-      case "MISCELLANEOUS_INCOME":
-        return "잡이익";
-      case "PRODUCT_SALES":
-        return "상품 매출";
-      case "ETC":
-        return "기타";
-      case "All":
-        return "전체";
-    }
-  }
-}
-
-export function endorsementTypeToString(
-  value?: Model.Enum.SecurityStatus | number | string
-) {
-  switch (value) {
-    case "NONE":
-      return "선택안함";
-    case "SELF_NOTE":
-      return "자수";
-    case "OTHERS_NOTE":
-      return "타수";
-    default:
-      return "";
-  }
-}
-
 export function bankAccountTypeToString(
   value?: Model.Enum.SecurityStatus | number | string
 ) {
@@ -901,5 +845,52 @@ export function securityTypeToString(
     .with("HOUSEHOLD_CHECK", () => "가계수표")
     .with("STATIONERY_NOTE", () => "문방구어음")
     .with("ETC", () => "기타")
+    .otherwise(() => "");
+}
+
+export function securityStatusToString(
+  value: Model.Enum.SecurityStatus | null | undefined
+) {
+  return match(value)
+    .with("NONE", () => "기본")
+    .with("NORMAL_PAYMENT", () => "정상 결제")
+    .with("DISCOUNT_PAYMENT", () => "할인 결제")
+    .with("INSOLVENCY", () => "부도")
+    .with("LOST", () => "분실")
+    .with("SAFEKEEPING", () => "보관")
+    .otherwise(() => "");
+}
+
+export function accountSubjectToString(value: Subject | null | undefined) {
+  return match(value)
+    .with("ACCOUNTS_RECEIVABLE", () => "외상매출금")
+    .with("UNPAID", () => "미수금")
+    .with("ADVANCES", () => "선수금")
+    .with("MISCELLANEOUS_INCOME", () => "잡이익")
+    .with("PRODUCT_SALES", () => "상품매출")
+    .with("ETC", () => "기타")
+    .otherwise(() => "");
+}
+
+export function accountMethodToString(
+  value: Model.Enum.Method | null | undefined
+) {
+  return match(value)
+    .with("ACCOUNT_TRANSFER", () => "계좌 이체")
+    .with("PROMISSORY_NOTE", () => "어음")
+    .with("CARD_PAYMENT", () => "카드 결제")
+    .with("CASH", () => "현금")
+    .with("OFFSET", () => "상계")
+    .with("ETC", () => "기타")
+    .otherwise(() => "");
+}
+
+export function endorsementTypeToString(
+  value: Model.Enum.EndorsementType | null | undefined
+) {
+  return match(value)
+    .with("NONE", () => "선택안함")
+    .with("SELF_NOTE", () => "자수")
+    .with("OTHERS_NOTE", () => "타수")
     .otherwise(() => "");
 }

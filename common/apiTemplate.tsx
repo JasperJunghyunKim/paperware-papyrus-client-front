@@ -12,15 +12,17 @@ export namespace $query {
         if (record?.[key]) {
           return record[key];
         } else {
+          console.log("ASDF");
           throw new Error(`Invalid path: ${value}`);
         }
       });
     } catch (e) {
+      console.warn(e);
       return null;
     }
   };
 
-  export const list = <T,>(
+  export const useList = <T,>(
     path: string,
     name: string,
     query?: Partial<Record<string, any>>
@@ -35,7 +37,7 @@ export namespace $query {
           .then((res) => res.data)
     );
 
-  export const item = <T, U extends Record<string, any> = {}>(
+  export const useItem = <T, U extends Record<string, any> = {}>(
     path: string,
     name: string,
     record: Partial<U>
@@ -44,14 +46,14 @@ export namespace $query {
       [...splitName(name), "item", flatQueries(record)],
       async () =>
         await axios
-          .get<T>(`${API_HOST}/${parsePath(path)}`)
+          .get<T>(`${API_HOST}/${parsePath(path, record)}`)
           .then((res) => res.data),
       {
         enabled: parsePath(path, record) !== null,
       }
     );
 
-  export const get = <T,>(path: string, name: string) =>
+  export const useGet = <T,>(path: string, name: string) =>
     useQuery(
       [...splitName(name)],
       async () =>
@@ -60,7 +62,11 @@ export namespace $query {
           .then((res) => res.data)
     );
 
-  export const create = <T,>(path: string, names: string[], msg?: string) => {
+  export const useCreate = <T,>(
+    path: string,
+    names: string[],
+    msg?: string
+  ) => {
     const queryClient = useQueryClient();
 
     return useMutation(
@@ -79,7 +85,7 @@ export namespace $query {
     );
   };
 
-  export const update = <T, U extends Record<string, any>>(
+  export const useUpdate = <T, U extends Record<string, any>>(
     path: string,
     names: string[],
     msg?: string
@@ -87,7 +93,7 @@ export namespace $query {
     const queryClient = useQueryClient();
 
     return useMutation(
-      async (params: { path: U; data: T }) =>
+      async (params: { path: Partial<U>; data: T }) =>
         await axios
           .put(`${API_HOST}/${parsePath(path, params.path)}`, params.data)
           .then((res) => res.data),
@@ -102,7 +108,7 @@ export namespace $query {
     );
   };
 
-  export const patch = <T, U extends Record<string, any>>(
+  export const usePatch = <T, U extends Record<string, any>>(
     path: string,
     names: string[],
     msg?: string
@@ -110,7 +116,7 @@ export namespace $query {
     const queryClient = useQueryClient();
 
     return useMutation(
-      async (params: { path: U; data: T }) =>
+      async (params: { path: Partial<U>; data: T }) =>
         await axios
           .patch(`${API_HOST}/${parsePath(path, params.path)}`, params.data)
           .then((res) => res.data),
@@ -125,7 +131,7 @@ export namespace $query {
     );
   };
 
-  export const remove = <U extends Record<string, any>>(
+  export const useRemove = <U extends Record<string, any>>(
     path: string,
     names: string[],
     msg?: string
