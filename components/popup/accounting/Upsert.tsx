@@ -63,7 +63,7 @@ export default function Component(props: Props) {
       onClose={props.onClose}
       title={`${isCreate ? "등록" : "상세"}`}
     >
-      <div className="w-full flex flex-col overflow-y-scroll p-4 pb-16">
+      <div className="w-full flex flex-col p-4 pb-16">
         <FormControl.Util.Split label="기본 정보" />
         <Form form={form} layout="vertical">
           <Form.Item

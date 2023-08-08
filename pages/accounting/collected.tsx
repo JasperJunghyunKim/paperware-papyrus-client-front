@@ -24,6 +24,18 @@ export default function Component() {
   const [selected, setSelected] = useState<RecordType[]>([]);
   const only = Util.only(selected);
 
+  const apiDelete = ApiHook.Setting.Accounted.useDelete();
+  const cmdDelete = async () => {
+    if (
+      !only ||
+      !(await Util.confirm("선택한 수금 내역을 삭제하시겠습니까?"))
+    ) {
+      return;
+    }
+
+    await apiDelete.mutateAsync({ path: { id: only.id } });
+  };
+
   useEffect(() => {
     setSelected([]);
   }, [list.data]);
@@ -39,11 +51,7 @@ export default function Component() {
         )}
         <div className="flex-1" />
         {only && (
-          <Toolbar.Button
-            icon={<TbUserCircle />}
-            label="관리자 지정"
-            onClick={() => {}}
-          />
+          <Toolbar.ButtonPreset.Delete label="항목 삭제" onClick={cmdDelete} />
         )}
         {only && me.data?.isAdmin && (
           <Toolbar.ButtonPreset.Update

@@ -23,8 +23,6 @@ import SelectCompanySales from "./SelectCompanySales";
 import StockPrice from "./StockPrice";
 export * as Util from "./util";
 import SelectPartner from "./SelectPartner";
-import SelectMethod from "./SelectMethod";
-import SelectSubject from "./SelectSubject";
 import SelectPackagingType from "./SelectPackagingType";
 import SelectCard from "./SelectCard";
 import SelectBank from "./SelectBank";
@@ -49,8 +47,6 @@ export {
   SelectCert,
   SelectWarehouse,
   SelectPackaging,
-  SelectMethod,
-  SelectSubject,
   Number,
   Price,
   Quantity,

@@ -11,4 +11,3 @@ export * as Tax from "./tax";
 export * as OrderRequest from "./order-request";
 export * as Accounted from "./accounted";
 export * as Setting from "./setting";
-export * as Accounting from "./accounting";
