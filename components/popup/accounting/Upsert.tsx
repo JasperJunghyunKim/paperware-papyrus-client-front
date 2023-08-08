@@ -21,6 +21,8 @@ import _ from "lodash";
 import { Template } from "..";
 import { TbCircleCheck } from "react-icons/tb";
 import { SelectEndorsementType } from "@/components/formControl";
+import { useEffect } from "react";
+import { Accounted } from "@/@shared/models";
 
 type RequestCommon = {
   companyRegistrationNumber: string;
@@ -56,6 +58,18 @@ export default function Component(props: Props) {
     commonData.accountedMethod &&
     commonData.accountedDate &&
     commonData.accountedSubject;
+
+  useEffect(() => {
+    if (data.data) {
+      form.setFieldsValue({
+        companyRegistrationNumber: data.data.companyRegistrationNumber,
+        accountedMethod: data.data.accountedMethod,
+        accountedDate: data.data.accountedDate,
+        accountedSubject: data.data.accountedSubject,
+        memo: data.data.memo,
+      });
+    }
+  }, [data.data, form]);
 
   return (
     <Template.Property
@@ -153,6 +167,7 @@ export default function Component(props: Props) {
             {commonData?.accountedMethod === "ACCOUNT_TRANSFER" && (
               <FormByBankAccount
                 type={type}
+                initialData={data.data}
                 commonData={commonData}
                 onClose={props.onClose}
               />
@@ -160,6 +175,7 @@ export default function Component(props: Props) {
             {commonData?.accountedMethod === "CASH" && (
               <FormByCash
                 type={type}
+                initialData={data.data}
                 commonData={commonData}
                 onClose={props.onClose}
               />
@@ -167,16 +183,22 @@ export default function Component(props: Props) {
             {commonData?.accountedMethod === "PROMISSORY_NOTE" && (
               <FormBySecurity
                 type={type}
+                initialData={data.data}
                 commonData={commonData}
                 onClose={props.onClose}
               />
             )}
             {commonData?.accountedMethod === "OFFSET" && (
-              <FormByOffset commonData={commonData} onClose={props.onClose} />
+              <FormByOffset
+                initialData={data.data}
+                commonData={commonData}
+                onClose={props.onClose}
+              />
             )}
             {commonData?.accountedMethod === "CARD_PAYMENT" && (
               <FormByCard
                 type={type}
+                initialData={data.data}
                 commonData={commonData}
                 onClose={props.onClose}
               />
@@ -184,6 +206,7 @@ export default function Component(props: Props) {
             {commonData?.accountedMethod === "ETC" && (
               <FormByEtc
                 type={type}
+                initialData={data.data}
                 commonData={commonData}
                 onClose={props.onClose}
               />
@@ -196,7 +219,7 @@ export default function Component(props: Props) {
 }
 
 function FormByBankAccount(props: {
-  id?: number;
+  initialData?: Accounted;
   type: AccountedType;
   commonData: RequestCommon;
   onClose: (unit: false) => void;
@@ -206,7 +229,7 @@ function FormByBankAccount(props: {
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateByBankAccount();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateByBankAccount();
-  const apiUpsert = props.id ? apiUpdate : apiCreate;
+  const apiUpsert = props.initialData ? apiUpdate : apiCreate;
 
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -217,10 +240,10 @@ function FormByBankAccount(props: {
     };
     await apiUpsert.mutateAsync({
       data: req,
-      path: { id: props.id },
+      path: { id: props.initialData?.id },
     });
 
-    if (!props.id) {
+    if (!props.initialData) {
       props.onClose(false);
     }
   };
@@ -246,7 +269,7 @@ function FormByBankAccount(props: {
 }
 
 function FormByCash(props: {
-  id?: number;
+  initialData?: Accounted;
   type: AccountedType;
   commonData: RequestCommon;
   onClose: (unit: false) => void;
@@ -256,7 +279,7 @@ function FormByCash(props: {
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateByCash();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateByCash();
-  const apiUpsert = props.id ? apiUpdate : apiCreate;
+  const apiUpsert = props.initialData ? apiUpdate : apiCreate;
 
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -267,13 +290,21 @@ function FormByCash(props: {
     };
     await apiUpsert.mutateAsync({
       data: req,
-      path: { id: props.id },
+      path: { id: props.initialData?.id },
     });
 
-    if (!props.id) {
+    if (!props.initialData) {
       props.onClose(false);
     }
   };
+
+  useEffect(() => {
+    if (props.initialData) {
+      form.setFieldsValue({
+        amount: props.initialData.byCash?.amount,
+      });
+    }
+  }, [props.initialData, form]);
 
   return (
     <Form form={form} layout="vertical">
@@ -293,7 +324,7 @@ function FormByCash(props: {
 }
 
 function FormBySecurity(props: {
-  id?: number;
+  initialData?: Accounted;
   type: AccountedType;
   commonData: RequestCommon;
   onClose: (unit: false) => void;
@@ -303,7 +334,7 @@ function FormBySecurity(props: {
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateBySecurity();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateBySecurity();
-  const apiUpsert = props.id ? apiUpdate : apiCreate;
+  const apiUpsert = props.initialData ? apiUpdate : apiCreate;
 
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -314,13 +345,41 @@ function FormBySecurity(props: {
     };
     await apiUpsert.mutateAsync({
       data: req,
-      path: { id: props.id },
+      path: { id: props.initialData?.id },
     });
 
-    if (!props.id) {
+    if (!props.initialData) {
       props.onClose(false);
     }
   };
+
+  useEffect(() => {
+    if (props.initialData?.bySecurity?.security) {
+      form.setFieldsValue({
+        security: {
+          securityAmount: props.initialData.bySecurity.security.securityAmount,
+          securitySerial: props.initialData.bySecurity.security.securitySerial,
+          securityType: props.initialData.bySecurity.security.securityType,
+          drawedDate:
+            props.initialData.bySecurity.security.drawedDate ?? undefined,
+          drawedBank:
+            props.initialData.bySecurity.security.drawedBank ?? undefined,
+          drawedBankBranch:
+            props.initialData.bySecurity.security.drawedBankBranch ?? undefined,
+          drawedRegion:
+            props.initialData.bySecurity.security.drawedRegion ?? undefined,
+          drawer: props.initialData.bySecurity.security.drawer ?? undefined,
+          maturedDate:
+            props.initialData.bySecurity.security.maturedDate ?? undefined,
+          payingBank:
+            props.initialData.bySecurity.security.payingBank ?? undefined,
+          payingBankBranch:
+            props.initialData.bySecurity.security.payingBankBranch ?? undefined,
+          payer: props.initialData.bySecurity.security.payer ?? undefined,
+        },
+      });
+    }
+  }, [props.initialData, form]);
 
   return (
     <Form form={form} layout="vertical">
@@ -357,7 +416,7 @@ function FormBySecurity(props: {
             label: Util.securityTypeToString(item),
             value: item,
           }))}
-          disabled={!!props.id}
+          disabled={!!props.initialData}
         />
       </Form.Item>
       <Form.Item
@@ -365,44 +424,44 @@ function FormBySecurity(props: {
         name="securitySerial"
         rules={[R.required()]}
       >
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item
         label="유가증권금액"
         name="securityAmount"
         rules={[R.required()]}
       >
-        <FormControl.Number disabled={!!props.id} />
+        <FormControl.Number disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="발행일" name="drawedDate">
-        <FormControl.DatePicker disabled={!!props.id} />
+        <FormControl.DatePicker disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="발행은행" name="drawedBank">
-        <FormControl.SelectBank disabled={!!props.id} />
+        <FormControl.SelectBank disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="발행 지점명" name="drawedBankBranch">
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="발행지" name="drawedRegion">
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="발행인" name="drawer">
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="만기일" name="maturedDate">
-        <FormControl.DatePicker disabled={!!props.id} />
+        <FormControl.DatePicker disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="지급은행" name="payingBank">
-        <FormControl.SelectBank disabled={!!props.id} />
+        <FormControl.SelectBank disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="지급지점명" name="payingBankBranch">
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="지급인" name="payer">
-        <Input disabled={!!props.id} />
+        <Input disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="메모" name="memo">
-        <Input.TextArea rows={2} disabled={!!props.id} />
+        <Input.TextArea rows={2} disabled={!!props.initialData} />
       </Form.Item>
       <div className="flex-initial flex gap-x-2 mt-4">
         <Button.Default
@@ -417,7 +476,7 @@ function FormBySecurity(props: {
 }
 
 function FormByCard(props: {
-  id?: number;
+  initialData?: Accounted;
   type: AccountedType;
   commonData: RequestCommon;
   onClose: (unit: false) => void;
@@ -427,7 +486,7 @@ function FormByCard(props: {
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateByCard();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateByCard();
-  const apiUpsert = props.id ? apiUpdate : apiCreate;
+  const apiUpsert = props.initialData ? apiUpdate : apiCreate;
 
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -438,13 +497,23 @@ function FormByCard(props: {
     };
     await apiUpsert.mutateAsync({
       data: req,
-      path: { id: props.id },
+      path: { id: props.initialData?.id },
     });
 
-    if (!props.id) {
+    if (!props.initialData) {
       props.onClose(false);
     }
   };
+
+  useEffect(() => {
+    if (props.initialData?.byCard) {
+      form.setFieldsValue({
+        cardId: props.initialData.byCard.card?.id,
+        cardAmount: props.initialData.byCard.amount,
+        bankAccountId: props.initialData.byCard.bankAccount?.id,
+      });
+    }
+  }, [props.initialData, form]);
 
   return (
     <Form form={form} layout="vertical">
@@ -484,7 +553,7 @@ function FormByCard(props: {
 }
 
 function FormByOffset(props: {
-  id?: number;
+  initialData?: Accounted;
   commonData: RequestCommon;
   onClose: (unit: false) => void;
 }) {
@@ -493,7 +562,7 @@ function FormByOffset(props: {
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateByOffset();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateByOffset();
-  const apiUpsert = props.id ? apiUpdate : apiCreate;
+  const apiUpsert = props.initialData ? apiUpdate : apiCreate;
 
   const cmdUpsert = async () => {
     const data = await form.validateFields();
@@ -503,10 +572,10 @@ function FormByOffset(props: {
     };
     await apiUpsert.mutateAsync({
       data: req,
-      path: { id: props.id },
+      path: { id: props.initialData?.id },
     });
 
-    if (!props.id) {
+    if (!props.initialData) {
       props.onClose(false);
     }
   };
@@ -530,6 +599,7 @@ function FormByOffset(props: {
 
 function FormByEtc(props: {
   id?: number;
+  initialData?: Accounted;
   type: AccountedType;
   commonData: RequestCommon;
   onClose: (unit: false) => void;

@@ -7,6 +7,7 @@ import { TbSearch } from "react-icons/tb";
 import { match } from "ts-pattern";
 import { Icon } from "..";
 import { DatePicker } from "../formControl";
+import { Model } from "@/@shared";
 
 interface Props {
   items: SearchItem[];
@@ -40,6 +41,8 @@ interface SearchItem {
     | "select-arrived"
     | "select-shipping-type"
     | "select-user"
+    | "select-account-subject"
+    | "select-account-method"
     | "date-range"
     | "check";
   options?: { label: string; value: string }[];
@@ -299,6 +302,18 @@ export default function Component(props: Props) {
               ))
               .with("select-user", () => (
                 <SelectUser
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-account-subject", () => (
+                <SelectAccountSubject
+                  {...getFieldValue(item.field)}
+                  onChange={setFieldValue(item.field)}
+                />
+              ))
+              .with("select-account-method", () => (
+                <SelectAccountMethod
                   {...getFieldValue(item.field)}
                   onChange={setFieldValue(item.field)}
                 />
@@ -1325,6 +1340,82 @@ function SelectUser(props: ItemProps) {
       <Select
         options={options}
         placeholder="담당자 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectAccountSubject(props: ItemProps) {
+  const options = Array.from<Model.Enum.Subject>([
+    "ACCOUNTS_RECEIVABLE",
+    "UNPAID",
+    "ADVANCES",
+    "MISCELLANEOUS_INCOME",
+    "PRODUCT_SALES",
+    "ETC",
+  ]).map((item) => ({
+    label: Util.accountSubjectToString(item),
+    value: item,
+  }));
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">
+        {props.label ?? "계정과목 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="계정과목 선택"
+        mode="multiple"
+        maxTagCount={3}
+        dropdownMatchSelectWidth={false}
+        value={props.value?.split("|")}
+        onChange={change}
+        style={{ minWidth: 150, flex: "1 0 auto" }}
+      />
+    </div>
+  );
+}
+
+function SelectAccountMethod(props: ItemProps) {
+  const options = Array.from<Model.Enum.Method>([
+    "ACCOUNT_TRANSFER",
+    "PROMISSORY_NOTE",
+    "CARD_PAYMENT",
+    "CASH",
+    "OFFSET",
+    "ETC",
+  ]).map((item) => ({
+    label: Util.accountMethodToString(item),
+    value: item,
+  }));
+  const change = useCallback(
+    (value: string[]) => {
+      props.onChange(value.join("|"));
+    },
+    [props]
+  );
+
+  return (
+    <div className="flex-initial flex items-center gap-x-2">
+      <div className="flex-initial text-sm">
+        {props.label ?? "수금수단 선택"}
+      </div>
+      <Select
+        options={options}
+        placeholder="수금수단 선택"
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}

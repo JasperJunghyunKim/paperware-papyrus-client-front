@@ -119,34 +119,34 @@ export namespace Accounted {
 
   export const useUpdateByBankAccount = () =>
     $query.useUpdate<AccountedByBankAccountCreatedRequest, Id>(
-      `${path}/bank-account/:id`,
+      `${path}/:id/bank-account`,
       [name]
     );
 
   export const useUpdateByCash = () =>
-    $query.useUpdate<AccountedByCashCreatedRequest, Id>(`${path}/cash/:id`, [
+    $query.useUpdate<AccountedByCashCreatedRequest, Id>(`${path}/:id/cash`, [
       name,
     ]);
 
   export const useUpdateBySecurity = () =>
     $query.useUpdate<AccountedByCashCreatedRequest, Id>(
-      `${path}/security/:id`,
+      `${path}/:id/security`,
       [name]
     );
 
   export const useUpdateByCard = () =>
-    $query.useUpdate<AccountedByCardCreatedRequest, Id>(`${path}/card/:id`, [
+    $query.useUpdate<AccountedByCardCreatedRequest, Id>(`${path}/:id/card`, [
       name,
     ]);
 
   export const useUpdateByOffset = () =>
     $query.useUpdate<AccountedByOffsetCreatedRequest, Id>(
-      `${path}/offset/:id`,
+      `${path}/:id/offset`,
       [name]
     );
 
   export const useUpdateByEtc = () =>
-    $query.useUpdate<AccountedByEtcCreatedRequest, Id>(`${path}/etc/:id`, [
+    $query.useUpdate<AccountedByEtcCreatedRequest, Id>(`${path}/:id/etc`, [
       name,
     ]);
 

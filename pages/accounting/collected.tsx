@@ -2,7 +2,7 @@ import { SettingUserResponse } from "@/@shared/api/setting/user.response";
 import { Accounted, User } from "@/@shared/models";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, Table, Toolbar } from "@/components";
+import { Popup, Search, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbLock, TbLockOpen, TbUserCircle } from "react-icons/tb";
@@ -13,9 +13,11 @@ export default function Component() {
     number | "PAID" | "COLLECTED" | false
   >(false);
 
+  const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
   const list = ApiHook.Setting.Accounted.useGetList({
     ...page,
+    ...search,
     accountedType: "COLLECTED",
   });
 
@@ -60,6 +62,32 @@ export default function Component() {
           />
         )}
       </Toolbar.Container>
+      <Search
+        items={[
+          {
+            type: "select-company-registration-number",
+            field: "companyRegistrationNumber",
+            label: "거래처",
+          },
+          {
+            type: "date-range",
+            field: "accountedDate",
+            label: "수금일",
+          },
+          {
+            type: "select-account-subject",
+            field: "accountedSubject",
+            label: "계정 과목",
+          },
+          {
+            type: "select-account-method",
+            field: "accountedMethod",
+            label: "수금 수단",
+          },
+        ]}
+        value={search}
+        onSearch={setSearch}
+      />
       <Table.Default<RecordType>
         data={list.data}
         page={page}
@@ -104,7 +132,14 @@ export default function Component() {
           },
           {
             title: "구분",
-            render: (record: RecordType) => "TODO",
+            render: (record: RecordType) =>
+              record.byBankAccount?.bankAccount.accountName ??
+              record.byCard?.bankAccount?.accountName ??
+              (record.bySecurity
+                ? `${Util.securityTypeToString(
+                    record.bySecurity.security.securityType
+                  )} ${record.bySecurity.security.securitySerial}`
+                : null),
           },
         ]}
       />
