@@ -1,18 +1,21 @@
 import {
+  BankAccountCreateRequest,
+  BankAccountUpdateRequest,
   SecurityCreateRequest,
   SecurityStatusUpdateRequest,
 } from "@/@shared/api";
-import { Security } from "@/@shared/models";
+import { BankAccount, Security } from "@/@shared/models";
 import { SecurityStatus, SecurityType } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
 import * as R from "@/common/rules";
-import { FormControl, Popup, Table, Toolbar } from "@/components";
+import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
-import { Form, Input, Select } from "antd";
+import { Alert, Form, Input, Select } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useEffect, useState } from "react";
+import { TbCircleCheck } from "react-icons/tb";
 
 type RecordType = Security;
 
@@ -83,7 +86,9 @@ export default function Component() {
           {
             title: "유가증권 상태",
             render: (record: RecordType) =>
-              Util.securityStatusToString(record.securityStatus),
+              record.bySecurities.length !== 0
+                ? "배서지급"
+                : Util.securityStatusToString(record.securityStatus),
           },
           {
             title: "발행일",
@@ -164,6 +169,7 @@ function PopupUpsert(props: PopupUpsertProps) {
             securityType: item.data.securityType,
             securitySerial: item.data.securitySerial,
             securityAmount: item.data.securityAmount,
+            securityStatus: item.data.securityStatus,
             drawedDate: item.data.drawedDate ?? undefined,
             drawedBank: item.data.drawedBank ?? undefined,
             drawedBankBranch: item.data.drawedBankBranch ?? undefined,
@@ -188,6 +194,9 @@ function PopupUpsert(props: PopupUpsertProps) {
       open={!!props.open}
     >
       <div className="flex-1 p-4 flex flex-col">
+        {item.data?.bySecurities.length !== 0 && (
+          <Alert message="배서 지급 설정된 유가증권의 상태는 직접 수정할 수 없습니다." />
+        )}
         <Form layout="vertical" form={form} rootClassName="flex flex-col">
           <Form.Item
             label="유가증권 유형"
@@ -225,7 +234,7 @@ function PopupUpsert(props: PopupUpsertProps) {
           >
             <FormControl.Number disabled={props.open !== true} />
           </Form.Item>
-          {item.data && (
+          {item.data && item.data.bySecurities.length === 0 && (
             <Form.Item
               label="유가증권 상태"
               name="securityStatus"
@@ -245,6 +254,11 @@ function PopupUpsert(props: PopupUpsertProps) {
                 }))}
                 disabled={item.data.bySecurities.length !== 0}
               />
+            </Form.Item>
+          )}
+          {item.data && item.data.bySecurities.length !== 0 && (
+            <Form.Item label="유가증권 상태">
+              <Input disabled value={"배서지급"} />
             </Form.Item>
           )}
           <Form.Item label="발행일" name="drawedDate">
@@ -277,6 +291,16 @@ function PopupUpsert(props: PopupUpsertProps) {
           <Form.Item label="메모" name="memo">
             <Input.TextArea rows={2} disabled={props.open !== true} />
           </Form.Item>
+          {(!item.data || item.data?.bySecurities.length === 0) && (
+            <div className="flex-initial flex gap-x-2 my-2">
+              <Button.Default
+                icon={<TbCircleCheck />}
+                label={props.open === true ? "추가" : "수정"}
+                type="primary"
+                onClick={cmdCreate}
+              />
+            </div>
+          )}
         </Form>
       </div>
     </Popup.Template.Property>
