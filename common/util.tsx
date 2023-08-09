@@ -877,7 +877,7 @@ export function accountMethodToString(
 ) {
   return match(value)
     .with("ACCOUNT_TRANSFER", () => "계좌 이체")
-    .with("PROMISSORY_NOTE", () => "어음")
+    .with("PROMISSORY_NOTE", () => "유가증권")
     .with("CARD_PAYMENT", () => "카드 결제")
     .with("CASH", () => "현금")
     .with("OFFSET", () => "상계")

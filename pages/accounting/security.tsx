@@ -1,21 +1,18 @@
 import {
-  BankAccountCreateRequest,
-  BankAccountUpdateRequest,
   SecurityCreateRequest,
   SecurityStatusUpdateRequest,
 } from "@/@shared/api";
-import { BankAccount, Security } from "@/@shared/models";
+import { Security } from "@/@shared/models";
 import { SecurityStatus, SecurityType } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
 import * as R from "@/common/rules";
-import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
+import { FormControl, Popup, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { Form, Input, Select } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-import { TbCircleCheck } from "react-icons/tb";
 
 type RecordType = Security;
 
@@ -280,14 +277,6 @@ function PopupUpsert(props: PopupUpsertProps) {
           <Form.Item label="메모" name="memo">
             <Input.TextArea rows={2} disabled={props.open !== true} />
           </Form.Item>
-          <div className="flex-initial flex gap-x-2 my-2">
-            <Button.Default
-              icon={<TbCircleCheck />}
-              label={props.open === true ? "추가" : "수정"}
-              type="primary"
-              onClick={cmdCreate}
-            />
-          </div>
         </Form>
       </div>
     </Popup.Template.Property>

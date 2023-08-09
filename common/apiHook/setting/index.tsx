@@ -4,6 +4,8 @@ import {
   AccountedByCashCreatedRequest,
   AccountedByEtcCreatedRequest,
   AccountedByOffsetCreatedRequest,
+  AccountedBySecurityCreatedRequest,
+  AccountedBySecurityUpdateRequest,
   AccountedItemResponse,
   AccountedListQuery,
   AccountedListResponse,
@@ -106,7 +108,9 @@ export namespace Accounted {
     $query.useCreate<AccountedByCashCreatedRequest>(`${path}/cash`, [name]);
 
   export const useCreateBySecurity = () =>
-    $query.useCreate<AccountedByCashCreatedRequest>(`${path}/security`, [name]);
+    $query.useCreate<AccountedBySecurityCreatedRequest>(`${path}/security`, [
+      name,
+    ]);
 
   export const useCreateByCard = () =>
     $query.useCreate<AccountedByCardCreatedRequest>(`${path}/card`, [name]);
@@ -129,7 +133,7 @@ export namespace Accounted {
     ]);
 
   export const useUpdateBySecurity = () =>
-    $query.useUpdate<AccountedByCashCreatedRequest, Id>(
+    $query.useUpdate<AccountedBySecurityUpdateRequest, Id>(
       `${path}/:id/security`,
       [name]
     );

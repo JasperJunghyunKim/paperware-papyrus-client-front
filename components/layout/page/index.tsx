@@ -144,13 +144,13 @@ export default function Component(props: PropsWithChildren<Props>) {
       {
         label: "수금 관리",
         icon: <TbVector />,
-        path: "/collected-history",
+        path: "/accounting/collected",
         menu: Const.Menu.COLLETED,
       },
       {
         label: "지급 관리",
         icon: <TbVectorTriangle />,
-        path: "/paid-history",
+        path: "/accounting/paid",
         menu: Const.Menu.PAID,
       },
       {
@@ -250,16 +250,6 @@ export default function Component(props: PropsWithChildren<Props>) {
         icon: <TbDiscount2 />,
         path: "/discount-purchase",
         menu: Const.Menu.SETTING_DISCOUNT_PURCHASE,
-      },
-      {
-        label: "수금 관리 2",
-        icon: <TbVector />,
-        path: "/accounting/collected",
-      },
-      {
-        label: "지급 관리 2",
-        icon: <TbVectorTriangle />,
-        path: "/accounting/paid",
       },
     ],
     [businessRelationshipRequestCount.data?.value]

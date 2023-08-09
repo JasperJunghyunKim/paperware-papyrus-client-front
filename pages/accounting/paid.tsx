@@ -16,7 +16,7 @@ export default function Component() {
   const list = ApiHook.Setting.Accounted.useGetList({
     ...page,
     ...search,
-    accountedType: "COLLECTED",
+    accountedType: "PAID",
   });
 
   const me = ApiHook.Auth.useGetMe();
@@ -28,7 +28,7 @@ export default function Component() {
   const cmdDelete = async () => {
     if (
       !only ||
-      !(await Util.confirm("선택한 수금 내역을 삭제하시겠습니까?"))
+      !(await Util.confirm("선택한 지급 내역을 삭제하시겠습니까?"))
     ) {
       return;
     }
@@ -45,8 +45,8 @@ export default function Component() {
       <Toolbar.Container>
         {me.data?.isAdmin && (
           <Toolbar.ButtonPreset.Create
-            label="수금 내역 추가"
-            onClick={() => setOpenUpsert("COLLECTED")}
+            label="지급 내역 추가"
+            onClick={() => setOpenUpsert("PAID")}
           />
         )}
         <div className="flex-1" />
@@ -70,7 +70,7 @@ export default function Component() {
           {
             type: "date-range",
             field: "accountedDate",
-            label: "수금일",
+            label: "지급일",
           },
           {
             type: "select-account-subject",
@@ -80,7 +80,7 @@ export default function Component() {
           {
             type: "select-account-method",
             field: "accountedMethod",
-            label: "수금 수단",
+            label: "지급 수단",
           },
         ]}
         value={search}
@@ -98,12 +98,12 @@ export default function Component() {
             getValue: (record) => record.companyRegistrationNumber,
           }),
           {
-            title: "수금일",
+            title: "지급일",
             render: (record: RecordType) =>
               Util.formatIso8601ToLocalDate(record.accountedDate),
           },
           {
-            title: "수금 금액",
+            title: "지급 금액",
             render: (record: RecordType) => (
               <div className="font-fixed text-right">
                 {`${Util.comma(
@@ -124,7 +124,7 @@ export default function Component() {
               Util.accountSubjectToString(record.accountedSubject),
           },
           {
-            title: "수금 수단",
+            title: "지급 수단",
             render: (record: RecordType) =>
               Util.accountMethodToString(record.accountedMethod),
           },
