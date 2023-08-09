@@ -407,16 +407,6 @@ function FormBySecurity(props: {
 
   return (
     <Form form={form} layout="vertical">
-      <Form.Item
-        label="배서 구분"
-        name="endorsementType"
-        rules={[R.required()]}
-      >
-        <SelectEndorsementType />
-      </Form.Item>
-      <Form.Item label="배서자" name="endorsement" rules={[R.required()]}>
-        <Input />
-      </Form.Item>
       {/* 유가증권 */}
       {props.type === "PAID" && (
         <>
@@ -427,6 +417,16 @@ function FormBySecurity(props: {
       )}
       {props.type === "COLLECTED" && (
         <>
+          <Form.Item
+            label="배서 구분"
+            name="endorsementType"
+            rules={[R.required()]}
+          >
+            <SelectEndorsementType />
+          </Form.Item>
+          <Form.Item label="배서자" name="endorsement" rules={[R.required()]}>
+            <Input />
+          </Form.Item>
           <Form.Item
             label="유가증권 유형"
             name={["security", "securityType"]}
