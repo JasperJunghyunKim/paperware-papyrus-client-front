@@ -703,6 +703,14 @@ function DataForm(props: DataFormProps) {
                 label: props.isSales ? "기타 매출" : "기타 매입",
                 value: "ETC",
               },
+              {
+                label: props.isSales ? "매출 환불" : "매입 환불",
+                value: "REFUND",
+              },
+              {
+                label: props.isSales ? "매출 반품" : "매입 반품",
+                value: "RETURN",
+              },
             ])}
             placeholder={props.isSales ? "매출 유형" : "매입 유형"}
             disabled={!!props.initialOrder}
@@ -715,9 +723,28 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
+      {(orderType === "REFUND" || orderType === "RETURN") && (
+        <Form.Item
+          name="originOrderNo"
+          label={props.isSales ? "원본 매출 번호" : "원본 매입 번호"}
+          rules={REQUIRED_RULES}
+        >
+          <FormControl.SelectTradeNumber
+            disabled={!!props.initialOrder}
+            type={props.isSales ? "SALES" : "PURCHASE"}
+          />
+        </Form.Item>
+      )}
       {!props.isSales && (
         <Form.Item name="dstCompanyId" label="매입처" rules={REQUIRED_RULES}>
-          <FormControl.SelectCompanyPurchase disabled={!!props.initialOrder} />
+          <FormControl.SelectCompanyPurchase
+            disabled={!!props.initialOrder}
+            virtual={
+              orderType === "REFUND" || orderType === "RETURN"
+                ? true
+                : undefined
+            }
+          />
         </Form.Item>
       )}
       {props.isSales && (

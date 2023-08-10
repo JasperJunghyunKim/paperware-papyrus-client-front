@@ -22,10 +22,6 @@ export default function Component() {
   const [openStockUpsert, setOpenStockUpsert] =
     useState<OrderUpsertOpen>(false);
 
-  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
-    ["dstCompany", "companyRegistrationNumber"],
-    { title: "매입처", fallback: (record) => record.dstCompany.businessName }
-  );
   const [search, setSearch] = useState<any>({});
   const [page, setPage] = usePage();
   const list = ApiHook.Trade.Common.useGetList({
@@ -69,6 +65,11 @@ export default function Component() {
 
     setSelected([]);
   }, [apiCancel, only]);
+
+  const partnerColumn = Table.Preset.useColumnPartner<RecordType>(
+    ["dstCompany", "companyRegistrationNumber"],
+    { title: "매입처", fallback: (record) => record.dstCompany.businessName }
+  );
 
   const findPlan = (record: Model.Order) => {
     return (record.orderStock ?? record.orderProcess)?.plan?.find(
