@@ -143,6 +143,8 @@ export default function Component() {
                   )
                   .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
                   .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
+                  .with("RETURN_BUYER", () => "반품 매입")
+                  .with("RETURN_SELLER", () => "반품 매출")
                   .otherwise(() => "")}
               </div>
             ),

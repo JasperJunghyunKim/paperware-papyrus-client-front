@@ -1,6 +1,7 @@
 import { Util } from "@/common";
 import { InputNumber } from "antd";
 import classNames from "classnames";
+import _ from "lodash";
 import { forwardRef } from "react";
 
 interface Props {
@@ -21,7 +22,17 @@ export default forwardRef(function Component(props: Props, ref: any) {
       {...props}
       ref={ref}
       value={props.value}
-      onChange={(x) => props.onChange?.(x ?? null)}
+      onChange={(x) =>
+        props.onChange?.(
+          _.isNumber(x)
+            ? _.clamp(
+                x,
+                props.min ?? Number.MIN_VALUE,
+                props.max ?? Number.MAX_VALUE
+              )
+            : null
+        )
+      }
       formatter={(x, state) =>
         x
           ? (state.userTyping

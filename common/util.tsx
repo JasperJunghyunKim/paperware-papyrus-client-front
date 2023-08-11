@@ -286,6 +286,10 @@ export function orderTypeToString(
     .with({ value: "OUTSOURCE_PROCESS", type: "SALES" }, () => "외주 공정 매출")
     .with({ value: "ETC", type: "PURCHASE" }, () => "기타 매입")
     .with({ value: "ETC", type: "SALES" }, () => "기타 매출")
+    .with({ value: "RETURN", type: "PURCHASE" }, () => "매입 반품")
+    .with({ value: "RETURN", type: "SALES" }, () => "매출 반품")
+    .with({ value: "REFUND", type: "PURCHASE" }, () => "매입 환불")
+    .with({ value: "REFUND", type: "SALES" }, () => "매출 환불")
     .otherwise(() => "");
 }
 
@@ -722,13 +726,20 @@ export function planFromOrder(
   order: Model.Order,
   companyId: number | null | undefined
 ) {
-  return (order.orderStock ?? order.orderProcess)?.plan.find(
-    (p) => p.companyId === companyId
-  );
+  return (
+    order.orderStock ??
+    order.orderProcess ??
+    order.orderReturn
+  )?.plan.find((p) => p.companyId === companyId);
 }
 
 export function assignStockFromOrder(order: Model.Order) {
-  return order.orderStock ?? order.orderProcess ?? order.orderDeposit;
+  return (
+    order.orderStock ??
+    order.orderProcess ??
+    order.orderDeposit ??
+    order.orderReturn
+  );
 }
 
 export function assignStockEventFromOrder(order: Model.Order) {
@@ -744,7 +755,8 @@ export function assignQuantityFromOrder(order: Model.Order) {
   return (
     order.orderStock?.quantity ??
     order.orderProcess?.quantity ??
-    order.orderDeposit?.quantity
+    order.orderDeposit?.quantity ??
+    order.orderReturn?.quantity
   );
 }
 
@@ -761,6 +773,8 @@ export function formatPlanType(value: Model.Enum.PlanType) {
     .with("TRADE_OUTSOURCE_PROCESS_SELLER", () => "외주 공정 매출")
     .with("TRADE_WITHDRAW_BUYER", () => "보관 입고")
     .with("TRADE_WITHDRAW_SELLER", () => "보관 출고")
+    .with("RETURN_BUYER", () => "반품 매입")
+    .with("RETURN_SELLER", () => "반품 매출")
     .otherwise(() => "");
 }
 
@@ -873,15 +887,17 @@ export function accountSubjectToString(value: Subject | null | undefined) {
 }
 
 export function accountMethodToString(
-  value: Model.Enum.Method | null | undefined
+  value: Model.Enum.Method | null | undefined,
+  type: "COLLECTED" | "PAID"
 ) {
-  return match(value)
-    .with("ACCOUNT_TRANSFER", () => "계좌 이체")
-    .with("PROMISSORY_NOTE", () => "유가증권")
-    .with("CARD_PAYMENT", () => "카드 결제")
-    .with("CASH", () => "현금")
-    .with("OFFSET", () => "상계")
-    .with("ETC", () => "기타")
+  return match({ value, type })
+    .with({ value: "ACCOUNT_TRANSFER" }, () => "계좌 이체")
+    .with({ value: "PROMISSORY_NOTE" }, () => "유가증권")
+    .with({ value: "CARD_PAYMENT", type: "COLLECTED" }, () => "카드 입금")
+    .with({ value: "CARD_PAYMENT", type: "PAID" }, () => "카드 결제")
+    .with({ value: "CASH" }, () => "현금")
+    .with({ value: "OFFSET" }, () => "상계")
+    .with({ value: "ETC" }, () => "기타")
     .otherwise(() => "");
 }
 
@@ -892,5 +908,23 @@ export function endorsementTypeToString(
     .with("NONE", () => "선택안함")
     .with("SELF_NOTE", () => "자수")
     .with("OTHERS_NOTE", () => "타수")
+    .otherwise(() => "");
+}
+
+export function orderHistoryTypeToString(
+  value: Model.Enum.OrderHistoryType | null | undefined
+) {
+  return match(value)
+    .with("CREATE", () => "최초 작성")
+    .with("ACCEPT", () => "주문 확정")
+    .with("PLAN_START", () => "작업 지시")
+    .with("PLAN_CANCEL", () => "작업 취소")
+    .with("ORDER_CANCEL", () => "주문 취소")
+    .with("OFFER_REQUEST", () => "구매 제안")
+    .with("OFFER_REQUEST_CANCEL", () => "구매 제안 취소")
+    .with("OFFER_REQUEST_REJECT", () => "구매 제안 반려")
+    .with("ORDER_REQUEST", () => "주문 접수")
+    .with("ORDER_REQUEST_CANCEL", () => "주문 접수 취소")
+    .with("ORDER_REQUEST_REJECT", () => "주문 접수 반려")
     .otherwise(() => "");
 }

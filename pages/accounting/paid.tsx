@@ -41,7 +41,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="수급 관리" menu={Const.Menu.SETTING_USER}>
+    <Page title="수금 관리" menu={Const.Menu.SETTING_USER}>
       <Toolbar.Container>
         {me.data?.isAdmin && (
           <Toolbar.ButtonPreset.Create
@@ -81,6 +81,7 @@ export default function Component() {
             type: "select-account-method",
             field: "accountedMethod",
             label: "지급 수단",
+            accountedType: "PAID",
           },
         ]}
         value={search}
@@ -126,7 +127,7 @@ export default function Component() {
           {
             title: "지급 수단",
             render: (record: RecordType) =>
-              Util.accountMethodToString(record.accountedMethod),
+              Util.accountMethodToString(record.accountedMethod, "PAID"),
           },
           {
             title: "구분",

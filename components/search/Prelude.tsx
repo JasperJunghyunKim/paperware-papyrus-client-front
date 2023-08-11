@@ -50,6 +50,7 @@ interface SearchItem {
   max?: number;
   trade?: "SALES" | "PURCHASE";
   virtual?: boolean;
+  accountedType?: "COLLECTED" | "PAID";
 }
 
 export default function Component(props: Props) {
@@ -316,6 +317,7 @@ export default function Component(props: Props) {
                 <SelectAccountMethod
                   {...getFieldValue(item.field)}
                   onChange={setFieldValue(item.field)}
+                  type={item.accountedType ?? "COLLECTED"}
                 />
               ))
               .with("check", () => (
@@ -1274,10 +1276,10 @@ function SelectArrived(props: ItemProps) {
   );
   return (
     <div className={"flex-initial flex items-center gap-x-2"}>
-      <div className="flex-initial text-sm">{props.label ?? "수급 선택"}</div>
+      <div className="flex-initial text-sm">{props.label ?? "수금 선택"}</div>
       <Select
         options={options}
-        placeholder="수급 선택"
+        placeholder="수금 선택"
         mode="multiple"
         maxTagCount={3}
         dropdownMatchSelectWidth={false}
@@ -1323,7 +1325,7 @@ function SelectShippingType(props: ItemProps) {
 
 function SelectUser(props: ItemProps) {
   const list = ApiHook.Setting.User.useGetList({ query: {} });
-  const options = list.data?.items.map((item) => ({
+  const options = list.data?.items.map((item: Omit<Model.User, "company">) => ({
     label: item.name,
     value: item.id.toString(),
   }));
@@ -1389,7 +1391,7 @@ function SelectAccountSubject(props: ItemProps) {
   );
 }
 
-function SelectAccountMethod(props: ItemProps) {
+function SelectAccountMethod(props: ItemProps<{ type: "PAID" | "COLLECTED" }>) {
   const options = Array.from<Model.Enum.Method>([
     "ACCOUNT_TRANSFER",
     "PROMISSORY_NOTE",
@@ -1398,7 +1400,7 @@ function SelectAccountMethod(props: ItemProps) {
     "OFFSET",
     "ETC",
   ]).map((item) => ({
-    label: Util.accountMethodToString(item),
+    label: Util.accountMethodToString(item, props.type),
     value: item,
   }));
   const change = useCallback(

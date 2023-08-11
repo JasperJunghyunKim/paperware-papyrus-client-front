@@ -105,7 +105,7 @@ export default function Component(props: Props) {
                   "CARD_PAYMENT",
                   "ETC",
                 ]).map((item) => ({
-                  label: Util.accountMethodToString(item),
+                  label: Util.accountMethodToString(item, type),
                   value: item,
                 })) ?? []
               }
@@ -236,9 +236,6 @@ function FormByBankAccount(props: {
 
   return (
     <Form form={form} layout="vertical">
-      <Form.Item label="계좌 선택" name="bankAccountId" rules={[R.required()]}>
-        <FormControl.SelectBankAccount />
-      </Form.Item>
       <Form.Item label="수금금액" name="amount" rules={[R.required()]}>
         <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
@@ -248,6 +245,9 @@ function FormByBankAccount(props: {
         rules={[R.required()]}
       >
         <SelectSubject type={props.type} />
+      </Form.Item>
+      <Form.Item label="계좌 선택" name="bankAccountId" rules={[R.required()]}>
+        <FormControl.SelectBankAccount />
       </Form.Item>
       <Form.Item label="비고" name="memo">
         <Input.TextArea rows={2} />
@@ -408,6 +408,42 @@ function FormBySecurity(props: {
   return (
     <Form form={form} layout="vertical">
       {/* 유가증권 */}
+      <Form.Item
+        label="계정과목"
+        name="accountedSubject"
+        rules={[R.required()]}
+      >
+        <SelectSubject type={props.type} />
+      </Form.Item>
+      <Form.Item
+        label="유가증권 유형"
+        name={["security", "securityType"]}
+        rules={[R.required()]}
+      >
+        <Select
+          options={Array.from<SecurityType>([
+            "PROMISSORY_NOTE",
+            "ELECTRONIC_NOTE",
+            "ELECTRONIC_BOND",
+            "PERSONAL_CHECK",
+            "DEMAND_DRAFT",
+            "HOUSEHOLD_CHECK",
+            "STATIONERY_NOTE",
+            "ETC",
+          ]).map((item) => ({
+            label: Util.securityTypeToString(item),
+            value: item,
+          }))}
+          disabled={!!props.initialData}
+        />
+      </Form.Item>
+      <Form.Item
+        label="유가증권 번호"
+        name={["security", "securitySerial"]}
+        rules={[R.required()]}
+      >
+        <Input disabled={!!props.initialData} />
+      </Form.Item>
       {props.type === "PAID" && (
         <>
           <Form.Item label="유가증권" name="securityId" rules={[R.required()]}>
@@ -417,45 +453,6 @@ function FormBySecurity(props: {
       )}
       {props.type === "COLLECTED" && (
         <>
-          <Form.Item
-            label="배서 구분"
-            name="endorsementType"
-            rules={[R.required()]}
-          >
-            <SelectEndorsementType />
-          </Form.Item>
-          <Form.Item label="배서자" name="endorsement" rules={[R.required()]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="유가증권 유형"
-            name={["security", "securityType"]}
-            rules={[R.required()]}
-          >
-            <Select
-              options={Array.from<SecurityType>([
-                "PROMISSORY_NOTE",
-                "ELECTRONIC_NOTE",
-                "ELECTRONIC_BOND",
-                "PERSONAL_CHECK",
-                "DEMAND_DRAFT",
-                "HOUSEHOLD_CHECK",
-                "STATIONERY_NOTE",
-                "ETC",
-              ]).map((item) => ({
-                label: Util.securityTypeToString(item),
-                value: item,
-              }))}
-              disabled={!!props.initialData}
-            />
-          </Form.Item>
-          <Form.Item
-            label="유가증권 번호"
-            name={["security", "securitySerial"]}
-            rules={[R.required()]}
-          >
-            <Input disabled={!!props.initialData} />
-          </Form.Item>
           <Form.Item
             label="유가증권금액"
             name={["security", "securityAmount"]}
@@ -496,15 +493,18 @@ function FormBySecurity(props: {
           <Form.Item label="유가증권 메모" name={["security", "memo"]}>
             <Input.TextArea rows={2} disabled={!!props.initialData} />
           </Form.Item>
+          <Form.Item
+            label="배서 구분"
+            name="endorsementType"
+            rules={[R.required()]}
+          >
+            <SelectEndorsementType />
+          </Form.Item>
+          <Form.Item label="배서자" name="endorsement">
+            <Input />
+          </Form.Item>
         </>
       )}
-      <Form.Item
-        label="계정과목"
-        name="accountedSubject"
-        rules={[R.required()]}
-      >
-        <SelectSubject type={props.type} />
-      </Form.Item>
       <Form.Item label="비고" name="memo">
         <Input.TextArea rows={2} />
       </Form.Item>
@@ -574,10 +574,17 @@ function FormByCard(props: {
           <FormControl.SelectCard />
         </Form.Item>
       )}
-      <Form.Item label="카드입금금액" name="cardAmount" rules={[R.required()]}>
+      <Form.Item
+        label={props.type === "COLLECTED" ? "카드입금금액" : "카드결제금액"}
+        name="cardAmount"
+        rules={[R.required()]}
+      >
         <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
-      <Form.Item label="입금수수료" name="vatPrice">
+      <Form.Item
+        label={props.type === "COLLECTED" ? "입금수수료" : "결제수수료"}
+        name="vatPrice"
+      >
         <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
       <Form.Item
@@ -594,7 +601,7 @@ function FormByCard(props: {
           name="bankAccountId"
           rules={[R.required()]}
         >
-          <FormControl.SelectBankAccount />
+          <FormControl.SelectBankAccount disabled={!!props.initialData} />
         </Form.Item>
       )}
       <Form.Item label="승인번호" name="approvalNumber">
@@ -780,7 +787,7 @@ function SelectSubject(props: {
         },
         {
           value: "UNPAID",
-          label: props.type === "PAID" ? "미수급" : "미지급금",
+          label: props.type === "PAID" ? "미수금" : "미지급금",
         },
         {
           value: "ADVANCES",

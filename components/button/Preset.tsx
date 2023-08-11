@@ -132,33 +132,3 @@ export function SelectDeposit(props: SelectDepositProps) {
     </>
   );
 }
-
-interface SelectOrderProps {
-  onSelect: (order: Model.Order) => void;
-  rootClassName?: string;
-}
-export function SelectOrder(props: SelectOrderProps) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <Button.Default
-        icon={<TbPencil />}
-        label="주문 선택"
-        type="primary"
-        rootClassName={props.rootClassName}
-        onClick={() => {
-          setOpen(true);
-        }}
-      />
-      <Popup.OrderFinder.default
-        open={open}
-        onClose={() => setOpen(false)}
-        onSelect={(order: Model.Order) => {
-          props.onSelect(order);
-          setOpen(false);
-        }}
-      />
-    </>
-  );
-}

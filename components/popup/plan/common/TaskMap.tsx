@@ -52,7 +52,9 @@ export default function Component(props: Props) {
     (props.plan.type === "INHOUSE_PROCESS" ||
       props.plan.type === "TRADE_NORMAL_SELLER" ||
       props.plan.type === "TRADE_OUTSOURCE_PROCESS_BUYER" ||
-      props.plan.type === "TRADE_OUTSOURCE_PROCESS_SELLER");
+      props.plan.type === "TRADE_OUTSOURCE_PROCESS_SELLER" ||
+      props.plan.type === "RETURN_BUYER");
+  console.log(props.plan);
   return (
     <div className="w-auto h-full flex">
       <div className="flex-1 flex flex-col p-4 overflow-scroll">

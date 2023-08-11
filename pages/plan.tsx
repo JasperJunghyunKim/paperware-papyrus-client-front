@@ -149,7 +149,7 @@ export default function Component() {
           {
             type: "select-arrived",
             field: "arrived",
-            label: "수급 여부",
+            label: "수금 여부",
           },
           {
             type: "select-warehouse",
@@ -270,7 +270,7 @@ export default function Component() {
             ),
           },
           {
-            title: "수급 도착지",
+            title: "수금 도착지",
             render: (_, record: RecordType) =>
               (record.assignStockEvent?.stock as any).plan?.type ===
               "TRADE_OUTSOURCE_PROCESS_SELLER"
@@ -286,7 +286,7 @@ export default function Component() {
                     ?.dstLocation.name,
           },
           {
-            title: "수급 예정일",
+            title: "수금 예정일",
             render: (_, record) => (
               <div className="font-fixed">
                 {Util.formatIso8601ToLocalDate(
