@@ -272,17 +272,17 @@ export default function Component() {
           {
             title: "수급 도착지",
             render: (_, record: RecordType) =>
-              (record.assignStockEvent?.stock as any).plan?.type ===
+              (record.assignStockEvent?.stock as any)?.plan?.type ===
               "TRADE_OUTSOURCE_PROCESS_SELLER"
-                ? (record.assignStockEvent?.stock as any).plan?.orderProcess
+                ? (record.assignStockEvent?.stock as any)?.plan?.orderProcess
                     ?.dstLocation.name
-                : (record.assignStockEvent?.stock as any).plan?.type ===
+                : (record.assignStockEvent?.stock as any)?.plan?.type ===
                   "TRADE_OUTSOURCE_PROCESS_BUYER"
-                ? (record.assignStockEvent?.stock as any).plan?.orderProcess
+                ? (record.assignStockEvent?.stock as any)?.plan?.orderProcess
                     ?.srcLocation.name
-                : (record.assignStockEvent?.stock as any).plan?.orderStock
+                : (record.assignStockEvent?.stock as any)?.plan?.orderStock
                     ?.dstLocation.name ??
-                  (record.assignStockEvent?.stock as any).plan?.planShipping
+                  (record.assignStockEvent?.stock as any)?.plan?.planShipping
                     ?.dstLocation.name,
           },
           {
@@ -290,18 +290,18 @@ export default function Component() {
             render: (_, record) => (
               <div className="font-fixed">
                 {Util.formatIso8601ToLocalDate(
-                  (record.assignStockEvent?.stock as any).plan?.type ===
+                  (record.assignStockEvent?.stock as any)?.plan?.type ===
                     "TRADE_OUTSOURCE_PROCESS_SELLER"
-                    ? (record.assignStockEvent?.stock as any).plan.orderProcess
+                    ? (record.assignStockEvent?.stock as any)?.plan.orderProcess
                         ?.dstWantedDate ?? null
-                    : (record.assignStockEvent?.stock as any).plan?.type ===
+                    : (record.assignStockEvent?.stock as any)?.plan?.type ===
                       "TRADE_OUTSOURCE_PROCESS_BUYER"
-                    ? (record.assignStockEvent?.stock as any).plan.orderProcess
+                    ? (record.assignStockEvent?.stock as any)?.plan.orderProcess
                         ?.srcWantedDate ?? null
-                    : (record.assignStockEvent?.stock as any).plan?.orderStock
+                    : (record.assignStockEvent?.stock as any)?.plan?.orderStock
                         ?.wantedDate ??
-                      (record.assignStockEvent?.stock as any).plan?.planShipping
-                        ?.wantedDate ??
+                      (record.assignStockEvent?.stock as any)?.plan
+                        ?.planShipping?.wantedDate ??
                       null
                 )}
               </div>
