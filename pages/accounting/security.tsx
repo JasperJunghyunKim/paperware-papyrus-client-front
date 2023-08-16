@@ -86,6 +86,7 @@ export default function Component() {
           {
             title: "유가증권 상태",
             render: (record: RecordType) =>
+              record.securityStatus === "NONE" &&
               record.bySecurities.length !== 0
                 ? "배서지급"
                 : Util.securityStatusToString(record.securityStatus),
@@ -234,33 +235,7 @@ function PopupUpsert(props: PopupUpsertProps) {
           >
             <FormControl.Number disabled={props.open !== true} />
           </Form.Item>
-          {item.data && item.data.bySecurities.length === 0 && (
-            <Form.Item
-              label="유가증권 상태"
-              name="securityStatus"
-              rules={[R.required()]}
-            >
-              <Select
-                options={Array.from<SecurityStatus>([
-                  "NONE",
-                  "NORMAL_PAYMENT",
-                  "DISCOUNT_PAYMENT",
-                  "INSOLVENCY",
-                  "LOST",
-                  "SAFEKEEPING",
-                ]).map((item) => ({
-                  label: Util.securityStatusToString(item),
-                  value: item,
-                }))}
-                disabled={item.data.bySecurities.length !== 0}
-              />
-            </Form.Item>
-          )}
-          {item.data && item.data.bySecurities.length !== 0 && (
-            <Form.Item label="유가증권 상태">
-              <Input disabled value={"배서지급"} />
-            </Form.Item>
-          )}
+
           <Form.Item label="발행일" name="drawedDate">
             <FormControl.DatePicker disabled={props.open !== true} />
           </Form.Item>
@@ -291,6 +266,36 @@ function PopupUpsert(props: PopupUpsertProps) {
           <Form.Item label="메모" name="memo">
             <Input.TextArea rows={2} disabled={props.open !== true} />
           </Form.Item>
+          {item.data && item.data.bySecurities.length === 0 && (
+            <Form.Item
+              label="유가증권 상태"
+              name="securityStatus"
+              rules={[R.required()]}
+            >
+              <Select
+                options={Array.from<SecurityStatus>([
+                  "NONE",
+                  "NORMAL_PAYMENT",
+                  "DISCOUNT_PAYMENT",
+                  "INSOLVENCY",
+                  "LOST",
+                  "SAFEKEEPING",
+                ]).map((item) => ({
+                  label: Util.securityStatusToString(item),
+                  value: item,
+                }))}
+                disabled={item.data.bySecurities.length !== 0}
+              />
+            </Form.Item>
+          )}
+          {item.data &&
+            item.data.bySecurities.filter(
+              (y) => y.accounted.securityType === "PAID"
+            ).length === 0 && (
+              <Form.Item label="유가증권 상태">
+                <Input disabled value={"배서지급"} />
+              </Form.Item>
+            )}
           {(!item.data || item.data?.bySecurities.length === 0) && (
             <div className="flex-initial flex gap-x-2 my-2">
               <Button.Default

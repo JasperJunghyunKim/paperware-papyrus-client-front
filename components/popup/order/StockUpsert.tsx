@@ -263,6 +263,10 @@ export default function Component(props: Props) {
                       ? "매입 보관"
                       : order.data.orderType === "OUTSOURCE_PROCESS"
                       ? "외주 공정 매입"
+                      : order.data.orderType === "REFUND"
+                      ? "매입 환불"
+                      : order.data.orderType === "RETURN"
+                      ? "매입 반품"
                       : "기타 매입"
                   } 등록`,
                 },
@@ -1456,18 +1460,22 @@ function RightSideOrder(props: RightSideOrderProps) {
                   </div>
                 ))}
               {(props.order.orderType === "NORMAL" ||
-                props.order?.orderType === "OUTSOURCE_PROCESS") && (
+                props.order?.orderType === "OUTSOURCE_PROCESS" ||
+                props.order.orderType === "RETURN") && (
                 <div className="flex-initial flex gap-x-2 py-2">
-                  <Toolbar.ButtonPreset.Create
-                    label="예정 재고 추가"
-                    disabled={!accepted}
-                    tooltip={
-                      !accepted
-                        ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
-                        : undefined
-                    }
-                    onClick={() => props.order && setOpen(props.order.id)}
-                  />
+                  {(props.order.orderType === "NORMAL" ||
+                    props.order?.orderType === "OUTSOURCE_PROCESS") && (
+                    <Toolbar.ButtonPreset.Create
+                      label="예정 재고 추가"
+                      disabled={!accepted}
+                      tooltip={
+                        !accepted
+                          ? "입고 정보를 추가하려면 먼저 주문 승인을 받아야 합니다."
+                          : undefined
+                      }
+                      onClick={() => props.order && setOpen(props.order.id)}
+                    />
+                  )}
                   {(plan.data?.type === "TRADE_OUTSOURCE_PROCESS_BUYER" ||
                     plan.data?.type === "RETURN_BUYER") &&
                     plan.data.status === "PREPARING" && (

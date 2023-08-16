@@ -22,6 +22,7 @@ import _ from "lodash";
 import { useEffect } from "react";
 import { TbCircleCheck } from "react-icons/tb";
 import { Template } from "..";
+import { Model } from "@/@shared";
 
 type RequestCommon = {
   companyRegistrationNumber: string;
@@ -53,8 +54,6 @@ export default function Component(props: Props) {
 
   const valid = commonData && commonData.accountedMethod;
 
-  console.log(commonData);
-
   useEffect(() => {
     if (data.data) {
       form.setFieldsValue({
@@ -76,7 +75,11 @@ export default function Component(props: Props) {
       <div className="w-full flex flex-col p-4 pb-16">
         {accountedMethod === "PROMISSORY_NOTE" && (
           <Alert
-            message="수금된 유가증권은 유가증권 관리 메뉴에서도 조회할 수 있습니다."
+            message={
+              type === "COLLECTED"
+                ? "수금된 유가증권은 유가증권 관리 메뉴에서도 조회할 수 있습니다."
+                : "지급 내역을 삭제하여 유가증권 상태를 기본값으로 되돌릴 수 있습니다."
+            }
             type="info"
             showIcon
           />
@@ -236,7 +239,11 @@ function FormByBankAccount(props: {
 
   return (
     <Form form={form} layout="vertical">
-      <Form.Item label="수금금액" name="amount" rules={[R.required()]}>
+      <Form.Item
+        label={props.type === "COLLECTED" ? "수금금액" : "지급금액"}
+        name="amount"
+        rules={[R.required()]}
+      >
         <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
       <Form.Item
@@ -247,7 +254,7 @@ function FormByBankAccount(props: {
         <SelectSubject type={props.type} />
       </Form.Item>
       <Form.Item label="계좌 선택" name="bankAccountId" rules={[R.required()]}>
-        <FormControl.SelectBankAccount />
+        <FormControl.SelectBankAccount disabled={!!props.initialData} />
       </Form.Item>
       <Form.Item label="비고" name="memo">
         <Input.TextArea rows={2} />
@@ -308,7 +315,11 @@ function FormByCash(props: {
 
   return (
     <Form form={form} layout="vertical">
-      <Form.Item label="수금금액" name="amount" rules={[R.required()]}>
+      <Form.Item
+        label={props.type === "COLLECTED" ? "수금금액" : "지급금액"}
+        name="amount"
+        rules={[R.required()]}
+      >
         <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
       <Form.Item
@@ -447,7 +458,7 @@ function FormBySecurity(props: {
       {props.type === "PAID" && (
         <>
           <Form.Item label="유가증권" name="securityId" rules={[R.required()]}>
-            <FormControl.SelectSecurity />
+            <FormControl.SelectSecurity disabled={!!props.initialData} />
           </Form.Item>
         </>
       )}
@@ -528,6 +539,9 @@ function FormByCard(props: {
 }) {
   type Request = AccountedByCardCreatedRequest;
   const [form] = useForm<Request>();
+  const cardAmount = useWatch<number | undefined>("cardAmount", form);
+  const vatPrice = useWatch<number | undefined>("vatPrice", form);
+  const isCharge = useWatch<boolean | undefined>("isCharge", form);
 
   const apiCreate = ApiHook.Setting.Accounted.useCreateByCard();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateByCard();
@@ -554,7 +568,7 @@ function FormByCard(props: {
     if (props.initialData?.byCard) {
       form.setFieldsValue({
         cardId: props.initialData.byCard.card?.id,
-        cardAmount: props.initialData.byCard.amount,
+        cardAmount: props.initialData.byCard.cardAmount,
         bankAccountId: props.initialData.byCard.bankAccount?.id,
         vatPrice: props.initialData.byCard.vatPrice,
         isCharge: props.initialData.byCard.isCharge,
@@ -571,7 +585,7 @@ function FormByCard(props: {
     <Form form={form} layout="vertical">
       {props.type === "PAID" && (
         <Form.Item label="카드 선택" name="cardId" rules={[R.required()]}>
-          <FormControl.SelectCard />
+          <FormControl.SelectCard disabled={!!props.initialData} />
         </Form.Item>
       )}
       <Form.Item
@@ -586,6 +600,21 @@ function FormByCard(props: {
         name="vatPrice"
       >
         <FormControl.Number precision={0} min={0} unit="원" />
+      </Form.Item>
+      <Form.Item label={props.type === "COLLECTED" ? "수금금액" : "지급금액"}>
+        <FormControl.Number
+          precision={0}
+          min={0}
+          value={
+            cardAmount && vatPrice
+              ? isCharge
+                ? cardAmount
+                : cardAmount + vatPrice
+              : undefined
+          }
+          unit="원"
+          disabled
+        />
       </Form.Item>
       <Form.Item
         label={`수수료 ${props.type === "COLLECTED" ? "수금" : "지급"} 포함`}
@@ -662,6 +691,8 @@ function FormByOffset(props: {
     if (props.initialData?.byOffset) {
       form.setFieldsValue({
         amount: props.initialData.byOffset.amount,
+        accountedSubject: props.initialData.accountedSubject,
+        memo: props.initialData.memo,
       });
     } else {
       form.resetFields();
@@ -734,6 +765,8 @@ function FormByEtc(props: {
     if (props.initialData?.byEtc) {
       form.setFieldsValue({
         amount: props.initialData.byEtc.amount,
+        accountedSubject: props.initialData.accountedSubject,
+        memo: props.initialData.memo,
       });
     } else {
       form.resetFields();
@@ -780,30 +813,17 @@ function SelectSubject(props: {
     <Select
       value={props.value}
       onChange={props.onChange}
-      options={[
-        {
-          value: "ACCOUNTS_RECEIVABLE",
-          label: props.type === "PAID" ? "외상 매출금" : "외상 매입금",
-        },
-        {
-          value: "UNPAID",
-          label: props.type === "PAID" ? "미수금" : "미지급금",
-        },
-        {
-          value: "ADVANCES",
-          label: props.type === "PAID" ? "선수금" : "선지급금",
-        },
-        {
-          value: "MISCELLANEOUS_INCOME",
-          label: props.type === "PAID" ? "잡이익" : "잡손실",
-        },
-        {
-          value: "PRODUCT_SALES",
-          label: props.type === "PAID" ? "상품매출" : "상품매입",
-        },
-        { value: "ETC", label: "기타" },
-        { value: "ALL", label: "전체" },
-      ]}
+      options={Array.from<Model.Enum.Subject>([
+        "ACCOUNTS_RECEIVABLE",
+        "UNPAID",
+        "ADVANCES",
+        "MISCELLANEOUS_INCOME",
+        "PRODUCT_SALES",
+        "ETC",
+      ]).map((item) => ({
+        label: Util.accountSubjectToString(item, props.type),
+        value: item,
+      }))}
     />
   );
 }

@@ -311,6 +311,7 @@ export default function Component(props: Props) {
                 <SelectAccountSubject
                   {...getFieldValue(item.field)}
                   onChange={setFieldValue(item.field)}
+                  accountedType={item.accountedType ?? "COLLECTED"}
                 />
               ))
               .with("select-account-method", () => (
@@ -804,7 +805,11 @@ function SelectCompanyRegistrationNumber(props: ItemProps) {
         </div>
       </div>
     ),
-    text: `${item.businessName} ${item.phoneNo}`,
+    text: `${
+      partners.data?.items.find(
+        (p) => p.companyRegistrationNumber === item.companyRegistrationNumber
+      )?.partnerNickName ?? item.businessName
+    } ${item.phoneNo}`,
     value: item.companyRegistrationNumber,
   }));
   const change = useCallback(
@@ -1353,7 +1358,9 @@ function SelectUser(props: ItemProps) {
   );
 }
 
-function SelectAccountSubject(props: ItemProps) {
+function SelectAccountSubject(
+  props: ItemProps<{ accountedType: "COLLECTED" | "PAID" }>
+) {
   const options = Array.from<Model.Enum.Subject>([
     "ACCOUNTS_RECEIVABLE",
     "UNPAID",
@@ -1362,7 +1369,7 @@ function SelectAccountSubject(props: ItemProps) {
     "PRODUCT_SALES",
     "ETC",
   ]).map((item) => ({
-    label: Util.accountSubjectToString(item),
+    label: Util.accountSubjectToString(item, props.accountedType),
     value: item,
   }));
   const change = useCallback(

@@ -76,6 +76,7 @@ export default function Component() {
             type: "select-account-subject",
             field: "accountedSubject",
             label: "계정 과목",
+            accountedType: "COLLECTED",
           },
           {
             type: "select-account-method",
@@ -109,7 +110,7 @@ export default function Component() {
               <div className="font-fixed text-right">
                 {`${Util.comma(
                   record.byBankAccount?.amount ??
-                    record.byCard?.cardAmount ??
+                    record.byCard?.amount ??
                     record.byCash?.amount ??
                     record.byEtc?.amount ??
                     record.byOffset?.amount ??
@@ -122,7 +123,7 @@ export default function Component() {
           {
             title: "계정 과목",
             render: (record: RecordType) =>
-              Util.accountSubjectToString(record.accountedSubject),
+              Util.accountSubjectToString(record.accountedSubject, "COLLECTED"),
           },
           {
             title: "수금 수단",

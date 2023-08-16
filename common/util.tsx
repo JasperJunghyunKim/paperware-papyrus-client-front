@@ -875,14 +875,26 @@ export function securityStatusToString(
     .otherwise(() => "");
 }
 
-export function accountSubjectToString(value: Subject | null | undefined) {
-  return match(value)
-    .with("ACCOUNTS_RECEIVABLE", () => "외상매출금")
-    .with("UNPAID", () => "미수금")
-    .with("ADVANCES", () => "선수금")
-    .with("MISCELLANEOUS_INCOME", () => "잡이익")
-    .with("PRODUCT_SALES", () => "상품매출")
-    .with("ETC", () => "기타")
+export function accountSubjectToString(
+  value: Subject | null | undefined,
+  type: "COLLECTED" | "PAID"
+) {
+  return match({ value, type })
+    .with(
+      { value: "ACCOUNTS_RECEIVABLE", type: "COLLECTED" },
+      () => "외상매출금"
+    )
+    .with({ value: "ACCOUNTS_RECEIVABLE", type: "PAID" }, () => "외상매입금")
+    .with({ value: "UNPAID", type: "COLLECTED" }, () => "미수금")
+    .with({ value: "UNPAID", type: "PAID" }, () => "미지급금")
+    .with({ value: "ADVANCES", type: "COLLECTED" }, () => "선수금")
+    .with({ value: "ADVANCES", type: "PAID" }, () => "선지급금")
+    .with({ value: "MISCELLANEOUS_INCOME", type: "COLLECTED" }, () => "잡이익")
+    .with({ value: "MISCELLANEOUS_INCOME", type: "PAID" }, () => "잡손실")
+    .with({ value: "PRODUCT_SALES", type: "COLLECTED" }, () => "상품매출")
+    .with({ value: "PRODUCT_SALES", type: "PAID" }, () => "상품매입")
+    .with({ value: "ETC", type: "COLLECTED" }, () => "기타")
+    .with({ value: "ETC", type: "PAID" }, () => "기타")
     .otherwise(() => "");
 }
 

@@ -16,11 +16,19 @@ export default function Component(props: Props) {
   const list = ApiHook.Setting.Security.useGetList({});
 
   const options = useMemo(() => {
-    return list.data?.items.map((x) => ({
-      label: <Item item={x} />,
-      text: `${x.securitySerial} ${x.payer} ${Util.bankToString(x.payingBank)}`,
-      value: x.id,
-    }));
+    return list.data?.items
+      .filter(
+        (x) =>
+          x.securityStatus === "NONE" &&
+          x.bySecurities.filter((y) => y.securityType === "PAID").length === 0
+      )
+      .map((x) => ({
+        label: <Item item={x} />,
+        text: `${x.securitySerial} ${x.securityAmount} ${
+          x.payer
+        } ${Util.bankToString(x.payingBank)}`,
+        value: x.id,
+      }));
   }, [list]);
 
   return (
@@ -45,9 +53,11 @@ function Item(props: ItemProps) {
   return (
     <div className="flex font-fixed gap-x-4">
       <div className="flex-1 whitespace-pre">{x.securitySerial}</div>
-      <div className="flex-initial whitespace-pre">{x.payer}</div>
-      <div className="flex-initial text-gray-400 text-right">
-        {Util.bankToString(x.payingBank)}
+      <div className="flex-initial whitespace-pre text-gray-400">
+        {Util.securityTypeToString(x.securityType)}
+      </div>
+      <div className="flex-initial whitespace-pre text-cyan-600">
+        {Util.comma(x.securityAmount)}원
       </div>
     </div>
   );

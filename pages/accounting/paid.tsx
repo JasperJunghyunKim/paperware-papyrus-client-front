@@ -41,7 +41,7 @@ export default function Component() {
   }, [list.data]);
 
   return (
-    <Page title="수금 관리" menu={Const.Menu.SETTING_USER}>
+    <Page title="지급 관리" menu={Const.Menu.SETTING_USER}>
       <Toolbar.Container>
         {me.data?.isAdmin && (
           <Toolbar.ButtonPreset.Create
@@ -76,6 +76,7 @@ export default function Component() {
             type: "select-account-subject",
             field: "accountedSubject",
             label: "계정 과목",
+            accountedType: "PAID",
           },
           {
             type: "select-account-method",
@@ -109,7 +110,7 @@ export default function Component() {
               <div className="font-fixed text-right">
                 {`${Util.comma(
                   record.byBankAccount?.amount ??
-                    record.byCard?.cardAmount ??
+                    record.byCard?.amount ??
                     record.byCash?.amount ??
                     record.byEtc?.amount ??
                     record.byOffset?.amount ??
@@ -122,7 +123,7 @@ export default function Component() {
           {
             title: "계정 과목",
             render: (record: RecordType) =>
-              Util.accountSubjectToString(record.accountedSubject),
+              Util.accountSubjectToString(record.accountedSubject, "PAID"),
           },
           {
             title: "지급 수단",

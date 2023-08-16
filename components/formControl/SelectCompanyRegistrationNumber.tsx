@@ -31,14 +31,12 @@ export default function Component(props: Props) {
       temp: `${
         partners.data?.items.find(
           (p) => p.companyRegistrationNumber === x.companyRegistrationNumber
-        ) ??
-        x.partner?.partnerNickName ??
-        x.businessName
+        )?.partnerNickName ?? x.businessName
       } ${x.companyRegistrationNumber}`,
     }));
     options?.sort((a, b) => a.temp.localeCompare(b.temp));
     return options;
-  }, [staticData]);
+  }, [partners.data?.items, staticData.data?.items]);
 
   return (
     <div className="flex flex-col gap-y-1">
@@ -50,7 +48,9 @@ export default function Component(props: Props) {
           if (!option) {
             return false;
           }
-          return `${option.temp}`.toLowerCase().includes(input.toLowerCase());
+          return (
+            option.temp.toLowerCase().indexOf(input.toLowerCase().trim()) >= 0
+          );
         }}
         showSearch
         allowClear

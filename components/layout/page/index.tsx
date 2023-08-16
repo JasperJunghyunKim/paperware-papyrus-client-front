@@ -275,6 +275,7 @@ export default function Component(props: PropsWithChildren<Props>) {
     try {
       if (!me.data) return false;
       if (me.data.isAdmin) return true;
+      if (props.admin) return false;
 
       const menuData: string[] | null = me.data.menu
         ? JSON.parse(me.data.menu.menu)
@@ -354,7 +355,7 @@ export default function Component(props: PropsWithChildren<Props>) {
             <h1 className="flex-initial font-extrabold text-xl select-none m-0">
               {props.title}
             </h1>
-            {!props.menu || isMenuAccessible(props.menu) ? (
+            {(!props.menu && !props.admin) || isMenuAccessible(props.menu) ? (
               <section className="flex flex-col gap-4">
                 {props.children}
               </section>
