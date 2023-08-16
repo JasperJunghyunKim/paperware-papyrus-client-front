@@ -20,7 +20,8 @@ export default function Component(props: Props) {
       .filter(
         (x) =>
           x.securityStatus === "NONE" &&
-          x.bySecurities.filter((y) => y.securityType === "PAID").length === 0
+          x.bySecurities.filter((y) => y.accounted.securityType === "PAID")
+            .length === 0
       )
       .map((x) => ({
         label: <Item item={x} />,
