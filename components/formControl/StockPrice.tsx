@@ -218,7 +218,9 @@ export default function Component(props: Props) {
         officialPrice: props.value?.officialPrice ?? 0,
         officialPriceUnit: props.value?.officialPriceUnit ?? "WON_PER_TON",
         discountType: type,
-        discountPrice: skip ? props.value?.discountPrice ?? 0 : value,
+        discountPrice:
+          Math.round((skip ? props.value?.discountPrice ?? 0 : value) * 1000) /
+          1000,
         unitPrice: newUnitPrice,
         unitPriceUnit: props.value?.unitPriceUnit ?? "WON_PER_TON",
       };

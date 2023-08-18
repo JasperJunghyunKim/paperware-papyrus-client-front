@@ -2019,8 +2019,6 @@ function RightSideSales(props: RightSideSalesProps) {
     id: planId,
   });
 
-  console.log("ASDF", plan.data);
-
   const invoices = ApiHook.Shipping.Invoice.useGetList({
     query: {
       planId: planId,

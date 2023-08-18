@@ -27,7 +27,6 @@ export default function Component(props: Props) {
   });
 
   const options = useMemo(() => {
-    console.log(list.data);
     return list.data?.items
       .filter(
         (x) =>

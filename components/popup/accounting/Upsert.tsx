@@ -23,6 +23,7 @@ import { useEffect } from "react";
 import { TbCircleCheck } from "react-icons/tb";
 import { Template } from "..";
 import { Model } from "@/@shared";
+import dayjs from "dayjs";
 
 type RequestCommon = {
   companyRegistrationNumber: string;
@@ -55,7 +56,7 @@ export default function Component(props: Props) {
   const valid = commonData && commonData.accountedMethod;
 
   useEffect(() => {
-    if (data.data) {
+    if (data.data && props.open) {
       form.setFieldsValue({
         companyRegistrationNumber: data.data.companyRegistrationNumber,
         accountedMethod: data.data.accountedMethod,
@@ -64,7 +65,7 @@ export default function Component(props: Props) {
     } else {
       form.resetFields();
     }
-  }, [data.data, form]);
+  }, [data.data, form, props.open]);
 
   return (
     <Template.Property
@@ -130,6 +131,7 @@ export default function Component(props: Props) {
                 label={`${wordDirection}일`}
                 name="accountedDate"
                 rules={[R.required()]}
+                initialValue={Util.dateToIso8601(dayjs())}
               >
                 <FormControl.DatePicker />
               </Form.Item>
@@ -508,6 +510,7 @@ function FormBySecurity(props: {
             label="배서 구분"
             name="endorsementType"
             rules={[R.required()]}
+            initialValue={"NONE"}
           >
             <SelectEndorsementType />
           </Form.Item>
@@ -588,19 +591,6 @@ function FormByCard(props: {
           <FormControl.SelectCard disabled={!!props.initialData} />
         </Form.Item>
       )}
-      <Form.Item
-        label={props.type === "COLLECTED" ? "카드입금금액" : "카드결제금액"}
-        name="cardAmount"
-        rules={[R.required()]}
-      >
-        <FormControl.Number precision={0} min={0} unit="원" />
-      </Form.Item>
-      <Form.Item
-        label={props.type === "COLLECTED" ? "입금수수료" : "결제수수료"}
-        name="vatPrice"
-      >
-        <FormControl.Number precision={0} min={0} unit="원" />
-      </Form.Item>
       <Form.Item label={props.type === "COLLECTED" ? "수금금액" : "지급금액"}>
         <FormControl.Number
           precision={0}
@@ -615,6 +605,19 @@ function FormByCard(props: {
           unit="원"
           disabled
         />
+      </Form.Item>
+      <Form.Item
+        label={props.type === "COLLECTED" ? "카드입금금액" : "카드결제금액"}
+        name="cardAmount"
+        rules={[R.required()]}
+      >
+        <FormControl.Number precision={0} min={0} unit="원" />
+      </Form.Item>
+      <Form.Item
+        label={props.type === "COLLECTED" ? "입금수수료" : "결제수수료"}
+        name="vatPrice"
+      >
+        <FormControl.Number precision={0} min={0} unit="원" />
       </Form.Item>
       <Form.Item
         label={`수수료 ${props.type === "COLLECTED" ? "수금" : "지급"} 포함`}

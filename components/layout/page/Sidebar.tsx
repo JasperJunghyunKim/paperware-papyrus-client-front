@@ -75,8 +75,8 @@ const menus: MenuDef[] = [
     name: "회계 관리",
     path: "/accounting",
     subs: [
-      { name: "카드 관리", path: "/cards" },
-      { name: "계좌 관리", path: "/account" },
+      { name: "카드 설정", path: "/cards" },
+      { name: "계좌 설정", path: "/account" },
       { name: "유가증권 관리", path: "/securities" },
       { name: "수금 관리", path: "/collected" },
       { name: "지급 관리", path: "/paid" },

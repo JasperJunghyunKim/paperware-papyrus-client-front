@@ -222,13 +222,13 @@ export default function Component(props: PropsWithChildren<Props>) {
         menu: Const.Menu.SETTING_LOCATION,
       },
       {
-        label: "카드 관리",
+        label: "카드 설정",
         icon: <TbCards />,
         path: "/setting/card",
         menu: Const.Menu.SETTING_CARD,
       },
       {
-        label: "계좌 관리",
+        label: "계좌 설정",
         icon: <TbBuildingBank />,
         path: "/setting/bank-account",
         menu: Const.Menu.SETTING_ACCOUNTED,

@@ -32,7 +32,7 @@ export default function Component() {
   };
 
   return (
-    <Page title="계좌 관리" menu={Const.Menu.SETTING_ACCOUNTED}>
+    <Page title="계좌 설정" menu={Const.Menu.SETTING_ACCOUNTED}>
       <Toolbar.Container>
         <Toolbar.ButtonPreset.Create
           label="계좌 추가"
@@ -110,8 +110,11 @@ function PopupUpsert(props: PopupUpsertProps) {
   );
 
   useEffect(
-    () => (item.data ? form.setFieldsValue(item.data) : form.resetFields()),
-    [item.data]
+    () =>
+      props.open && item.data
+        ? form.setFieldsValue(item.data)
+        : form.resetFields(),
+    [form, item.data, props.open]
   );
 
   const wordPost = props.open === true ? "추가" : "상세";
@@ -157,6 +160,11 @@ function PopupUpsert(props: PopupUpsertProps) {
                 label: Util.bankToString(item),
                 value: item,
               }))}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label.toLowerCase().indexOf(input.toLowerCase()) ??
+                  0) >= 0
+              }
               disabled={props.open !== true}
             />
           </Form.Item>
@@ -169,6 +177,11 @@ function PopupUpsert(props: PopupUpsertProps) {
                 label: Util.accountTypeToString(item),
                 value: item,
               }))}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label.toLowerCase().indexOf(input.toLowerCase()) ??
+                  0) >= 0
+              }
               disabled={props.open !== true}
             />
           </Form.Item>
@@ -177,7 +190,7 @@ function PopupUpsert(props: PopupUpsertProps) {
             name="accountNumber"
             rules={[R.required(), R.pattern(/^[0-9-]*$/)]}
           >
-            <Input disabled={props.open !== true} />
+            <Input disabled={props.open !== true} maxLength={20} />
           </Form.Item>
           <Form.Item
             label="계좌소유자"

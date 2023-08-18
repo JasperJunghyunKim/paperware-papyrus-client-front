@@ -1,5 +1,4 @@
-import { Model } from "@/@shared";
-import { BankAccount, Security } from "@/@shared/models";
+import { Security } from "@/@shared/models";
 import { ApiHook, Util } from "@/common";
 import { Select } from "antd";
 import { useMemo } from "react";

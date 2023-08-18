@@ -668,7 +668,8 @@ export function padRightCJK(value: string, length: number) {
   return value.padEnd(len);
 }
 
-export function formatSerial(serial: string): string {
+export function formatSerial(serial: string | null): string {
+  if (serial === null) return "";
   if (serial?.length !== 15) {
     return serial;
   }

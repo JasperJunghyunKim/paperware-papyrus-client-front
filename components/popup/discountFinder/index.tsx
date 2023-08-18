@@ -135,26 +135,29 @@ export default function Component(props: Props) {
               {
                 title: "평량",
                 dataIndex: ["discountRateCondition", "grammage"],
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )} ${Util.UNIT_GPM}`}</div>
-                ),
+                render: (value) =>
+                  value ? (
+                    <div className="text-right font-fixed">{`${Util.comma(
+                      value
+                    )} ${Util.UNIT_GPM}`}</div>
+                  ) : null,
               },
               {
                 title: "지폭",
                 dataIndex: ["discountRateCondition", "sizeX"],
-                render: (value) => (
-                  <div className="text-right font-fixed">{`${Util.comma(
-                    value
-                  )} mm`}</div>
-                ),
+                render: (value) =>
+                  value ? (
+                    <div className="text-right font-fixed">{`${Util.comma(
+                      value
+                    )} mm`}</div>
+                  ) : null,
               },
               {
                 title: "지장",
                 dataIndex: ["discountRateCondition", "sizeY"],
                 render: (value, record) =>
-                  record.discountRateCondition.packagingType !== "ROLL" ? (
+                  record.discountRateCondition.packagingType !== "ROLL" &&
+                  value ? (
                     <div className="text-right font-fixed">{`${Util.comma(
                       value
                     )} mm`}</div>

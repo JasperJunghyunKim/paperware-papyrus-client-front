@@ -149,7 +149,10 @@ export default function Component(props: Props) {
               />
             </Form.Item>
             <Form.Item label="배송 번호">
-              <Input disabled value={item.data?.shippingNo} />
+              <Input
+                disabled
+                value={Util.formatSerial(item.data?.shippingNo ?? null)}
+              />
             </Form.Item>
             <Form.Item label="운송장 개수">
               <Input disabled value={item.data?.invoiceCount} />
@@ -167,7 +170,7 @@ export default function Component(props: Props) {
               </Form.Item>
             )}
             {type !== "INHOUSE" && (
-              <Form.Item label="거래처 파트너" name="companyRegistrationNumber">
+              <Form.Item label="거래처" name="companyRegistrationNumber">
                 <SelectCompanyRegistrationNumber />
               </Form.Item>
             )}
@@ -263,6 +266,14 @@ export default function Component(props: Props) {
                   render: (_, record) =>
                     record.plan?.orderStock?.dstLocation.name ??
                     record.plan?.orderProcess?.srcLocation.name,
+                },
+                {
+                  title: "주소",
+                  render: (_, record) =>
+                    Util.formatAddress(
+                      record.plan.orderStock?.dstLocation.address ??
+                        record.plan.orderProcess?.srcLocation.address
+                    ),
                 },
                 {
                   title: "예정일",

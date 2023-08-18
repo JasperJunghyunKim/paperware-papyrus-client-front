@@ -81,6 +81,14 @@ export default function Component(props: Props) {
                   record.plan?.orderProcess?.srcLocation.name,
               },
               {
+                title: "주소",
+                render: (_, record) =>
+                  Util.formatAddress(
+                    record.plan.orderStock?.dstLocation.address ??
+                      record.plan.orderProcess?.srcLocation.address
+                  ),
+              },
+              {
                 title: "예정일",
                 render: (_, record) => (
                   <div className="font-fixed">

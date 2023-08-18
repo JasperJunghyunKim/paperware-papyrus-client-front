@@ -37,8 +37,8 @@ export default function Component(props: Props) {
       width="calc(100vw - 200px)"
       height="600px"
     >
-      <div className="flex flex-col w-full h-full">
-        <div className="flex-1">
+      <div className="flex flex-col w-full h-full ">
+        <div className="flex-1 overflow-y-scroll">
           <Table.Default<Model.StockGroup>
             data={groupList.data}
             keySelector={Util.keyOfStockGroup}

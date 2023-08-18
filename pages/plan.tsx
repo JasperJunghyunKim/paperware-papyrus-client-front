@@ -205,7 +205,7 @@ export default function Component() {
         onSelectedChange={setSelected}
         columns={[
           {
-            title: "주문 번호",
+            title: "작업 번호",
             render: (record: RecordType) => (
               <div className="font-fixed">
                 {Util.formatSerial(

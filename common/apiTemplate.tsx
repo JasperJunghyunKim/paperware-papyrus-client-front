@@ -12,7 +12,6 @@ export namespace $query {
         if (record?.[key]) {
           return record[key];
         } else {
-          console.log("ASDF");
           throw new Error(`Invalid path: ${value}`);
         }
       });
