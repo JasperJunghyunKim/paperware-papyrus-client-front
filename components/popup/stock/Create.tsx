@@ -36,34 +36,32 @@ export default function Component(props: Props) {
 
   const apiDefault = ApiHook.Stock.StockInhouse.useCreate();
   const apiArrival = ApiHook.Stock.StockInhouse.useCreateArrival();
-  const cmd = useCallback(
-    async (values: FormValues) => {
-      const api = props.arrival ? apiArrival : apiDefault;
-      const data: FormValues = {
-        ...values,
-        stockPrice: {
-          ...values.stockPrice,
+  const cmd = useCallback(async () => {
+    const values = await form.validateFields();
+    const api = props.arrival ? apiArrival : apiDefault;
+    const data: FormValues = {
+      ...values,
+      stockPrice: {
+        ...values.stockPrice,
 
-          officialPrice: _.isFinite(values.stockPrice?.officialPrice)
-            ? values.stockPrice?.officialPrice
-            : 0,
-          discountPrice: _.isFinite(values.stockPrice?.discountPrice)
-            ? values.stockPrice?.discountPrice
-            : 0,
-          unitPrice: _.isFinite(values.stockPrice?.unitPrice)
-            ? values.stockPrice?.unitPrice
-            : 0,
-        },
-      };
+        officialPrice: _.isFinite(values.stockPrice?.officialPrice)
+          ? values.stockPrice?.officialPrice
+          : 0,
+        discountPrice: _.isFinite(values.stockPrice?.discountPrice)
+          ? values.stockPrice?.discountPrice
+          : 0,
+        unitPrice: _.isFinite(values.stockPrice?.unitPrice)
+          ? values.stockPrice?.unitPrice
+          : 0,
+      },
+    };
 
-      await api.mutateAsync({
-        data,
-      });
-      form.resetFields();
-      props.onClose(false);
-    },
-    [apiDefault, form, props]
-  );
+    await api.mutateAsync({
+      data,
+    });
+    form.resetFields();
+    props.onClose(false);
+  }, [apiArrival, apiDefault, form, props]);
 
   useEffect(() => {
     if (!packaging) {
@@ -74,12 +72,12 @@ export default function Component(props: Props) {
       "stockPrice",
       FormControl.Util.Price.initialStockPrice(packaging.type)
     );
-  }, [packagingId, grammage, sizeX, sizeY]);
+  }, [packagingId, grammage, sizeX, sizeY, packaging, form]);
 
   return (
     <Popup.Template.Property title="재고 추가" {...props}>
       <div className="flex-1 p-4">
-        <Form form={form} onFinish={cmd} layout="vertical">
+        <Form form={form} layout="vertical">
           {props.arrival && (
             <>
               <Form.Item
@@ -205,9 +203,10 @@ export default function Component(props: Props) {
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button.Preset.Submit
+            <Button.Default
               label="재고 추가"
               disabled={apiDefault.isLoading}
+              onClick={cmd}
             />
           </Form.Item>
         </Form>

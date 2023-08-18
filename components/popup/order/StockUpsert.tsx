@@ -817,12 +817,17 @@ function DataForm(props: DataFormProps) {
           />
         </Form.Item>
       )}
-      {props.isSales && (
+      {props.isSales && !props.initialOrder && (
         <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
           <FormControl.SelectCompanySales
             disabled={!!props.initialOrder}
             virtual={orderType === "OUTSOURCE_PROCESS" ? true : undefined}
           />
+        </Form.Item>
+      )}
+      {props.isSales && props.initialOrder && (
+        <Form.Item name="srcCompanyId" label="매출처" rules={REQUIRED_RULES}>
+          <FormControl.SelectCompanySales disabled={!!props.initialOrder} />
         </Form.Item>
       )}
       <Form.Item
@@ -831,7 +836,7 @@ function DataForm(props: DataFormProps) {
         rules={REQUIRED_RULES}
         initialValue={Util.dateToIso8601(dayjs())}
       >
-        <FormControl.DatePicker disabled={!metaEditable} />
+        <FormControl.DatePicker disabled={!metaEditable || !props.isSales} />
       </Form.Item>
 
       {(orderType == "NORMAL" || orderType === "RETURN") &&
@@ -2458,7 +2463,9 @@ function PricePanel(props: PricePanelProps) {
     return assignStock
       ? {
           ...assignStock,
-          quantity: quantity ?? 0,
+          sizeX: altSizeX ?? assignStock.sizeX,
+          sizeY: altSizeY ?? assignStock.sizeY,
+          quantity: altQuantity ?? quantity,
         }
       : null;
   }, [
@@ -2491,15 +2498,7 @@ function PricePanel(props: PricePanelProps) {
             : unitPriceUnit === "WON_PER_BOX"
             ? converted.quantity
             : converted.packed?.value ?? 0);
-  }, [
-    assignSpec,
-    props.order.orderDeposit?.grammage,
-    props.order.orderDeposit?.sizeX,
-    props.order.orderDeposit?.sizeY,
-    props.order.orderDeposit?.packaging,
-    unitPrice,
-    unitPriceUnit,
-  ]);
+  }, [assignSpec, unitPrice, unitPriceUnit]);
 
   const processPrice = useWatch<number | null>(["processPrice"], form);
   const suppliedPrice = useWatch<number | null>(["suppliedPrice"], form);
@@ -2847,10 +2846,11 @@ function PricePanel(props: PricePanelProps) {
         )}
         <FormControl.Util.Split label="금액 정보" />
         {props.order.orderType !== "ETC" &&
-          props.order.orderType !== "OUTSOURCE_PROCESS" && (
+          props.order.orderType !== "OUTSOURCE_PROCESS" &&
+          assignSpec && (
             <>
               <Form.Item label="단가 대체" name={["orderStockTradeAltBundle"]}>
-                <FormControl.Alt />
+                <FormControl.Alt spec={{ grammage: assignSpec.grammage }} />
               </Form.Item>
               <Alert
                 message="단가 대체 규격을 수정하면 거래 금액정보가 초기화됩니다."

@@ -628,8 +628,8 @@ export function stockGroup<T extends Model.StockGroup>(options?: {
         partners.data?.items.find(
           (p) =>
             p.companyRegistrationNumber ===
-            record.plan?.orderStock?.order.partnerCompany
-              .companyRegistrationNumber
+            (record.plan?.orderStock ?? record.plan?.orderProcess)?.order
+              .partnerCompany.companyRegistrationNumber
         )?.partnerNickName ??
         record.plan?.orderStock?.order.partnerCompany.businessName,
     },
@@ -637,6 +637,7 @@ export function stockGroup<T extends Model.StockGroup>(options?: {
       title: "도착지",
       render: (_, record) =>
         record.plan?.orderStock?.dstLocation.name ??
+        record.plan?.orderProcess?.srcLocation.name ??
         record.plan?.planShipping?.dstLocation.name,
     },
     {
@@ -645,6 +646,7 @@ export function stockGroup<T extends Model.StockGroup>(options?: {
         <div className="font-fixed">
           {Util.formatIso8601ToLocalDate(
             record.plan?.orderStock?.wantedDate ??
+              record.plan?.orderProcess?.srcWantedDate ??
               record.plan?.planShipping?.wantedDate ??
               null
           )}

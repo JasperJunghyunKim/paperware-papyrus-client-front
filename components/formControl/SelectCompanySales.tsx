@@ -27,6 +27,7 @@ export default function Component(props: Props) {
   });
 
   const options = useMemo(() => {
+    console.log(list.data);
     return list.data?.items
       .filter(
         (x) =>
@@ -53,7 +54,7 @@ export default function Component(props: Props) {
         } ${x.dstCompany.phoneNo}`,
         value: x.dstCompany.id,
       }));
-  }, [list.data?.items, props.virtual, partners.data]);
+  }, [list.data, props.virtual, partners.data?.items]);
 
   return (
     <div className="flex flex-col gap-y-1">

@@ -1,10 +1,8 @@
 import {
-  BankAccountCreateRequest,
-  BankAccountUpdateRequest,
   SecurityCreateRequest,
   SecurityStatusUpdateRequest,
 } from "@/@shared/api";
-import { BankAccount, Security } from "@/@shared/models";
+import { Security } from "@/@shared/models";
 import { SecurityStatus, SecurityType } from "@/@shared/models/enum";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage, useSelection } from "@/common/hook";
