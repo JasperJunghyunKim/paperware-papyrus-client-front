@@ -87,7 +87,9 @@ export default function Component(props: Props) {
         )}
         {accountedMethod === "OFFSET" && (
           <Alert
-            message="상계는 지급 내역에서도 동일하게 등록, 수정, 삭제됩니다."
+            message={`상계는 ${
+              type === "PAID" ? "수금" : "지급"
+            } 내역에서도 동일하게 등록, 수정, 삭제됩니다.`}
             type="info"
             showIcon
           />
@@ -103,10 +105,10 @@ export default function Component(props: Props) {
               options={
                 Array.from<Method>([
                   "ACCOUNT_TRANSFER",
-                  "CASH",
                   "PROMISSORY_NOTE",
-                  "OFFSET",
                   "CARD_PAYMENT",
+                  "CASH",
+                  "OFFSET",
                   "ETC",
                 ]).map((item) => ({
                   label: Util.accountMethodToString(item, type),

@@ -295,7 +295,7 @@ export default function Component(props: Props) {
               <>
                 <div className="flex-[0_0_1px] bg-gray-300" />
                 <div className="flex-initial basis-64 flex h-0">
-                  <div className="flex-1 flex flex-col w-0">
+                  <div className="flex-1 flex flex-col w-0 ">
                     <Table.Default<Model.StockEvent>
                       data={inputStocks.data}
                       keySelector={(record) => `${record.id}`}
@@ -367,7 +367,7 @@ export default function Component(props: Props) {
                           fixed: "right",
                         },
                       ]}
-                      className="flex-1"
+                      className="flex-1 overflow-y-scroll"
                     />
                     <div className="basis-px bg-gray-300" />
                     <div className="flex-initial p-2 flex justify-end items-center font-fixed gap-x-4">

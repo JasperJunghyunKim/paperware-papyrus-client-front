@@ -1054,7 +1054,7 @@ function DataForm(props: DataFormProps) {
                   />
                 </div>
               )}
-            {!manual && (
+            {!manual && warehouse && (
               <>
                 <Form.Item
                   name="warehouseId"
@@ -1065,11 +1065,12 @@ function DataForm(props: DataFormProps) {
                 </Form.Item>
                 {!props.isSales && (
                   <Form.Item label="창고" rules={[{ required: true }]}>
-                    <Input value={warehouse?.name} disabled />
+                    <Input value={warehouse.name} disabled />
                   </Form.Item>
                 )}
               </>
             )}
+
             <Form.Item name="planId" label="계획" hidden />
             <Form.Item
               name="packagingId"
@@ -2636,6 +2637,9 @@ function PricePanel(props: PricePanelProps) {
         deposit: undefined,
       });
     }
+  }, [props.orderId, deposit.data, tradePrice.data, form]);
+
+  useEffect(() => {
     const priceData =
       tradePrice.data?.orderStockTradePrice ??
       tradePrice.data?.orderDepositTradePrice;
@@ -2665,7 +2669,7 @@ function PricePanel(props: PricePanelProps) {
         vatPrice: 0,
       });
     }
-  }, [props.orderId, deposit.data, tradePrice.data, form]);
+  }, [props.orderId, tradePrice.data, form, assignSpec]);
 
   return (
     <div className="flex-[0_0_460px] overflow-y-scroll p-4 flex">

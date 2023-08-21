@@ -317,6 +317,8 @@ function PopupCreate(props: PopupCreateProps) {
   const [form] = useForm<Api.ShippingCreateRequest>();
   const type = useWatch("type", form);
 
+  const me = ApiHook.Auth.useGetMe();
+
   const apiCreate = ApiHook.Shipping.Shipping.useCreate();
   const cmdCreate = useCallback(async () => {
     if (!(await Util.confirm("배송을 추가하시겠습니까?"))) return;
@@ -325,7 +327,22 @@ function PopupCreate(props: PopupCreateProps) {
     const resp = await apiCreate.mutateAsync({ data });
     props.onClose(false);
     props.onCreated(resp.id);
-  }, [apiCreate, form]);
+  }, [apiCreate, form, props]);
+
+  useEffect(() => {
+    if (!props.open) {
+      form.setFieldsValue({
+        type: "INHOUSE",
+        managerId: me.data?.id,
+      });
+    }
+  }, [form, me.data?.id, props.open]);
+
+  useEffect(() => {
+    if (type === "INHOUSE" && me.data) {
+      form.setFieldsValue({ managerId: me.data.id });
+    }
+  }, [type, me.data, form]);
 
   return (
     <Popup.Template.Property {...props} title="배송 추가" height="auto">
@@ -334,12 +351,17 @@ function PopupCreate(props: PopupCreateProps) {
         form={form}
         rootClassName="p-4 flex flex-col w-full"
       >
-        <Form.Item label="배송 구분" name="type" rules={[R.required()]}>
+        <Form.Item
+          label="배송 구분"
+          name="type"
+          rules={[R.required()]}
+          initialValue={"INHOUSE"}
+        >
           <Select
             options={[
               { label: "자사 배송", value: "INHOUSE" },
-              { label: "거래처 픽업", value: "PARTNER_PICKUP" },
               { label: "외주 배송", value: "OUTSOURCE" },
+              { label: "거래처 픽업", value: "PARTNER_PICKUP" },
             ]}
           />
         </Form.Item>
@@ -349,7 +371,7 @@ function PopupCreate(props: PopupCreateProps) {
           </Form.Item>
         )}
         {type !== "INHOUSE" && (
-          <Form.Item label="거래처 파트너" name="companyRegistrationNumber">
+          <Form.Item label="거래처" name="companyRegistrationNumber">
             <SelectCompanyRegistrationNumber />
           </Form.Item>
         )}
