@@ -684,3 +684,74 @@ export function stockGroup<T extends Model.StockGroup>(options?: {
     ),
   ];
 }
+
+export function cart<T extends Model.Cart>(options?: {
+  type: "SALES" | "PURCHASE";
+}): ColumnType<T>[] {
+  const partners = ApiHook.Inhouse.Partner.useGetList({ query: {} });
+
+  return [
+    {
+      title: "거래처",
+      dataIndex: [
+        "plan",
+        "orderStock",
+        "order",
+        "partnerCompany",
+        "businessName",
+      ],
+      render: (_, record) =>
+        partners.data?.items.find(
+          (p) =>
+            p.companyRegistrationNumber ===
+            (record.plan?.orderStock ?? record.plan?.orderProcess)?.order
+              .dstCompany.companyRegistrationNumber
+        )?.partnerNickName ??
+        record.plan?.orderStock?.order.dstCompany.businessName,
+    },
+    // {
+    //   title: "도착지",
+    //   render: (_, record) =>
+    //     record.plan?.orderStock?.dstLocation.name ??
+    //     record.plan?.orderProcess?.srcLocation.name ??
+    //     record.plan?.planShipping?.dstLocation.name,
+    // },
+    // {
+    //   title: "예정일",
+    //   render: (_, record) => (
+    //     <div className="font-fixed">
+    //       {Util.formatIso8601ToLocalDate(
+    //         record.plan?.orderStock?.wantedDate ??
+    //           record.plan?.orderProcess?.srcWantedDate ??
+    //           record.plan?.planShipping?.wantedDate ??
+    //           null
+    //       )}
+    //     </div>
+    //   ),
+    // },
+    {
+      title: "창고",
+      dataIndex: ["warehouse", "name"],
+    },
+    ...columnStockGroup<T>((record) => record),
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) => record.totalAvailableQuantity,
+      { prefix: "가용" }
+    ),
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) => (record.warehouse ? record.totalQuantity : 0),
+      { prefix: "실물" }
+    ),
+    ...columnQuantity<T>(
+      (record) => record,
+      (record) => record.quantity,
+      { prefix: options?.type === "SALES" ? "매출" : "매입" }
+    ),
+    {
+      title: "요청사항",
+      dataIndex: "memo",
+    },
+  ];
+}

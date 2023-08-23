@@ -1,8 +1,9 @@
 import { Model } from "@/@shared";
 import { ApiHook, Const, Util } from "@/common";
 import { usePage } from "@/common/hook";
-import { Popup, Search, StatBar, Table } from "@/components";
+import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
+import { PopupCartCreateOpenType } from "@/components/popup/cart/Create";
 import { useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
 
@@ -19,12 +20,58 @@ export default function Component() {
     query: { ...groupPage, ...search },
   });
   const [selectedGroup, setSelectedGroup] = useState<RecordType[]>([]);
+  const onlyGroup = Util.only(selectedGroup);
+
+  // cart
+  const [openCartCreate, setOpenCartCreate] =
+    useState<PopupCartCreateOpenType>(false);
+  const cartList = ApiHook.Cart.useGetList({
+    type: "PURCHASE",
+  });
+  const [selectedCart, setSelectedCart] = useState<Model.Cart[]>([]);
+  const onlyCart = Util.only(selectedCart);
+  const apiDeleteCart = ApiHook.Cart.useDelete();
+  const cmdDeleteCart = async () => {
+    if (
+      !onlyCart ||
+      !(await Util.confirm("선택한 장바구니 항목을 삭제하시겠습니까?"))
+    ) {
+      return;
+    }
+
+    await apiDeleteCart.mutateAsync({ path: { id: onlyCart.id } });
+    setSelectedCart([]);
+  };
 
   return (
     <Page title="매입처 재고 조회" menu={Const.Menu.STOCK_PARTNER}>
       <StatBar.Container>
         <StatBar.Item icon={<TbMapPinFilled />} label="매입처" value={"-"} />
       </StatBar.Container>
+      <Toolbar.Container>
+        <div className="flex-1" />
+        <Toolbar.Button
+          label="장바구니 추가"
+          onClick={() =>
+            onlyGroup &&
+            setOpenCartCreate({
+              companyId: onlyGroup.companyId,
+              warehouseId: onlyGroup.warehouse?.id ?? null,
+              planId: onlyGroup.plan?.id ?? null,
+              product: onlyGroup.product,
+              packaging: onlyGroup.packaging,
+              grammage: onlyGroup.grammage,
+              sizeX: onlyGroup.sizeX,
+              sizeY: onlyGroup.sizeY,
+              paperColorGroup: onlyGroup.paperColorGroup,
+              paperColor: onlyGroup.paperColor,
+              paperPattern: onlyGroup.paperPattern,
+              paperCert: onlyGroup.paperCert,
+            })
+          }
+          disabled={!onlyGroup}
+        />
+      </Toolbar.Container>
       <Search
         items={[
           {
@@ -114,7 +161,31 @@ export default function Component() {
           ),
         ]}
       />
+      <Toolbar.Container>
+        <div className="flex-1" />
+        <Toolbar.Button
+          label="항목 제거"
+          type="danger"
+          onClick={cmdDeleteCart}
+          disabled={!onlyCart}
+        />
+      </Toolbar.Container>
+      <Table.Simple<Model.Cart>
+        data={cartList.data}
+        columns={Table.Preset.cart({
+          type: "SALES",
+        })}
+        keySelector={(record) => `${record.id}`}
+        selected={selectedCart}
+        onSelectedChange={setSelectedCart}
+        selection="multiple"
+      />
       <Popup.Stock.Create open={openCreate} onClose={setOpenCreate} />
+      <Popup.Cart.Create
+        type="PURCHASE"
+        open={openCartCreate}
+        onClose={setOpenCartCreate}
+      />
     </Page>
   );
 }

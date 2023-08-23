@@ -8,6 +8,9 @@ interface Props<T> {
   columns: ColumnType<T>[];
   keySelector: (record: T) => string | number;
   borderless?: boolean;
+  selection?: "none" | "single" | "multiple";
+  selected?: T[];
+  onSelectedChange?: (selected: T[]) => void;
   className?: string;
 }
 
@@ -55,6 +58,24 @@ export default function Component<T extends object>(props: Props<T>) {
       pagination={false}
       dataSource={props.data ?? []}
       components={components}
+      rowSelection={
+        props.selection === "none"
+          ? undefined
+          : {
+              selectedRowKeys: props.selected?.map(props.keySelector),
+              onChange: (_selectedRowKeys, selectedRows) => {
+                props.onSelectedChange?.(selectedRows as T[]);
+              },
+              type: props.selection === "single" ? "radio" : "checkbox",
+            }
+      }
+      onRow={(record) => {
+        return {
+          onClick: () => {
+            props.onSelectedChange?.([record]);
+          },
+        };
+      }}
       rootClassName={props.className}
     />
   );

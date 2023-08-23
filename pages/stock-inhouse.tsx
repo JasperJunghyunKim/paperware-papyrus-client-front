@@ -6,8 +6,11 @@ import { Page } from "@/components/layout";
 import { useEffect, useState } from "react";
 import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 import { OpenType as DetailOpenType } from "../components/popup/stock/Detail";
+import { CartListResponse } from "@/@shared/api/trade/cart.response";
+import { PopupCartCreateOpenType } from "@/components/popup/cart/Create";
 
 export default function Component() {
+  const me = ApiHook.Auth.useGetMe();
   const [openCreate, setOpenCreate] = useState(false);
   const [openCreateArrival, setOpenCreateArrival] = useState(false);
   const [openModify, setOpenModify] = useState<number | false>(false);
@@ -43,6 +46,27 @@ export default function Component() {
   const [selected, setSelected] = useState<Model.Stock[]>([]);
   const only = Util.only(selected);
 
+  // cart
+  const [openCartCreate, setOpenCartCreate] =
+    useState<PopupCartCreateOpenType>(false);
+  const cartList = ApiHook.Cart.useGetList({
+    type: "SALES",
+  });
+  const [selectedCart, setSelectedCart] = useState<Model.Cart[]>([]);
+  const onlyCart = Util.only(selectedCart);
+  const apiDeleteCart = ApiHook.Cart.useDelete();
+  const cmdDeleteCart = async () => {
+    if (
+      !onlyCart ||
+      !(await Util.confirm("선택한 장바구니 항목을 삭제하시겠습니까?"))
+    ) {
+      return;
+    }
+
+    await apiDeleteCart.mutateAsync({ path: { id: onlyCart.id } });
+    setSelectedCart([]);
+  };
+
   useEffect(() => {
     setSelected([]);
   }, [selectedGroup]);
@@ -68,6 +92,28 @@ export default function Component() {
           onClick={() => setOpenCreateArrival(true)}
         />
         <div className="flex-1" />
+        <Toolbar.Button
+          label="장바구니 추가"
+          onClick={() =>
+            onlyGroup &&
+            me.data &&
+            setOpenCartCreate({
+              companyId: me.data.companyId,
+              warehouseId: onlyGroup.warehouse?.id ?? null,
+              planId: onlyGroup.plan?.id ?? null,
+              product: onlyGroup.product,
+              packaging: onlyGroup.packaging,
+              grammage: onlyGroup.grammage,
+              sizeX: onlyGroup.sizeX,
+              sizeY: onlyGroup.sizeY,
+              paperColorGroup: onlyGroup.paperColorGroup,
+              paperColor: onlyGroup.paperColor,
+              paperPattern: onlyGroup.paperPattern,
+              paperCert: onlyGroup.paperCert,
+            })
+          }
+          disabled={!onlyGroup}
+        />
         <Toolbar.Button
           label="재고 내역 상세"
           onClick={() =>
@@ -152,6 +198,25 @@ export default function Component() {
         selection="single"
         columns={Table.Preset.columnStock()}
       />
+      <Toolbar.Container>
+        <div className="flex-1" />
+        <Toolbar.Button
+          label="항목 제거"
+          type="danger"
+          onClick={cmdDeleteCart}
+          disabled={!onlyCart}
+        />
+      </Toolbar.Container>
+      <Table.Simple<Model.Cart>
+        data={cartList.data}
+        columns={Table.Preset.cart({
+          type: "SALES",
+        })}
+        keySelector={(record) => `${record.id}`}
+        selected={selectedCart}
+        onSelectedChange={setSelectedCart}
+        selection="multiple"
+      />
       <Popup.Stock.Create open={openCreate} onClose={setOpenCreate} />
       <Popup.Stock.Create
         open={openCreateArrival}
@@ -161,6 +226,11 @@ export default function Component() {
       <Popup.Stock.Modify open={openModify} onClose={setOpenModify} />
       <Popup.Stock.Detail open={openDetail} onClose={setOpenDetail} />
       <Popup.Stock.Print open={openPrint} onClose={setOpenPrint} />
+      <Popup.Cart.Create
+        type="SALES"
+        open={openCartCreate}
+        onClose={setOpenCartCreate}
+      />
     </Page>
   );
 }
