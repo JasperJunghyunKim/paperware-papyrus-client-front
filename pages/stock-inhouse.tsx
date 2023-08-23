@@ -8,6 +8,7 @@ import { TbMapPin, TbMapPinFilled } from "react-icons/tb";
 import { OpenType as DetailOpenType } from "../components/popup/stock/Detail";
 import { CartListResponse } from "@/@shared/api/trade/cart.response";
 import { PopupCartCreateOpenType } from "@/components/popup/cart/Create";
+import { PopupStockCreateWithCartOpenType } from "@/components/popup/order/StockCreateWithCart";
 
 export default function Component() {
   const me = ApiHook.Auth.useGetMe();
@@ -16,6 +17,8 @@ export default function Component() {
   const [openModify, setOpenModify] = useState<number | false>(false);
   const [openDetail, setOpenDetail] = useState<DetailOpenType | false>(false);
   const [openPrint, setOpenPrint] = useState<number | false>(false);
+  const [openStockCreateWithCart, setOpenStockCreateWithCart] =
+    useState<PopupStockCreateWithCartOpenType>(false);
 
   const [search, setSearch] = useState<any>({});
   const [groupPage, setGroupPage] = usePage();
@@ -206,6 +209,17 @@ export default function Component() {
           onClick={cmdDeleteCart}
           disabled={!onlyCart}
         />
+        <Toolbar.Button
+          label="매출 일괄 등록"
+          type="primary"
+          onClick={() =>
+            selectedCart &&
+            setOpenStockCreateWithCart({
+              targetCartIds: selectedCart.map((cart) => cart.id),
+            })
+          }
+          disabled={selectedCart.length === 0}
+        />
       </Toolbar.Container>
       <Table.Simple<Model.Cart>
         data={cartList.data}
@@ -230,6 +244,11 @@ export default function Component() {
         type="SALES"
         open={openCartCreate}
         onClose={setOpenCartCreate}
+      />
+      <Popup.Order.StockCreateWithCart
+        type="SALES"
+        open={openStockCreateWithCart}
+        onClose={setOpenStockCreateWithCart}
       />
     </Page>
   );

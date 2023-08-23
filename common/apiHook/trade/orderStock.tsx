@@ -1,4 +1,6 @@
 import { Api } from "@/@shared";
+import { OrderStockGroupCreateRequest } from "@/@shared/api";
+import { $query } from "@/common/apiTemplate";
 import { API_HOST } from "@/common/const";
 import { message } from "antd";
 import axios from "axios";
@@ -79,3 +81,10 @@ export function useUpdateStock() {
     }
   );
 }
+
+export const useCreateWithCart = () =>
+  $query.useCreate<OrderStockGroupCreateRequest>(
+    "order/stock/group",
+    ["order", "cart"],
+    "일괄등록 처리가 완료되었습니다."
+  );

@@ -4,6 +4,7 @@ import { usePage } from "@/common/hook";
 import { Popup, Search, StatBar, Table, Toolbar } from "@/components";
 import { Page } from "@/components/layout";
 import { PopupCartCreateOpenType } from "@/components/popup/cart/Create";
+import { PopupStockCreateWithCartOpenType } from "@/components/popup/order/StockCreateWithCart";
 import { useState } from "react";
 import { TbMapPinFilled } from "react-icons/tb";
 
@@ -13,6 +14,8 @@ type RecordType = Model.StockGroup & {
 
 export default function Component() {
   const [openCreate, setOpenCreate] = useState(false);
+  const [openStockCreateWithCart, setOpenStockCreateWithCart] =
+    useState<PopupStockCreateWithCartOpenType>(false);
 
   const [search, setSearch] = useState<any>({});
   const [groupPage, setGroupPage] = usePage();
@@ -169,6 +172,17 @@ export default function Component() {
           onClick={cmdDeleteCart}
           disabled={!onlyCart}
         />
+        <Toolbar.Button
+          label="매출 일괄 등록"
+          type="primary"
+          onClick={() =>
+            selectedCart &&
+            setOpenStockCreateWithCart({
+              targetCartIds: selectedCart.map((cart) => cart.id),
+            })
+          }
+          disabled={selectedCart.length === 0}
+        />
       </Toolbar.Container>
       <Table.Simple<Model.Cart>
         data={cartList.data}
@@ -185,6 +199,11 @@ export default function Component() {
         type="PURCHASE"
         open={openCartCreate}
         onClose={setOpenCartCreate}
+      />
+      <Popup.Order.StockCreateWithCart
+        type="PURCHASE"
+        open={openStockCreateWithCart}
+        onClose={setOpenStockCreateWithCart}
       />
     </Page>
   );
