@@ -1,8 +1,9 @@
 import { Api } from "@/@shared";
-import { ApiHook, Util } from "@/common";
+import { StockCreateStockPriceRequest } from "@/@shared/api";
+import { ApiHook, PriceUtil, Util } from "@/common";
 import { Button, FormControl, Popup } from "@/components";
 import { Number } from "@/components/formControl";
-import { Form } from "antd";
+import { Form, Input } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useCallback, useEffect } from "react";
@@ -73,6 +74,27 @@ export default function Component(props: Props) {
       FormControl.Util.Price.initialStockPrice(packaging.type)
     );
   }, [packagingId, grammage, sizeX, sizeY, packaging, form]);
+
+  const stockPrice = useWatch<StockCreateStockPriceRequest | undefined>(
+    ["stockPrice"],
+    form
+  );
+  const quantity = useWatch<number>(["quantity"], form);
+  const supplyPrice =
+    packaging && stockPrice
+      ? Util.comma(
+          PriceUtil.calcSupplyPrice({
+            spec: {
+              grammage,
+              sizeX,
+              sizeY,
+              packaging,
+            },
+            price: stockPrice,
+            quantity: quantity,
+          })
+        )
+      : 0;
 
   return (
     <Popup.Template.Property title="재고 추가" {...props}>
@@ -187,6 +209,11 @@ export default function Component(props: Props) {
                   paperCertId,
                 }}
               />
+            </Form.Item>
+          )}
+          {packaging && (
+            <Form.Item label="공급가">
+              <Input addonAfter="원" disabled value={supplyPrice} />
             </Form.Item>
           )}
           {packaging && (

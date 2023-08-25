@@ -24,6 +24,7 @@ export default function Component() {
   const [groupPage, setGroupPage] = usePage();
   const groupList = ApiHook.Stock.StockInhouse.useGetGroupList({
     query: {
+      isDirectShippingIncluded: true,
       ...groupPage,
       ...search,
     },

@@ -173,7 +173,7 @@ export default function Component() {
           disabled={!onlyCart}
         />
         <Toolbar.Button
-          label="매출 일괄 등록"
+          label="매입 일괄 등록"
           type="primary"
           onClick={() =>
             selectedCart &&

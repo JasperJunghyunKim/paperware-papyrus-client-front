@@ -4,6 +4,7 @@ import * as R from "@/common/rules";
 import { Button, FormControl, Popup } from "@/components";
 import { Form, Input, Select, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
+import dayjs from "dayjs";
 import { useCallback, useEffect } from "react";
 
 export type PopupStockCreateWithCartOpenType =
@@ -37,7 +38,6 @@ export default function Component(props: PopupCreateProps) {
         orderDate: data.orderDate,
         wantedDate: data.wantedDate,
         locationId: data.locationId,
-        memo: data.memo,
         isDirectShipping: data.isDirectShipping,
         orderStatus: data.orderStatus,
       },
@@ -68,6 +68,7 @@ export default function Component(props: PopupCreateProps) {
           label={`${props.type === "SALES" ? "매출" : "매입"}일`}
           name="orderDate"
           rules={[R.required()]}
+          initialValue={Util.dateToIso8601(dayjs())}
         >
           <FormControl.DatePicker />
         </Form.Item>
@@ -88,17 +89,16 @@ export default function Component(props: PopupCreateProps) {
         >
           <FormControl.DatePicker />
         </Form.Item>
-        <Form.Item
-          label="직송 여부"
-          name="isDirectShipping"
-          valuePropName="checked"
-          initialValue={false}
-        >
-          <Switch />
-        </Form.Item>
-        <Form.Item label="기타 요청사항" name="memo" initialValue={""}>
-          <Input.TextArea rows={2} />
-        </Form.Item>
+        {props.type === "PURCHASE" && (
+          <Form.Item
+            label="직송 여부"
+            name="isDirectShipping"
+            valuePropName="checked"
+            initialValue={false}
+          >
+            <Switch />
+          </Form.Item>
+        )}
         {props.type === "SALES" && selectedSrcCompany?.managedById === null && (
           <Form.Item
             label="등록 구분 선택"

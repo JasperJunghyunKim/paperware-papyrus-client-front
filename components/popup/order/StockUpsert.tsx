@@ -6,7 +6,7 @@ import { usePage } from "@/common/hook";
 import { mine } from "@/common/util";
 import { Button, FormControl, Popup, Table, Toolbar } from "@/components";
 import { Number } from "@/components/formControl";
-import { Alert, Checkbox, Form, Input, Select, Steps, Switch } from "antd";
+import { Alert, Checkbox, Form, Input, Select, Switch } from "antd";
 import { useForm, useWatch } from "antd/lib/form/Form";
 import classNames from "classnames";
 import dayjs from "dayjs";
@@ -20,15 +20,12 @@ import {
   TbHandStop,
   TbHistory,
   TbInfoCircle,
-  TbRotateClockwise2,
-  TbRubberStamp,
   TbSend,
   TbSquare,
   TbX,
 } from "react-icons/tb";
 import { CreateArrival, UpdateArrival, UpdateArrivalPrice } from ".";
 import { TaskMap } from "../plan/common";
-import { OrderRefundCreateRequest } from "@/@shared/api";
 
 export type OrderId = number;
 export type OrderUpsertOpen = "CREATE_ORDER" | "CREATE_OFFER" | OrderId | false;
@@ -860,12 +857,18 @@ function DataForm(props: DataFormProps) {
         <>
           <Form.Item
             name="wantedDate"
-            label={props.isSales ? "납품 요청일" : "도착 희망일"}
+            label={
+              (props.isSales && orderType !== "RETURN") ||
+              (!props.isSales && orderType === "RETURN")
+                ? "납품 요청일"
+                : "도착 희망일"
+            }
             rules={REQUIRED_RULES}
           >
             <FormControl.DatePicker disabled={!metaEditable} />
           </Form.Item>
-          {!props.isSales && orderType !== "RETURN" && (
+          {((!props.isSales && orderType !== "RETURN") ||
+            orderType === "RETURN") && (
             <Form.Item
               name="isDirectShipping"
               label="직송 여부"

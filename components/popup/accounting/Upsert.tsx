@@ -357,6 +357,15 @@ function FormBySecurity(props: {
   type Request = AccountedBySecurityCreatedRequest;
   const [form] = useForm<Request>();
 
+  const securityId = useWatch<number | undefined>(["securityId"], form);
+
+  const securityAmount = useWatch<number | undefined>(
+    ["security", "securityAmount"],
+    form
+  );
+
+  const security = ApiHook.Setting.Security.useGetItem(securityId);
+
   const apiCreate = ApiHook.Setting.Accounted.useCreateBySecurity();
   const apiUpdate = ApiHook.Setting.Accounted.useUpdateBySecurity();
   const apiUpsert = props.initialData ? apiUpdate : apiCreate;
@@ -423,6 +432,19 @@ function FormBySecurity(props: {
   return (
     <Form form={form} layout="vertical">
       {/* 유가증권 */}
+      <Form.Item label={props.type === "COLLECTED" ? "수금 금액" : "지급 금액"}>
+        <FormControl.Number
+          precision={0}
+          min={0}
+          unit="원"
+          value={
+            props.type === "COLLECTED"
+              ? securityAmount
+              : security.data?.securityAmount
+          }
+          disabled
+        />
+      </Form.Item>
       <Form.Item
         label="계정과목"
         name="accountedSubject"
@@ -588,11 +610,6 @@ function FormByCard(props: {
 
   return (
     <Form form={form} layout="vertical">
-      {props.type === "PAID" && (
-        <Form.Item label="카드 선택" name="cardId" rules={[R.required()]}>
-          <FormControl.SelectCard disabled={!!props.initialData} />
-        </Form.Item>
-      )}
       <Form.Item label={props.type === "COLLECTED" ? "수금금액" : "지급금액"}>
         <FormControl.Number
           precision={0}
@@ -629,24 +646,41 @@ function FormByCard(props: {
       >
         <Switch />
       </Form.Item>
-      {props.type === "COLLECTED" && (
-        <Form.Item
-          label="계좌 선택"
-          name="bankAccountId"
-          rules={[R.required()]}
-        >
-          <FormControl.SelectBankAccount disabled={!!props.initialData} />
-        </Form.Item>
-      )}
-      <Form.Item label="승인번호" name="approvalNumber">
-        <Input />
-      </Form.Item>
+      {props.type === "COLLECTED" &&
+        (isCharge ? (
+          <Alert
+            message="카드사로부터 계좌 입금된 금액과 수수료까지 수금 금액으로 잡힙니다."
+            type="info"
+            showIcon
+            className="mb-2"
+          />
+        ) : (
+          <Alert
+            message="카드사로부터 계좌 입금된 금액만 수금 금액으로 잡힙니다."
+            type="info"
+            showIcon
+            className="mb-2"
+          />
+        ))}
       <Form.Item
         label="계정과목"
         name="accountedSubject"
         rules={[R.required()]}
       >
         <SelectSubject type={props.type} />
+      </Form.Item>
+      {props.type === "COLLECTED" && (
+        <Form.Item label="계좌" name="bankAccountId" rules={[R.required()]}>
+          <FormControl.SelectBankAccount disabled={!!props.initialData} />
+        </Form.Item>
+      )}
+      {props.type === "PAID" && (
+        <Form.Item label="카드" name="cardId" rules={[R.required()]}>
+          <FormControl.SelectCard disabled={!!props.initialData} />
+        </Form.Item>
+      )}
+      <Form.Item label="승인번호" name="approvalNumber">
+        <Input />
       </Form.Item>
       <Form.Item label="비고" name="memo">
         <Input.TextArea rows={2} />

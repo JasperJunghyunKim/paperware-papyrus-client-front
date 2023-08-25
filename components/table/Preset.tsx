@@ -692,7 +692,7 @@ export function cart<T extends Model.Cart>(options?: {
 
   return [
     {
-      title: "거래처",
+      title: options?.type === "SALES" ? "거래처" : "매입처",
       dataIndex: [
         "plan",
         "orderStock",

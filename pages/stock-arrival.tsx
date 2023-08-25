@@ -16,7 +16,7 @@ export default function Component() {
     query: {
       planId: "any",
       orderProcessIncluded: "true",
-      isZeroQuantityIncldued: "true",
+      isZeroQuantityIncluded: "true",
       ...page,
       ...search,
     },
